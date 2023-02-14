@@ -1,0 +1,19 @@
+{
+    "codeLens.enable": true,
+    "workspace.rootPatterns": [".git", ".hg", ".projections.json", ".root"],
+    "jedi.workspace.symbols.ignoreFolders":[".nox", ".tox", ".venv", "__pycache__", "venv", "build"],
+    "diagnostic-languageserver.formatFiletypes": {
+        "python": ["black", "isort"],
+        "sh": "shfmt",
+        "cmake": "cmake-format"
+    },
+    "diagnostic-languageserver.filetypes": {
+      "python": ["pylint", "flake8", "mypy"],
+      "cmake": [ "cmake-lint", "cmakelint" ],
+      "yaml": [ "yamllint" ],
+      "sh": "shellcheck",
+      "vim": "vint"
+    },
+    "diagnostic-languageserver.mergeConfig": true,
+    "git.enableGutters": false
+}

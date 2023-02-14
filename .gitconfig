@@ -1,0 +1,24 @@
+[credential]
+	helper = store
+[core]
+	editor = vim
+[color]
+	ui = auto
+[alias]
+	st = status
+	co = checkout
+	br = branch
+	rb = rebase
+	cm = commit
+	lg = log --graph --abbrev-commit --decorate --format=format:'%C(cyan)%h%C(reset) - %C(green)(%ar)%C(reset) %C(white)%s%C(reset) %C(blue)- %an%C(reset)%C(yellow)%d%C(reset)'
+	conflicted = !vim +Conflicted
+[diff]
+	tool = vimdiff
+[difftool]
+	prompt = false
+[rerere]
+	enabled = true
+[mergetool "vim-conflicted"]
+	cmd = vim +Conflicted
+[merge]
+	tool = vim-conflicted

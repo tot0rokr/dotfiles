@@ -1,1 +1,1 @@
-# bash
+# Personal Settings

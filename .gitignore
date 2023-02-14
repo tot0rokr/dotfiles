@@ -1,0 +1,5 @@
+temp/
+undo/
+.git-credentials
+.bash_history
+.python_history
