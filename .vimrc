@@ -166,7 +166,13 @@ vnoremap <space> zf
 highlight FoldColumn ctermfg=3 ctermbg=none
 highlight Folded ctermfg=245 ctermbg=none
 
-autocmd FileType python source ~/.vim/python_fold.vim
+let foldfiles = {
+            \ "python": "~/.vim/python_fold.vim"
+            \}
+let python_fold = findfile(foldfiles.python)
+if !empty(python_fold)
+    exec 'autocmd FileType python source ' .. python_fold
+endif
 
 
 " -------------------------------- quick fix --------------------------------
