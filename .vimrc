@@ -4,6 +4,8 @@
 " Last Change:  2023 Feb 14
 " Version:  1.0
 
+" -------------------------------- Plugin -----------------------------------
+
 set rtp+=~/.vim/bundle/Vundle.vim
 call vundle#begin('~/.vim/bundle')
 
@@ -26,6 +28,8 @@ Plugin 'edkolev/tmuxline.vim'
 Plugin 'majutsushi/tagbar'
 
 " auto completion
+" Need nodejs
+" $ curl -sL install-node.vercel.app/lts | bash
 Plugin 'neoclide/coc.nvim', {'branch': 'release'}
 
 " write comment
@@ -91,6 +95,9 @@ let g:indent_guides_start_level = 2
 let g:indent_guides_default_mapping = 0
 
 " docstring
+" Need to make install
+" $ cd ~/.vim/bundle/vim-pydocstring
+" $ make install
 Plugin 'heavenshell/vim-pydocstring', { 'do': 'make install', 'for': 'python' }
 let g:pydocstring_formatter = 'google'
 let g:pydocstring_ignore_init = 1
@@ -105,6 +112,9 @@ Plugin 'junegunn/fzf'
 call vundle#end()
 
 filetype plugin indent on
+
+
+" ------------------------------- setup --------------------------------------
 
 " May need for Vim (not Neovim) since coc.nvim calculates byte offset by count
 " utf-8 byte sequence
@@ -192,9 +202,9 @@ function! OpenQuickfixWindow()
 endfunction
 
 autocmd QuickFixCmdPost * :call OpenQuickfixWindow()
-autocmd BufReadPost quickfix setlocal modifiable
-		\ | silent exec 'g/^/s//\=line(".")." "/'
-		\ | setlocal nomodifiable
+" autocmd BufReadPost quickfix setlocal modifiable
+		" \ | silent exec 'g/^/s//\=line(".")." "/'
+		" \ | setlocal nomodifiable
 
 
 " -------------------------------- cursor ------------------------------------
@@ -271,6 +281,7 @@ call airline#parts#define(
 let g:airline_section_z = airline#section#create(
        \ ['%p%%', 'linenr', 'maxlinenr', 'colnr', 'foldlevel', 'windownumber'])
 
+let g:airline#extensions#tmuxline#enabled = 0
 let g:tmuxline_preset = {
         \'a'    : '#S',
         \'b'    : '#W',
@@ -508,7 +519,7 @@ call quickui#menu#reset()
 
 call quickui#menu#install("&Files", [
             \ ['&NERD Tree', "NERDTreeToggle"],
-            \ ['&Tag &Bar', "TagbarToggle"],
+            \ ['&Tag Bar', "TagbarToggle"],
             \ ['--',''],
             \ ['Search Git &File', "normal \<Plug>SearchGitFile"],
             \ ['--',''],
@@ -519,21 +530,6 @@ call quickui#menu#install("&Files", [
 call quickui#menu#install("&Tags", [
             \ ['Function &List', "call quickui#tools#list_function()"],
             \ ['Preview &Tag  <F3>', ":call quickui#tools#preview_tag('')"],
-            \ ])
-
-call quickui#menu#install("Coc &Refactor", [
-            \ ['Code &Action', "call CocActionAsync('codeAction', visualmode())"],
-            \ ['Code Action &Cursor', "normal \<Plug>(coc-codeaction-cursor)"],
-            \ ['Code Action &source', "normal \<Plug>(coc-codeaction-source)"],
-            \ ['&Rename', "normal \<Plug>(coc-rename)"],
-            \ ])
-
-call quickui#menu#install("&CocList", [
-            \ ['&Diagnostics', 'CocList diagnostics'],
-            \ ['&Extensions', 'CocList extensions'],
-            \ ['&Commands', 'CocList commands'],
-            \ ['&Outline', 'CocList outline'],
-            \ ['&Symbols', 'CocList symbols'],
             \ ])
 
 function! TermExit(code)
@@ -565,6 +561,21 @@ call quickui#menu#install("&Window", [
             \ ['--',''],
             \ ['Toggle Cursor High&light', 'call ToggleCursorHighlight()'],
             \ ['Toggle Color &TextWidth', 'call ToggleColorColumn()'],
+            \ ])
+
+call quickui#menu#install("Coc &Refactor", [
+            \ ['Code &Action', "call CocActionAsync('codeAction', visualmode())"],
+            \ ['Code Action &Cursor', "normal \<Plug>(coc-codeaction-cursor)"],
+            \ ['Code Action &source', "normal \<Plug>(coc-codeaction-source)"],
+            \ ['&Rename', "normal \<Plug>(coc-rename)"],
+            \ ])
+
+call quickui#menu#install("&CocList", [
+            \ ['&Diagnostics', 'CocList diagnostics'],
+            \ ['&Extensions', 'CocList extensions'],
+            \ ['&Commands', 'CocList commands'],
+            \ ['&Outline', 'CocList outline'],
+            \ ['&Symbols', 'CocList symbols'],
             \ ])
 
 " register HELP menu with weight 10000
