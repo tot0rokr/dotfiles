@@ -109,6 +109,9 @@ Plugin 'skywind3000/vim-quickui'
 " fzf
 Plugin 'junegunn/fzf'
 
+" Shell
+Plugin 'Shougo/deol.nvim'
+
 call vundle#end()
 
 filetype plugin indent on
