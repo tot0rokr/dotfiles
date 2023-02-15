@@ -113,10 +113,58 @@ if [ -x /usr/bin/dircolors ]; then
 fi
 
 # colored GCC warnings and errors
-export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01'
+#export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01'
 
+
+# Add an "alert" alias for long running commands.  Use like so:
+#   sleep 10; alert
+alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
 
 if [ $(lsb_release -i | awk '{print $3}') == "Ubuntu" ]; then
+    if [ -z $(which curl) ]; then
+        sudo apt-get install -y curl
+    fi
+
+    if [ -z $(which wget) ]; then
+        sudo apt-get install -y wget
+    fi
+
+    if [ -z $(which git) ]; then
+        sudo apt-get install -y git
+    fi
+
+    if [ -z $(which gcc) ]; then
+        sudo apt-get install -y gcc
+    fi
+
+    if [ -z $(which make) ]; then
+        sudo apt-get install -y make
+    fi
+
+    if [ -z $(which python3) ]; then
+        sudo apt-get install -y python3
+    fi
+
+    if [ -z $(which tmux) ]; then
+        sudo apt-get install -y tmux
+    fi
+
+    if [ -z $(which vim) ]; then
+        sudo add-apt-repository ppa:jonathonf/vim
+        sudo apt update
+        sudo apt install -y vim
+        git clone --depth 1 https://github.com/VundleVim/Vundle.vim.git ~/.vim/bundle/Vundle.vim
+        vim +PluginInstall +qall
+    fi
+
+    if [ -z $(which ctags) ]; then
+        sudo apt-get install -y ctags
+    fi
+
+    if [ -z $(which cscope) ]; then
+        sudo apt-get install -y cscope
+    fi
+
     if [ -z $(which fd) ]; then
         if [ ! -z $(which fdfind) ]; then
             ln -s $(which fdfind) ~/.local/bin/fd
