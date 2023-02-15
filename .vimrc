@@ -99,6 +99,9 @@ let g:pydocstring_enable_mapping = 0
 " quickui
 Plugin 'skywind3000/vim-quickui'
 
+" fzf
+Plugin 'junegunn/fzf'
+
 call vundle#end()
 
 filetype plugin indent on
@@ -434,6 +437,51 @@ nnoremap <silent><leader>d <Plug>CscopeFindInc
 nnoremap <silent><leader>a <Plug>CscopeFindAsn
 nnoremap <silent><leader>S <Plug>CscopeFindStc
 
+
+" -------------------------- fzf(command-line fuzzy finder --------------------
+let fzfdir = $HOME . '/.fzf'
+exec 'set rtp+=' . fzfdir
+
+let g:fzf_action = {
+  \ 'ctrl-t': 'tab split',
+  \ 'ctrl-s': 'split',
+  \ 'ctrl-v': 'vsplit' }
+
+" - Popup window (center of the current window)
+let g:fzf_layout = { 'window': { 'width': 0.9, 'height': 0.6, 'relative': v:true } }
+
+" Customize fzf colors to match your color scheme
+" - fzf#wrap translates this to a set of `--color` options
+let g:fzf_colors =
+\ { 'fg':      ['fg', 'Normal'],
+  \ 'bg':      ['bg', 'Normal'],
+  \ 'hl':      ['fg', 'Comment'],
+  \ 'fg+':     ['fg', 'CursorLine', 'CursorColumn', 'Normal'],
+  \ 'bg+':     ['bg', 'CursorLine', 'CursorColumn'],
+  \ 'hl+':     ['fg', 'Statement'],
+  \ 'info':    ['fg', 'PreProc'],
+  \ 'border':  ['fg', 'Ignore'],
+  \ 'prompt':  ['fg', 'Conditional'],
+  \ 'pointer': ['fg', 'Exception'],
+  \ 'marker':  ['fg', 'Keyword'],
+  \ 'spinner': ['fg', 'Label'],
+  \ 'header':  ['fg', 'Comment'] }
+
+" Enable per-command history
+" - History files will be stored in the specified directory
+" - When set, CTRL-N and CTRL-P will be bound to 'next-history' and
+"   'previous-history' instead of 'down' and 'up'.
+let g:fzf_history_dir = '~/.local/share/fzf-history'
+
+nmap <Plug>SearchGitFile
+            \ :call fzf#run({'source': 'git ls-files', 'sink': 'e', 'left': '40%'})<CR>
+
+" The query history for this command will be stored as 'ls' inside g:fzf_history_dir.
+" The name is ignored if g:fzf_history_dir is not defined.
+command! -bang -complete=dir -nargs=? LS
+    \ call fzf#run(fzf#wrap('ls', {'source': 'ls', 'dir': <q-args>}, <bang>0))
+
+
 " ------------------------- quickui -------------------------------------------
 function! PopupLines()
     let lines = &lines - 5
@@ -461,6 +509,8 @@ call quickui#menu#reset()
 call quickui#menu#install("&Files", [
             \ ['&NERD Tree', "NERDTreeToggle"],
             \ ['&Tag &Bar', "TagbarToggle"],
+            \ ['--',''],
+            \ ['Search Git &File', "normal \<Plug>SearchGitFile"],
             \ ['--',''],
             \ ['Save &Backup', "call SaveBackup()"],
             \ ['Delete &Swap', "call DeleteSwap()"],
@@ -582,10 +632,6 @@ augroup MyQuickfixPreview
     au!
     au FileType qf noremap <silent><buffer> p :call quickui#tools#preview_quickfix()<cr>
 augroup END
-
-" -------------------------- fzf(command-line fuzzy finder --------------------
-set rtp+=~/.fzf
-
 
 " --------------------------------- Key Mapping -------------------------------
 " Editor

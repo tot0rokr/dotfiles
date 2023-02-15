@@ -116,6 +116,26 @@ fi
 export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01'
 
 
+if [ $(lsb_release -i | awk '{print $3}') == "Ubuntu" ]; then
+    if [ -z $(which fd) ]; then
+        if [ ! -z $(which fdfind) ]; then
+            ln -s $(which fdfind) ~/.local/bin/fd
+        else
+            sudo apt-get install -y fd-find
+            ln -s $(which fdfind) ~/.local/bin/fd
+        fi
+    fi
+
+    if [ -z $(which bat) ]; then
+        if [ ! -z $(which batcat) ]; then
+            ln -s $(which batcat) ~/.local/bin/bat
+        else
+            sudo apt-get install -y bat
+            ln -s $(which batcat) ~/.local/bin/bat
+        fi
+    fi
+fi
+
 # Alias definitions.
 if [ -f ~/.bash_aliases ]; then
     . ~/.bash_aliases
