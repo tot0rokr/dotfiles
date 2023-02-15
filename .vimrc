@@ -550,7 +550,9 @@ function! OpenPython()
 	let opts = {'w':call("PopupColumns",[]),
                 \ 'h':call("PopupLines",[]), 'callback':'TermExit'}
 	let opts.title = 'Python Popup'
-	call quickui#terminal#open('python', opts)
+    call quickui#terminal#open(
+        \ 'bash -c "if [ ! -z $(which ipython) ]; then ipython; else python; fi"',
+        \ opts)
 endfunction
 
 call quickui#menu#install("&Window", [
