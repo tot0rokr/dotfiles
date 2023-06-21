@@ -158,7 +158,7 @@ if [ $(lsb_release -i | awk '{print $3}') == "Ubuntu" ]; then
     fi
 
     if [ -z $(which ctags) ]; then
-        sudo apt-get install -y ctags
+        sudo apt-get install -y universal-ctags
     fi
 
     if [ -z $(which cscope) ]; then
@@ -167,24 +167,27 @@ if [ $(lsb_release -i | awk '{print $3}') == "Ubuntu" ]; then
 
     if [ -z $(which fd) ]; then
         if [ ! -z $(which fdfind) ]; then
-            ln -s $(which fdfind) ~/.local/bin/fd
+            ln -s $(which fdfind) $HOME/.local/bin/fd
         else
             sudo apt-get install -y fd-find
-            ln -s $(which fdfind) ~/.local/bin/fd
+            ln -s $(which fdfind) $HOME/.local/bin/fd
         fi
     fi
 
     if [ -z $(which bat) ]; then
         if [ ! -z $(which batcat) ]; then
-            ln -s $(which batcat) ~/.local/bin/bat
+            ln -s $(which batcat) $HOME/.local/bin/bat
         else
             sudo apt-get install -y bat
-            ln -s $(which batcat) ~/.local/bin/bat
+            ln -s $(which batcat) $HOME/.local/bin/bat
         fi
     fi
 fi
 
 # Alias definitions.
+# You may want to put all your additions into a separate file like
+# ~/.bash_aliases, instead of adding them here directly.
+# See /usr/share/doc/bash-doc/examples in the bash-doc package.
 if [ -f ~/.bash_aliases ]; then
     . ~/.bash_aliases
 fi
@@ -200,7 +203,7 @@ if ! shopt -oq posix; then
   fi
 fi
 
-# fzf setting
+cd ~
+
 [ -f ~/.fzf.bash ] && source ~/.fzf.bash
 
-cd ~
