@@ -18,3 +18,5 @@ alias tmux='tmux -2'
 alias ipython="ipython --TerminalInteractiveShell.editing_mode=vi"
 alias fzf="fzf --preview 'bat --color=always {}' --preview-window '~3'"
 alias cat="bat"
+
+alias cd..='cd ..'

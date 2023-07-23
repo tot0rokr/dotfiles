@@ -69,7 +69,7 @@ if [ -f ~/.git-prompt.sh ]; then
 fi
 
 if [ "$color_prompt" = yes ]; then
-    if [ -f ~/.git-prompt.sh ]; then # Add an if statement to insert the value of the __git_ps1 variable into the if block for setting up the original PS1
+    if [ -f ~/.git-prompt.sh ]; then # <== 원래의 PS1 설정을 위한 if 블록에 __git_ps1 변수 값을 끼워넣는 if 문 추가
         #PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u\[\033[00m\]:\[\033[01;34m\]\W\[\033[00m\]\$$(__git_ps1 "(Branch:%s)") '
         PS1=$PS1'\[\033[01;35m\]$(__git_ps1 " (%s)")\[\033[00m\] '
     else
@@ -78,7 +78,7 @@ if [ "$color_prompt" = yes ]; then
     fi
 
 else
-    if [ -f ~/.git-prompt.sh ]; then # <== same as above
+    if [ -f ~/.git-prompt.sh ]; then # <== 위와 마찬가지
         PS1='${debian_chroot:+($debian_chroot)}\u:\W\$$(__git_ps1 "(Branch:%s)") '
     else
         PS1='${debian_chroot:+($debian_chroot)}\u:\W\$ '
