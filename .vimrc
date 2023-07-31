@@ -133,6 +133,7 @@ set background=dark
 " set t_Co=16
 set t_Co=256
 set autoread
+autocmd CursorHold * :checktime
 set hlsearch
 
 
@@ -426,7 +427,7 @@ function! LoadCscope()
 endfunction
 au BufEnter /* call LoadCscope()
 set cscopequickfix=s-,g-,d-,c-,t-,e-,f-,i-,a-
-set csto=0
+set csto=1
 set cst
 
 nmap <Plug>CscopeFindSym :cs find s <C-R>=expand("<cword>")<CR><CR>
@@ -440,16 +441,16 @@ nmap <Plug>CscopeFindInc :cs find d <C-R>=expand("<cword>")<CR><CR>
 nmap <Plug>CscopeFindAsn :cs find a <C-R>=expand("<cword>")<CR><CR>
 nmap <Plug>CscopeFindStc :cs find t struct <C-R>=expand("<cword>")<CR> {<CR>
 
-nnoremap <silent><leader>s <Plug>CscopeFindSym
-nnoremap <silent><leader>g <Plug>CscopeFindDef
-nnoremap <silent><leader>c <Plug>CscopeFindClr
-nnoremap <silent><leader>t <Plug>CscopeFindCll
-nnoremap <silent><leader>e <Plug>CscopeFindTxt
-nnoremap <silent><leader>f <Plug>CscopeFindGrp
-nnoremap <silent><leader>i <Plug>CscopeFindFle
-nnoremap <silent><leader>d <Plug>CscopeFindInc
-nnoremap <silent><leader>a <Plug>CscopeFindAsn
-nnoremap <silent><leader>S <Plug>CscopeFindStc
+nmap <silent><leader>s <Plug>CscopeFindSym
+nmap <silent><leader>g <Plug>CscopeFindDef
+nmap <silent><leader>c <Plug>CscopeFindClr
+nmap <silent><leader>t <Plug>CscopeFindCll
+nmap <silent><leader>e <Plug>CscopeFindTxt
+nmap <silent><leader>f <Plug>CscopeFindGrp
+nmap <silent><leader>i <Plug>CscopeFindFle
+nmap <silent><leader>d <Plug>CscopeFindInc
+nmap <silent><leader>a <Plug>CscopeFindAsn
+nmap <silent><leader>S <Plug>CscopeFindStc
 
 
 " -------------------------- fzf(command-line fuzzy finder --------------------
