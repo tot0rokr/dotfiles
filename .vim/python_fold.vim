@@ -61,7 +61,7 @@ function! GetPythonFold(lnum)
     endif
 
     " Classes and functions get their own folds
-    if line =~ '^\s*\(class\|def\)\s'
+    if line =~ '^\s*\(class\|def\|async def\)\s'
 	return ">" . (ind / &sw + 1)
     endif
 
@@ -89,7 +89,7 @@ function! GetPythonFold(lnum)
     " First I check for some common cases where this algorithm would
     " otherwise fail. (This is all a hack)
     let nline = getline(nnum)
-    if nline =~ '^\s*\(except\|else\|elif\)'
+    if nline =~ '^\s*\(try\|if\|finally\|with\|async with\|except\|else\|elif\)'
 	return "="
     endif
 
