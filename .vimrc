@@ -4,14 +4,14 @@
 " Last Change:  2024 Jan 18
 " Version:  2.0
 
-let g:vimdir = $HOME . '/.vim'
+let g:vimdir = $HOME .. '/.vim'
 
 
 " -------------------------------- Plugin -----------------------------------
 
-execute 'set rtp+=' . g:vimdir . '/bundle/Vundle.vim'
+execute 'set rtp+=' .. g:vimdir .. '/bundle/Vundle.vim'
 " set rtp+=~/.vim/bundle/Vundle.vim
-call vundle#begin(g:vimdir .'/bundle')
+call vundle#begin(g:vimdir .. '/bundle')
 
 Plugin 'VundleVim/Vundle.vim'
 
@@ -192,7 +192,7 @@ exec 'set fillchars=fold:\ '
 
 function! MyFoldText()
     let nl = v:foldend - v:foldstart + 1
-    let txt = getline(v:foldstart) . ' --- length ' . nl . ' '
+    let txt = getline(v:foldstart) .. ' --- length ' .. nl .. ' '
     return txt
 endfunction
 set foldtext=MyFoldText()
@@ -202,7 +202,7 @@ highlight FoldColumn ctermfg=3 ctermbg=none
 highlight Folded ctermfg=245 ctermbg=none
 
 let foldfiles = {
-            \ "python": g:vimdir . "/python_fold.vim"
+            \ "python": g:vimdir .. "/python_fold.vim"
             \}
 let python_fold = findfile(foldfiles.python)
 if !empty(python_fold)
@@ -217,7 +217,7 @@ function! OpenQuickfixWindow()
         let length = 10
     endif
     if length > 1
-        exec "copen" . length
+        exec "copen" .. length
     else
         exec "cclose"
     endif
@@ -254,7 +254,7 @@ function! ToggleColorColumn ()
         if !exists('b:colorcolumns')
             let b:colorcolumns = 0
         endif
-        exec 'set cc=' . b:colorcolumns
+        exec 'set cc=' .. b:colorcolumns
     endif
 endfunction
 
@@ -305,13 +305,13 @@ call airline#parts#define(
        \ 'obsessionstatus', {'function': 'GetObsessionSymbol', 'accents': 'bold'})
 
 function! GetWindowNumber()
-    return ' Ш' . tabpagewinnr(tabpagenr())
+    return ' Ш' .. tabpagewinnr(tabpagenr())
 endfunction
 call airline#parts#define(
        \ 'windownumber', {'function': 'GetWindowNumber', 'accents': 'bold'})
 
 function! GetFoldLevel()
-    return foldlevel(line('.')) > 0 ? ' Ɀ' . foldlevel(line('.')) : ''
+    return foldlevel(line('.')) > 0 ? ' Ɀ' .. foldlevel(line('.')) : ''
 endfunction
 call airline#parts#define(
        \ 'foldlevel', {'function': 'GetFoldLevel', 'accents': 'bold'})
@@ -442,7 +442,7 @@ nnoremap <silent> <leader>p  :<C-u>CocList -A --normal yank<cr>
 " - 2: not use
 function! ObsessionToggle()
     if g:obsession_status == 2
-        execute "Obsession " . g:obsession_swap
+        execute "Obsession " .. g:obsession_swap
         let g:obsession_status = 1
     else
         execute "Obsession"
@@ -458,13 +458,13 @@ function! ObsessionDelete()
     endif
 endfunction
 
-let g:obsession_dir = g:vimdir . '/obsession'
+let g:obsession_dir = g:vimdir .. '/obsession'
 if !isdirectory(g:obsession_dir)
     call mkdir(g:obsession_dir, "p", 0700)
 endif
-let g:obsession_filename = slice(substitute($PWD . '/Session.vim', '/', '-', 'g'), 1)
-let g:obsession_file = g:obsession_dir . '/' . g:obsession_filename
-let g:obsession_swap = g:obsession_file . '.swp'
+let g:obsession_filename = slice(substitute($PWD .. '/Session.vim', '/', '-', 'g'), 1)
+let g:obsession_file = g:obsession_dir .. '/' .. g:obsession_filename
+let g:obsession_swap = g:obsession_file .. '.swp'
 
 " If Obsession is used and exist session swap file, to store session file.
 function! ObsessionLeave()
@@ -482,7 +482,7 @@ if !get(g:, 'obsession_status')
     if (!argc() && !empty(findfile(g:obsession_file)) && empty(findfile(g:obsession_swap)))
         call writefile(readfile(g:obsession_file), g:obsession_swap)
         let g:obsession_status = 1
-        execute 'silent source ' . g:obsession_swap
+        execute 'silent source ' .. g:obsession_swap
     endif
 endif
 
@@ -497,7 +497,7 @@ endif
 "  ------------------------------------------- Set up Guide
 
 " ctags
-autocmd BufEnter * exec "set tags=./tags,tags," . findfile("tags", ".;")
+autocmd BufEnter * exec "set tags=./tags,tags," .. findfile("tags", ".;")
 
 " cscope
 function! LoadCscope()
@@ -505,8 +505,8 @@ function! LoadCscope()
     if (!empty(db))
         let path = strpart(db, 0, match(db, "/cscope.out$"))
         set nocscopeverbose
-        exe "cs add " . db . " " . path
-        " exe "cs add " . db
+        exe "cs add " .. db .. " " .. path
+        " exe "cs add " .. db
         set cscopeverbose
     elseif $CSCOPE_DB != ""
         cs add $CSCOPE_DB
@@ -541,8 +541,8 @@ nmap <silent><leader>S <Plug>CscopeFindStc
 
 
 " -------------------------- fzf(command-line fuzzy finder --------------------
-let fzfdir = $HOME . '/.fzf'
-exec 'set rtp+=' . fzfdir
+let fzfdir = $HOME .. '/.fzf'
+exec 'set rtp+=' .. fzfdir
 
 let g:fzf_action = {
   \ 'ctrl-t': 'tab split',
@@ -633,7 +633,7 @@ call quickui#menu#install("&Tags", [
             \ ])
 
 function! TermExit(code)
-    echom "terminal exit code: ". a:code
+    echom "terminal exit code: " .. a:code
 endfunc
 
 function! OpenShell()
@@ -655,7 +655,7 @@ endfunction
 function! TabRename()
     let previous_tabname = TabooTabName(0)
     let tabname = quickui#input#open('Enter this tab name', previous_tabname)
-    execute "TabooRename " . tabname
+    execute "TabooRename " .. tabname
 endfunction
 
 call quickui#menu#install("&Window", [
@@ -791,7 +791,7 @@ nnoremap <leader><leader>/ :noh<cr>
 function! SaveBackup (versionname)
     if a:versionname != ''
         call writefile(getline(1,'$'),
-                    \ expand('%:p') . '.bak.' . a:versionname)
+                    \ expand('%:p') .. '.bak.' .. a:versionname)
     endif
 endfunction
 
@@ -799,12 +799,12 @@ endfunction
 " -------------------------- skel file ---------------------------------------
 let blog_skel = findfile("_draft/skel.md", ".;")
 if (!empty(blog_skel))
-    exec 'autocmd BufNewFile *.md  0read ' . blog_skel
+    exec 'autocmd BufNewFile *.md  0read ' .. blog_skel
 endif
 
 let c_skel = findfile(".skel/skel.c", ".;")
 if (!empty(c_skel))
-    exec 'autocmd BufNewFile *.c  0read ' . c_skel
+    exec 'autocmd BufNewFile *.c  0read ' .. c_skel
 endif
 
 " ----------------------------- undo history ---------------------------------
@@ -813,25 +813,25 @@ let undofile_path = g:vimdir . "/undo"
 if !isdirectory(undofile_path)
     call mkdir(undofile_path, "p", 0700)
 endif
-exec 'set undodir=' . undofile_path
+exec 'set undodir=' .. undofile_path
 set undofile
 
 " ---------------------------- swap ------------------------------------------
 " swap directory
-let swapfile_path = g:vimdir . '/temp'
+let swapfile_path = g:vimdir .. '/temp'
 if !isdirectory(swapfile_path)
     call mkdir(swapfile_path, "p", 0700)
 endif
-exec 'set dir=' . swapfile_path
-exec 'set bdir=' . swapfile_path
+exec 'set dir=' .. swapfile_path
+exec 'set bdir=' .. swapfile_path
 
 " remove swap
 function! DeleteSwap()
-    exec "! rm " . swapname(expand('%'))
+    exec "! rm " .. swapname(expand('%'))
 endfunction
 
 " --------------------------- vim local setting -----------------------------
 let vimrc_adv = findfile(".vimrc_adv", $HOME)
 if (!empty(vimrc_adv))
-    exec 'source ' . vimrc_adv
+    exec 'source ' .. vimrc_adv
 endif
