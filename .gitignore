@@ -1,5 +1,8 @@
-temp/
-undo/
+.vim/temp
+.vim/undo
+.vim/obsession
+.vim/bundle
 .git-credentials
 .bash_history
 .python_history
+.tmux/plugins
