@@ -1,13 +1,17 @@
 " Vim Set Up
 " Language: vim-script
 " Author:   Junho Lee (TOT0Ro)
-" Last Change:  2023 Feb 14
-" Version:  1.0
+" Last Change:  2024 Jan 18
+" Version:  2.0
+
+let g:vimdir = $HOME . '/.vim'
+
 
 " -------------------------------- Plugin -----------------------------------
 
-set rtp+=~/.vim/bundle/Vundle.vim
-call vundle#begin('~/.vim/bundle')
+execute 'set rtp+=' . g:vimdir . '/bundle/Vundle.vim'
+" set rtp+=~/.vim/bundle/Vundle.vim
+call vundle#begin(g:vimdir .'/bundle')
 
 Plugin 'VundleVim/Vundle.vim'
 
@@ -112,6 +116,17 @@ Plugin 'junegunn/fzf'
 " Shell
 Plugin 'Shougo/deol.nvim'
 
+" Tab
+Plugin 'gcmt/taboo.vim'
+set sessionoptions+=tabpages,globals
+let g:taboo_tab_format=' %f%m%U '
+let g:taboo_renamed_tab_format=' <%l>%m%U '
+let g:taboo_modified_tab_flag='+'
+
+" Session save
+Plugin 'tpope/vim-obsession'
+let g:obsession_no_bufenter = 1
+
 call vundle#end()
 
 filetype plugin indent on
@@ -119,6 +134,9 @@ filetype plugin indent on
 
 " ------------------------------- setup --------------------------------------
 
+" Uppercase, number of marks, maximum lines are saved for each register,
+" size limit for a register, nohisearch
+set viminfo=!,'1000,<1000,s100,/1000,:1000,@1000,h
 " May need for Vim (not Neovim) since coc.nvim calculates byte offset by count
 " utf-8 byte sequence
 set encoding=utf-8
@@ -184,7 +202,7 @@ highlight FoldColumn ctermfg=3 ctermbg=none
 highlight Folded ctermfg=245 ctermbg=none
 
 let foldfiles = {
-            \ "python": "~/.vim/python_fold.vim"
+            \ "python": g:vimdir . "/python_fold.vim"
             \}
 let python_fold = findfile(foldfiles.python)
 if !empty(python_fold)
@@ -263,6 +281,13 @@ let g:airline#extensions#tabline#left_alt_sep = ''
 let g:airline#extensions#tabline#right_sep = ''
 let g:airline#extensions#tabline#right_alt_sep = ''
 let g:airline#extensions#tabline#formatter = 'unique_tail'
+let g:airline#extensions#tabline#tab_nr_type = 1
+let g:airline#extensions#tabline#show_tab_nr = 1
+let g:airline#extensions#tabline#tabtitle_formatter = 'TabTitleFormatter'
+function TabTitleFormatter(n)
+    return TabooTabTitle(0)
+endfunction
+
 let g:airline_theme='serene'
 
 if !exists('g:airline_symbols')
@@ -272,16 +297,26 @@ let g:airline_left_sep = ''
 let g:airline_right_sep = ''
 let g:airline_symbols.paste = 'ρ'
 
+function! GetObsessionSymbol()
+    let status = g:obsession_status
+    return status == 2 ? '' : status == 1 ? "$" : "S"
+endfunction
+call airline#parts#define(
+       \ 'obsessionstatus', {'function': 'GetObsessionSymbol', 'accents': 'bold'})
+
 function! GetWindowNumber()
     return ' Ш' . tabpagewinnr(tabpagenr())
 endfunction
+call airline#parts#define(
+       \ 'windownumber', {'function': 'GetWindowNumber', 'accents': 'bold'})
+
 function! GetFoldLevel()
     return foldlevel(line('.')) > 0 ? ' Ɀ' . foldlevel(line('.')) : ''
 endfunction
 call airline#parts#define(
        \ 'foldlevel', {'function': 'GetFoldLevel', 'accents': 'bold'})
-call airline#parts#define(
-       \ 'windownumber', {'function': 'GetWindowNumber', 'accents': 'bold'})
+let g:airline_section_a = airline#section#create_left(
+       \ ['mode', 'crypt', 'paste', 'keymap', 'spell', 'capslock', 'xkblayout', 'iminsert', 'obsessionstatus'])
 let g:airline_section_z = airline#section#create(
        \ ['%p%%', 'linenr', 'maxlinenr', 'colnr', 'foldlevel', 'windownumber'])
 
@@ -400,6 +435,58 @@ nnoremap <silent><nowait> <leader>;  :<C-u>CocListResume<CR>
 nnoremap <silent> <leader>p  :<C-u>CocList -A --normal yank<cr>
 
 
+" ------------------------------- Obsession ----------------------------------
+" Obsession status
+" - 0: disable
+" - 1: enable
+" - 2: not use
+function! ObsessionToggle()
+    if g:obsession_status == 2
+        execute "Obsession " . g:obsession_swap
+        let g:obsession_status = 1
+    else
+        execute "Obsession"
+        let g:obsession_status = xor(g:obsession_status, 1)
+    endif
+endfunction
+
+function! ObsessionDelete()
+    if g:obsession_status != 2
+        execute "Obsession!"
+        let g:obsession_status = 2
+        call delete(g:obsession_file)
+    endif
+endfunction
+
+let g:obsession_dir = g:vimdir . '/obsession'
+if !isdirectory(g:obsession_dir)
+    call mkdir(g:obsession_dir, "p", 0700)
+endif
+let g:obsession_filename = slice(substitute($PWD . '/Session.vim', '/', '-', 'g'), 1)
+let g:obsession_file = g:obsession_dir . '/' . g:obsession_filename
+let g:obsession_swap = g:obsession_file . '.swp'
+
+" If Obsession is used and exist session swap file, to store session file.
+function! ObsessionLeave()
+    if (g:obsession_status != 2 && !empty(findfile(g:obsession_swap)))
+        call writefile(readfile(g:obsession_swap), g:obsession_file)
+        call delete(g:obsession_swap)
+    endif
+endfunction
+au VimLeave * call ObsessionLeave()
+
+" If executes without arguments and anybody is not use Obsession,
+" load session file and enable Obsession.
+if !get(g:, 'obsession_status')
+    let g:obsession_status = 2
+    if (!argc() && !empty(findfile(g:obsession_file)) && empty(findfile(g:obsession_swap)))
+        call writefile(readfile(g:obsession_file), g:obsession_swap)
+        let g:obsession_status = 1
+        execute 'silent source ' . g:obsession_swap
+    endif
+endif
+
+
 " ------------------------------- tags ----------------------------------------
 "  pycscope 이용
 "  find ./ -name "*.[ch]" –print > cscope.files
@@ -414,16 +501,16 @@ autocmd BufEnter * exec "set tags=./tags,tags," . findfile("tags", ".;")
 
 " cscope
 function! LoadCscope()
-        let db = findfile("cscope.out", ".;")
-        if (!empty(db))
-                let path = strpart(db, 0, match(db, "/cscope.out$"))
-                set nocscopeverbose
-                exe "cs add " . db . " " . path
-                " exe "cs add " . db
-                set cscopeverbose
-        elseif $CSCOPE_DB != ""
-                cs add $CSCOPE_DB
-        endif
+    let db = findfile("cscope.out", ".;")
+    if (!empty(db))
+        let path = strpart(db, 0, match(db, "/cscope.out$"))
+        set nocscopeverbose
+        exe "cs add " . db . " " . path
+        " exe "cs add " . db
+        set cscopeverbose
+    elseif $CSCOPE_DB != ""
+        cs add $CSCOPE_DB
+    endif
 endfunction
 au BufEnter /* call LoadCscope()
 set cscopequickfix=s-,g-,d-,c-,t-,e-,f-,i-,a-
@@ -514,6 +601,10 @@ function! PopupColumns()
     return columns
 endfunction
 
+function! QuickuiSaveBackup()
+    let versionname = quickui#input#open('Enter version name:', 'old')
+    call SaveBackup(versionname)
+endfunction
 
 " default menu
 call quickui#menu#switch('def')
@@ -522,13 +613,18 @@ call quickui#menu#switch('def')
 call quickui#menu#reset()
 
 call quickui#menu#install("&Files", [
+            \ ['&Paste', "set paste!"],
+            \ ['--',''],
             \ ['&NERD Tree', "NERDTreeToggle"],
             \ ['&Tag Bar', "TagbarToggle"],
             \ ['--',''],
-            \ ['Search Git &File', "normal \<Plug>SearchGitFile"],
+            \ ['Search &Git File', "normal \<Plug>SearchGitFile"],
             \ ['--',''],
-            \ ['Save &Backup', "call SaveBackup()"],
-            \ ['Delete &Swap', "call DeleteSwap()"],
+            \ ['&Save Session Toggle', "call ObsessionToggle()"],
+            \ ['&Delete Session', "call ObsessionDelete()"],
+            \ ['--',''],
+            \ ['Save Backup', "call QuickuiSaveBackup()"],
+            \ ['Delete Swap', "call DeleteSwap()"],
             \ ])
 
 call quickui#menu#install("&Tags", [
@@ -556,17 +652,27 @@ function! OpenPython()
         \ opts)
 endfunction
 
+function! TabRename()
+    let previous_tabname = TabooTabName(0)
+    let tabname = quickui#input#open('Enter this tab name', previous_tabname)
+    execute "TabooRename " . tabname
+endfunction
+
 call quickui#menu#install("&Window", [
-            \ ['&Buffer Switcher  <F4>', 'call quickui#tools#list_buffer("e")'],
             \ ['Buffer &Delete', 'bdelete'],
             \ ['Tab &New', 'tabnew'],
             \ ['Tab &Close', 'tabclose'],
+            \ ['Tab &Rename', 'call TabRename()'],
+            \ ['Tab NameReset', 'TabooReset'],
             \ ['--',''],
             \ ['&Shell', 'call OpenShell()'],
             \ ['&Python', 'call OpenPython()'],
+            \ ['&Messages', 'Messages'],
             \ ['--',''],
             \ ['Toggle Cursor High&light', 'call ToggleCursorHighlight()'],
             \ ['Toggle Color &TextWidth', 'call ToggleColorColumn()'],
+            \ ['--',''],
+            \ ['&Buffer Switcher  <F4>', 'call quickui#tools#list_buffer("e")'],
             \ ])
 
 call quickui#menu#install("Coc &Refactor", [
@@ -623,7 +729,7 @@ function! DisplayMessages()
     call quickui#textbox#open(content, opts)
 endfunc
 
-command -nargs=0 Msg call DisplayMessages()
+command -nargs=0 Messages call DisplayMessages()
 
 let cursor_context_content = [
             \ ['Find Symbols               \s', "normal \<Plug>CscopeFindSym"],
@@ -682,11 +788,10 @@ nnoremap <leader><leader>/ :noh<cr>
 
 " -------------------------------- save backup -------------------------------
 " 버전별 save 만들기
-function! SaveBackup ()
-    let versionname = quickui#input#open('Enter version name:', 'unknown')
-    if versionname != ''
+function! SaveBackup (versionname)
+    if a:versionname != ''
         call writefile(getline(1,'$'),
-                    \ getcwd('%') . '/' . bufname('%') . '.bak_' . versionname)
+                    \ expand('%:p') . '.bak.' . a:versionname)
     endif
 endfunction
 
@@ -699,12 +804,12 @@ endif
 
 let c_skel = findfile(".skel/skel.c", ".;")
 if (!empty(c_skel))
-    exec 'autocmd BufNewFile *.c  0read ' . c_skel . ' | /\/\/TODO/'
+    exec 'autocmd BufNewFile *.c  0read ' . c_skel
 endif
 
 " ----------------------------- undo history ---------------------------------
 " undofile directory
-let undofile_path = $HOME . "/.vim/undo"
+let undofile_path = g:vimdir . "/undo"
 if !isdirectory(undofile_path)
     call mkdir(undofile_path, "p", 0700)
 endif
@@ -713,7 +818,7 @@ set undofile
 
 " ---------------------------- swap ------------------------------------------
 " swap directory
-let swapfile_path = $HOME . '/.vim/temp'
+let swapfile_path = g:vimdir . '/temp'
 if !isdirectory(swapfile_path)
     call mkdir(swapfile_path, "p", 0700)
 endif
@@ -722,11 +827,11 @@ exec 'set bdir=' . swapfile_path
 
 " remove swap
 function! DeleteSwap()
-    exec "! rm " . &dir . "/" . @% . ".swp"
+    exec "! rm " . swapname(expand('%'))
 endfunction
 
 " --------------------------- vim local setting -----------------------------
-let vimrc_adv = findfile("~/.vimrc_adv")
+let vimrc_adv = findfile(".vimrc_adv", $HOME)
 if (!empty(vimrc_adv))
     exec 'source ' . vimrc_adv
 endif
