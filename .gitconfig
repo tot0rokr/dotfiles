@@ -9,8 +9,10 @@
 	co = checkout
 	br = branch
 	rb = rebase
-	cm = commit
-	sw = switch
+    cm = commit
+    sw = switch
+    rst = reset
+    rs = restore
 	lg = log --graph --abbrev-commit --decorate --format=format:'%C(cyan)%h%C(reset) - %C(green)(%ar)%C(reset) %C(white)%s%C(reset) %C(blue)- %an%C(reset)%C(yellow)%d%C(reset)'
 	conflicted = !vim +Conflicted
 [diff]
