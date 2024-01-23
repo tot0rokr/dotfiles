@@ -1,111 +1,25 @@
 {
     "codeLens.enable": true,
     "workspace.rootPatterns": [".git", ".hg", ".projections.json", ".root"],
-    "jedi.workspace.symbols.ignoreFolders":[".nox", ".tox", ".venv", "__pycache__", "venv", "build"],
+    "workspace.workspaceFolderCheckCwd": false,
+
+    "pyright.disableDiagnostics": true,
+    "python.sortImports.path": "isort",
+    "python.linting.enabled": true,
+    "python.linting.flake8Enabled": true,
+    "python.linting.mypyEnabled": true,
+    "python.linting.pylintEnabled": true,
+
     "diagnostic-languageserver.formatFiletypes": {
-        "python": ["black", "isort"],
-        "sh": "shfmt",
-        "cmake": "cmake-format"
+      "sh": "shfmt",
+      "cmake": "cmake-format"
     },
     "diagnostic-languageserver.filetypes": {
-      "python": ["pylint", "flake8", "mypy"],
       "cmake": [ "cmake-lint", "cmakelint" ],
+      "markdown": [ "write-good", "markdownlint" ],
+      "systemd": "systemd-analyze",
       "yaml": [ "yamllint" ],
       "sh": "shellcheck",
       "vim": "vint"
-    },
-    "diagnostic-languageserver.mergeConfig": true,
-    "diagnostic-languageserver.formatters": {
-        "black": {
-          "command": "black",
-          "args": ["--quiet", "-"]
-        },
-        "isort": {
-          "command": "isort",
-          "args": ["--quiet", "-"]
-        }
-    },
-	"diagnostic-languageserver.linters": {
-        "mypy": {
-          "sourceName": "mypy",
-          "command": "mypy",
-          "args": [
-            "--no-color-output",
-            "--no-error-summary",
-            "--show-column-numbers",
-            "--follow-imports=silent",
-            "%file"
-          ],
-          "formatPattern": [
-            "^.*:(\\d+?):(\\d+?): ([a-z]+?): (.*)$",
-            {
-              "line": 1,
-              "column": 2,
-              "security": 3,
-              "message": 4
-            }
-          ],
-          "securities": {
-            "error": "error"
-          }
-        },
-        "flake8": {
-          "command": "flake8",
-          "debounce": 100,
-          "args": [ "--format=%(row)d,%(col)d,%(code).1s,%(code)s: %(text)s", "-" ],
-          "offsetLine": 0,
-          "offsetColumn": 0,
-          "sourceName": "flake8",
-          "formatLines": 1,
-          "formatPattern": [
-            "(\\d+),(\\d+),([A-Z]),(.*)(\\r|\\n)*$",
-            {
-              "line": 1,
-              "column": 2,
-              "security": 3,
-              "message": 4
-            }
-          ],
-          "securities": {
-            "W": "warning",
-            "E": "error",
-            "F": "error",
-            "C": "error",
-            "N": "error"
-          }
-        },
-        "pylint": {
-          "sourceName": "pylint",
-          "command": "pylint",
-          "args": [
-            "--output-format",
-            "text",
-            "--score",
-            "no",
-            "--msg-template",
-            "'{line}:{column}:{category}:{msg} ({msg_id}:{symbol})'",
-            "%file"
-          ],
-          "formatPattern": [
-            "^(\\d+?):(\\d+?):([a-z]+?):(.*)$",
-            {
-              "line": 1,
-              "column": 2,
-              "security": 3,
-              "message": 4
-            }
-          ],
-          "rootPatterns": [".git", "pyproject.toml", "setup.py"],
-          "securities": {
-            "informational": "hint",
-            "refactor": "info",
-            "convention": "info",
-            "warning": "warning",
-            "error": "error",
-            "fatal": "error"
-          },
-          "offsetColumn": 1,
-          "formatLines": 1
-        }
     }
 }
