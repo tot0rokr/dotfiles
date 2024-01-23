@@ -120,66 +120,91 @@ fi
 #   sleep 10; alert
 alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
 
+LOCAL_BIN_PATH=$HOME/.local/bin
+if [ ! -d "$LOCAL_BIN_PATH" ] ; then
+    mkdir -p $LOCAL_BIN_PATH
+fi
+if ! echo "$PATH" | grep -q "$LOCAL_BIN_PATH"; then
+    PATH="$LOCAL_BIN_PATH:$PATH"
+fi
+
+make_fake_sudo()
+{
+cat << EOF > $LOCAL_BIN_PATH/sudo
+#!/bin/sh
+$@
+EOF
+chmod 755 $LOCAL_BIN_PATH/sudo
+}
+
+if [ -z $(which sudo) ]; then
+    make_fake_sudo
+fi
+
+if [ -z $(which lsb_release) ]; then
+    sudo apt install -y lsb-release
+fi
+
+if [ -z $(which git) ]; then
+    sudo apt install -y git
+fi
+
+if [ -z $(which vim) ]; then
+    sudo add-apt-repository ppa:jonathonf/vim
+    sudo apt update
+    sudo apt install -y vim
+    git clone --depth 1 https://github.com/VundleVim/Vundle.vim.git ~/.vim/bundle/Vundle.vim
+    vim +PluginInstall +qall
+fi
+
 if [ $(lsb_release -i | awk '{print $3}') == "Ubuntu" ]; then
     if [ -z $(which curl) ]; then
-        sudo apt-get install -y curl
+        sudo apt install -y curl
     fi
 
     if [ -z $(which wget) ]; then
-        sudo apt-get install -y wget
-    fi
-
-    if [ -z $(which git) ]; then
-        sudo apt-get install -y git
+        sudo apt install -y wget
     fi
 
     if [ -z $(which gcc) ]; then
-        sudo apt-get install -y gcc
+        sudo apt install -y gcc
     fi
 
     if [ -z $(which make) ]; then
-        sudo apt-get install -y make
+        sudo apt install -y make
     fi
 
     if [ -z $(which python3) ]; then
-        sudo apt-get install -y python3
+        sudo apt install -y python3
     fi
 
     if [ -z $(which tmux) ]; then
-        sudo apt-get install -y tmux
-    fi
-
-    if [ -z $(which vim) ]; then
-        sudo add-apt-repository ppa:jonathonf/vim
-        sudo apt update
-        sudo apt install -y vim
-        git clone --depth 1 https://github.com/VundleVim/Vundle.vim.git ~/.vim/bundle/Vundle.vim
-        vim +PluginInstall +qall
+        sudo apt install -y tmux
     fi
 
     if [ -z $(which ctags) ]; then
-        sudo apt-get install -y universal-ctags
+        sudo apt install -y universal-ctags
     fi
 
     if [ -z $(which cscope) ]; then
-        sudo apt-get install -y cscope
+        sudo apt install -y cscope
     fi
 
     if [ -z $(which fd) ]; then
         if [ ! -z $(which fdfind) ]; then
-            ln -s $(which fdfind) $HOME/.local/bin/fd
+            ln -s $(which fdfind) $LOCAL_BIN_PATH/fd
         else
-            sudo apt-get install -y fd-find
-            ln -s $(which fdfind) $HOME/.local/bin/fd
+            sudo apt install -y fd-find
+            ln -s $(which fdfind) $LOCAL_BIN_PATH/fd
         fi
     fi
 
     if [ -z $(which bat) ]; then
         if [ ! -z $(which batcat) ]; then
-            ln -s $(which batcat) $HOME/.local/bin/bat
+            ln -s $(which batcat) $LOCAL_BIN_PATH/bat
         else
-            sudo apt-get install -y bat
-            ln -s $(which batcat) $HOME/.local/bin/bat
+            sudo apt install -y bat
+            ln -s $(which batcat) $LOCAL_BIN_PATH/bat
         fi
     fi
 fi
