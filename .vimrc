@@ -377,7 +377,9 @@ function! ShowDocumentation()
 endfunction
 
 " Highlight the symbol and its references when holding the cursor
-autocmd CursorHold * silent call CocActionAsync('highlight')
+if exists('*CocActionAsync')
+    autocmd CursorHold * silent call CocActionAsync('highlight')
+endif
 
 augroup mygroup
     autocmd!
