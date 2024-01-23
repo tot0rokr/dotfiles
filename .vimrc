@@ -434,11 +434,15 @@ let g:coc_global_extensions = [
             \ 'coc-markdownlint',
             \ 'coc-docker',
             \ 'coc-clangd',
+            \ 'coc-css',
             \ 'coc-yaml',
             \ 'coc-cmake'
             \ ]
 " coc-clangd     --> sudo apt-get install clangd-12
 nnoremap <silent> <leader>p  :<C-u>CocList -A --normal yank<cr>
+
+autocmd FileType css setl iskeyword+=-
+autocmd FileType scss setl iskeyword+=@-@
 
 
 
