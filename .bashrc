@@ -132,7 +132,7 @@ make_fake_sudo()
 {
 cat << EOF > $LOCAL_BIN_PATH/sudo
 #!/bin/sh
-$@
+\$@
 EOF
 chmod 755 $LOCAL_BIN_PATH/sudo
 }
@@ -153,6 +153,9 @@ if [ -z $(which vim) ]; then
     sudo add-apt-repository ppa:jonathonf/vim
     sudo apt update
     sudo apt install -y vim
+fi
+
+if [ ! -d ~/.vim/bundle/Vundle.vim ]; then
     git clone --depth 1 https://github.com/VundleVim/Vundle.vim.git ~/.vim/bundle/Vundle.vim
     vim +PluginInstall +qall
 fi
@@ -188,6 +191,28 @@ if [ $(lsb_release -i | awk '{print $3}') == "Ubuntu" ]; then
 
     if [ -z $(which cscope) ]; then
         sudo apt install -y cscope
+    fi
+
+    if [ -z $(which clangd-12) ]; then
+        sudo apt install -y clangd-12
+    fi
+
+    export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
+
+    if [ "$(command -v nvm)" != "nvm" ]; then
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
+        export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
+        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
+    fi
+
+    if [ "$(command -v nvm)" == "nvm" ]; then
+        if [ -z $(which npm) ]; then
+            nvm install --lts
+            cd $HOME/.vim/bundle/coc.nvim
+            npm ci
+            cd -
+        fi
     fi
 
     if [ -z $(which fd) ]; then
