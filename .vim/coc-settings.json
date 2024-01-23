@@ -3,6 +3,8 @@
     "workspace.rootPatterns": [".git", ".hg", ".projections.json", ".root"],
     "workspace.workspaceFolderCheckCwd": false,
 
+    "clangd.path": "clangd-12",
+
     "pyright.disableDiagnostics": true,
     "python.sortImports.path": "isort",
     "python.linting.enabled": true,

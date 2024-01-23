@@ -430,7 +430,7 @@ nnoremap <silent><nowait> <leader>;  :<C-u>CocListResume<CR>
 " CocInstall coc-pyright
 " CocInstall coc-yank
 " CocInstall coc-docker
-" CocInstall coc-clangd
+" CocInstall coc-clangd     --> sudo apt-get install clangd-12
 " CocInstall coc-diagnostic
 "  * coc-yank 1.2.1 ~/.config/coc/extensions/node_modules/coc-yank
 "  * coc-diagnostic 0.23.9 ~/.config/coc/extensions/node_modules/coc-diagnostic
