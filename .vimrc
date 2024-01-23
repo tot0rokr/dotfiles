@@ -424,23 +424,22 @@ nnoremap <silent><nowait> <leader>k  :<C-u>CocPrev<CR>
 " Resume latest coc list
 nnoremap <silent><nowait> <leader>;  :<C-u>CocListResume<CR>
 
-" CocInstall coc-json
-" CocInstall cmake
-" CocInstall markdownlint
-" CocInstall coc-pyright
-" CocInstall coc-yank
-" CocInstall coc-docker
-" CocInstall coc-clangd     --> sudo apt-get install clangd-12
-" CocInstall coc-diagnostic
-"  * coc-yank 1.2.1 ~/.config/coc/extensions/node_modules/coc-yank
-"  * coc-diagnostic 0.23.9 ~/.config/coc/extensions/node_modules/coc-diagnostic
-"  + coc-pyright 1.1.348 ~/.config/coc/extensions/node_modules/coc-pyright
-"  + coc-markdownlint 1.27.0 ~/.config/coc/extensions/node_modules/coc-markdownlint
-"  + coc-json 1.8.0 ~/.config/coc/extensions/node_modules/coc-json
-"  + coc-docker 0.5.0 ~/.config/coc/extensions/node_modules/coc-docker
-"  + coc-cmake 0.2.1 ~/.config/coc/extensions/node_modules/coc-cmake
-"  + coc-clangd 0.28.0 ~/.config/coc/extensions/node_modules/coc-clangd
+let g:coc_global_extensions = [
+            \ 'coc-yank',
+            \ 'coc-json',
+            \ 'coc-html',
+            \ 'coc-diagnostic',
+            \ 'coc-sh',
+            \ 'coc-pyright',
+            \ 'coc-markdownlint',
+            \ 'coc-docker',
+            \ 'coc-clangd',
+            \ 'coc-yaml',
+            \ 'coc-cmake'
+            \ ]
+" coc-clangd     --> sudo apt-get install clangd-12
 nnoremap <silent> <leader>p  :<C-u>CocList -A --normal yank<cr>
+
 
 
 " ------------------------------- Obsession ----------------------------------

@@ -13,15 +13,8 @@
     "python.linting.pylintEnabled": true,
 
     "diagnostic-languageserver.formatFiletypes": {
-      "sh": "shfmt",
-      "cmake": "cmake-format"
     },
     "diagnostic-languageserver.filetypes": {
-      "cmake": [ "cmake-lint", "cmakelint" ],
-      "markdown": [ "write-good", "markdownlint" ],
-      "systemd": "systemd-analyze",
-      "yaml": [ "yamllint" ],
-      "sh": "shellcheck",
-      "vim": "vint"
+      "systemd": "systemd-analyze"
     }
 }
