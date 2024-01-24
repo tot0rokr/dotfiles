@@ -228,8 +228,8 @@ endfunction
 
 autocmd QuickFixCmdPost * :call OpenQuickfixWindow()
 " autocmd BufReadPost quickfix setlocal modifiable
-		" \ | silent exec 'g/^/s//\=line(".")." "/'
-		" \ | setlocal nomodifiable
+        " \ | silent exec 'g/^/s//\=line(".")." "/'
+        " \ | setlocal nomodifiable
 
 
 " -------------------------------- cursor ------------------------------------
