@@ -16,8 +16,6 @@ call plug#begin()
 "   - e.g. `call plug#begin('~/.vim/plugged')`
 "   - Avoid using standard Vim directory names like 'plugin'
 
-Plug 'VundleVim/Vundle.vim'
-
 Plug 'tpope/vim-sensible' " normal setup
 
 Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle' }
