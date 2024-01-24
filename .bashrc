@@ -145,22 +145,11 @@ if [ -z $(which lsb_release) ]; then
     sudo apt install -y lsb-release
 fi
 
-if [ -z $(which git) ]; then
-    sudo apt install -y git
-fi
-
-if [ -z $(which vim) ]; then
-    sudo add-apt-repository ppa:jonathonf/vim
-    sudo apt update
-    sudo apt install -y vim
-fi
-
-if [ ! -d ~/.vim/bundle/Vundle.vim ]; then
-    git clone --depth 1 https://github.com/VundleVim/Vundle.vim.git ~/.vim/bundle/Vundle.vim
-    vim +PluginInstall +qall
-fi
-
 if [ $(lsb_release -i | awk '{print $3}') == "Ubuntu" ]; then
+    if [ -z $(which git) ]; then
+        sudo apt install -y git
+    fi
+
     if [ -z $(which curl) ]; then
         sudo apt install -y curl
     fi
@@ -209,9 +198,6 @@ if [ $(lsb_release -i | awk '{print $3}') == "Ubuntu" ]; then
     if [ "$(command -v nvm)" == "nvm" ]; then
         if [ -z $(which npm) ]; then
             nvm install --lts
-            cd $HOME/.vim/bundle/coc.nvim
-            npm ci
-            cd -
         fi
     fi
 
@@ -232,6 +218,19 @@ if [ $(lsb_release -i | awk '{print $3}') == "Ubuntu" ]; then
             ln -s $(which batcat) $LOCAL_BIN_PATH/bat
         fi
     fi
+
+    if [ -z $(which vim) ]; then
+        sudo add-apt-repository ppa:jonathonf/vim
+        sudo apt update
+        sudo apt install -y vim
+    fi
+
+    if [ ! -f ~/.vim/autoload/plug.vim ]; then
+        curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
+            https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+        vim +PlugInstall +qall
+    fi
+
 fi
 
 # Alias definitions.

@@ -1,95 +1,98 @@
 " Vim Set Up
 " Language: vim-script
 " Author:   Junho Lee (TOT0Ro)
-" Last Change:  2024 Jan 18
-" Version:  2.0
 
 let g:vimdir = $HOME .. '/.vim'
 
 
 " -------------------------------- Plugin -----------------------------------
 
-execute 'set rtp+=' .. g:vimdir .. '/bundle/Vundle.vim'
-" set rtp+=~/.vim/bundle/Vundle.vim
-call vundle#begin(g:vimdir .. '/bundle')
+call plug#begin()
+" The default plugin directory will be as follows:
+"   - Vim (Linux/macOS): '~/.vim/plugged'
+"   - Vim (Windows): '~/vimfiles/plugged'
+"   - Neovim (Linux/macOS/Windows): stdpath('data') . '/plugged'
+" You can specify a custom plugin directory by passing it as the argument
+"   - e.g. `call plug#begin('~/.vim/plugged')`
+"   - Avoid using standard Vim directory names like 'plugin'
 
-Plugin 'VundleVim/Vundle.vim'
+Plug 'VundleVim/Vundle.vim'
 
-Plugin 'tpope/vim-sensible' " normal setup
+Plug 'tpope/vim-sensible' " normal setup
 
-Plugin 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle' }
+Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle' }
 
 " File finder
-Plugin 'ctrlpvim/ctrlp.vim'
+Plug 'ctrlpvim/ctrlp.vim'
 
 " thema (schema)
-"Plugin 'junegunn/seoul256.vim'
-Plugin 'vim-airline/vim-airline'
-Plugin 'vim-airline/vim-airline-themes'
-Plugin 'edkolev/tmuxline.vim'
+"Plug 'junegunn/seoul256.vim'
+Plug 'vim-airline/vim-airline'
+Plug 'vim-airline/vim-airline-themes'
+Plug 'edkolev/tmuxline.vim'
 
 " keyword tag bar
-Plugin 'majutsushi/tagbar'
+Plug 'majutsushi/tagbar'
 
 " auto completion
 " Need nodejs
 " $ curl -sL install-node.vercel.app/lts | bash
-Plugin 'neoclide/coc.nvim', {'branch': 'release'}
+Plug 'neoclide/coc.nvim', {'branch': 'release'}
 
 " write comment
-Plugin 'scrooloose/nerdcommenter'
+Plug 'scrooloose/nerdcommenter'
 let g:NERDSpaceDelims=1
 
 " ctags
-Plugin 'xolox/vim-misc'
+Plug 'xolox/vim-misc'
 
 " easymotion
-Plugin 'Lokaltog/vim-easymotion'
+Plug 'Lokaltog/vim-easymotion'
 
 " argument movable
-Plugin 'peterrincker/vim-argumentative'
+Plug 'peterrincker/vim-argumentative'
 
 " git
-Plugin 'airblade/vim-gitgutter'
-Plugin 'tpope/vim-fugitive'
+Plug 'airblade/vim-gitgutter'
+Plug 'tpope/vim-fugitive'
 highlight GitGutterAdd    guifg=#009900 ctermfg=82 ctermbg=22
 highlight GitGutterChange guifg=#bbbb00 ctermfg=220 ctermbg=130
 highlight GitGutterDelete guifg=#ff2222 ctermfg=196 ctermbg=52
 " git conlict. required tpope/vim-fugitive
-Plugin 'christoomey/vim-conflicted'
+Plug 'christoomey/vim-conflicted'
 
 
 " line orient
-" Plugin 'tommcdo/vim-lion'
+" Plug 'tommcdo/vim-lion'
 
 " MarkDown
-Plugin 'iamcco/markdown-preview.nvim'
+Plug 'iamcco/markdown-preview.nvim'
 nmap <leader><leader>m <Plug>MarkdownPreviewToggle
 
 " code break game
-Plugin 'johngrib/vim-game-code-break'
+Plug 'johngrib/vim-game-code-break'
 
 " REST API
-Plugin 'diepm/vim-rest-console'
+Plug 'diepm/vim-rest-console'
 
 " diff character
-" Plugin 'vim-scripts/diffchar.vim'
+" Plug 'vim-scripts/diffchar.vim'
 
-" > Plugin ALE
-" Plugin 'dense-analysis/ale'
+" > Plug ALE
+" Plug 'dense-analysis/ale'
 " > let g:ale_completion_enabled = 1
 " > set omnifunc=ale#completion#OmniFunc
 " let g:ale_lint_on_text_changed = 'never'
 " let g:ale_lint_on_enter = 0
 
 " Icon
-Plugin 'ryanoasis/vim-devicons'
+Plug 'ryanoasis/vim-devicons'
 
 " swap recovery
-Plugin 'chrisbra/Recover.vim'
+Plug 'chrisbra/Recover.vim'
 
 " indent guide
-Plugin 'nathanaelkane/vim-indent-guides'
+Plug 'nathanaelkane/vim-indent-guides'
 let g:indent_guides_enable_on_vim_startup = 1
 let g:indent_guides_auto_colors = 0
 autocmd VimEnter,Colorscheme * :hi IndentGuidesOdd ctermbg=235
@@ -102,35 +105,37 @@ let g:indent_guides_default_mapping = 0
 " Need to make install
 " $ cd ~/.vim/bundle/vim-pydocstring
 " $ make install
-Plugin 'heavenshell/vim-pydocstring', { 'do': 'make install', 'for': 'python' }
+Plug 'heavenshell/vim-pydocstring', { 'do': 'make install', 'for': 'python' }
 let g:pydocstring_formatter = 'google'
 let g:pydocstring_ignore_init = 1
 let g:pydocstring_enable_mapping = 0
 
 " quickui
-Plugin 'skywind3000/vim-quickui'
+Plug 'skywind3000/vim-quickui'
 
 " fzf
-Plugin 'junegunn/fzf'
+Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 
 " Shell
-Plugin 'Shougo/deol.nvim'
+Plug 'Shougo/deol.nvim'
 
 " Tab
-Plugin 'gcmt/taboo.vim'
+Plug 'gcmt/taboo.vim'
 set sessionoptions+=tabpages,globals
 let g:taboo_tab_format=' %f%m%U '
 let g:taboo_renamed_tab_format=' <%l>%m%U '
 let g:taboo_modified_tab_flag='+'
 
 " Session save
-Plugin 'tpope/vim-obsession'
+Plug 'tpope/vim-obsession'
 let g:obsession_no_bufenter = 1
 
-call vundle#end()
-
-filetype plugin indent on
-
+" Initialize plugin system
+" - Automatically executes `filetype plugin indent on` and `syntax enable`.
+call plug#end()
+" You can revert the settings after the call like so:
+"   filetype indent off   " Disable file-type-specific indentation
+"   syntax off            " Disable syntax highlighting
 
 " ------------------------------- setup --------------------------------------
 
@@ -275,7 +280,7 @@ highlight DiffText      ctermbg=237
 
 " --------------------------- statusbar/ airline ------------------------------
 set laststatus=2 " vim-airline을 위해 상태바 2줄
-if exists('*airline#parts#define')
+if 1
     let g:airline#extensions#tabline#enabled = 1
     let g:airline#extensions#tabline#left_sep = ''
     let g:airline#extensions#tabline#left_alt_sep = ''
@@ -340,7 +345,7 @@ let g:tmuxline_separators = {
         \ 'space' : ' '}
 
 " -------------------------- coc ----------------------------------------------
-if exists('*coc#pum#visible')
+if 1
     inoremap <silent><expr> <TAB>
           \ coc#pum#visible() ? coc#pum#next(1) :
           \ CheckBackspace() ? "\<Tab>" :
@@ -600,7 +605,7 @@ command! -bang -complete=dir -nargs=? LS
 
 
 " ------------------------- quickui -------------------------------------------
-if exists('*quickui#menu#open')
+if 1
     function! PopupLines()
         let lines = &lines - 5
         if &lines > 25
