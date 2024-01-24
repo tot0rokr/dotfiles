@@ -275,50 +275,52 @@ highlight DiffText      ctermbg=237
 
 " --------------------------- statusbar/ airline ------------------------------
 set laststatus=2 " vim-airline을 위해 상태바 2줄
-let g:airline#extensions#tabline#enabled = 1
-let g:airline#extensions#tabline#left_sep = ''
-let g:airline#extensions#tabline#left_alt_sep = ''
-let g:airline#extensions#tabline#right_sep = ''
-let g:airline#extensions#tabline#right_alt_sep = ''
-let g:airline#extensions#tabline#formatter = 'unique_tail'
-let g:airline#extensions#tabline#tab_nr_type = 1
-let g:airline#extensions#tabline#show_tab_nr = 1
-let g:airline#extensions#tabline#tabtitle_formatter = 'TabTitleFormatter'
-function TabTitleFormatter(n)
-    return TabooTabTitle(0)
-endfunction
+if exists('*airline#parts#define')
+    let g:airline#extensions#tabline#enabled = 1
+    let g:airline#extensions#tabline#left_sep = ''
+    let g:airline#extensions#tabline#left_alt_sep = ''
+    let g:airline#extensions#tabline#right_sep = ''
+    let g:airline#extensions#tabline#right_alt_sep = ''
+    let g:airline#extensions#tabline#formatter = 'unique_tail'
+    let g:airline#extensions#tabline#tab_nr_type = 1
+    let g:airline#extensions#tabline#show_tab_nr = 1
+    let g:airline#extensions#tabline#tabtitle_formatter = 'TabTitleFormatter'
+    function TabTitleFormatter(n)
+        return TabooTabTitle(0)
+    endfunction
 
-let g:airline_theme='serene'
+    let g:airline_theme='serene'
 
-if !exists('g:airline_symbols')
-    let g:airline_symbols = {}
+    if !exists('g:airline_symbols')
+        let g:airline_symbols = {}
+    endif
+    let g:airline_left_sep = ''
+    let g:airline_right_sep = ''
+    let g:airline_symbols.paste = 'ρ'
+
+    function! GetObsessionSymbol()
+        let status = g:obsession_status
+        return status == 2 ? '' : status == 1 ? "$" : "S"
+    endfunction
+    call airline#parts#define(
+           \ 'obsessionstatus', {'function': 'GetObsessionSymbol', 'accents': 'bold'})
+
+    function! GetWindowNumber()
+        return ' Ш' .. tabpagewinnr(tabpagenr())
+    endfunction
+    call airline#parts#define(
+           \ 'windownumber', {'function': 'GetWindowNumber', 'accents': 'bold'})
+
+    function! GetFoldLevel()
+        return foldlevel(line('.')) > 0 ? ' Ɀ' .. foldlevel(line('.')) : ''
+    endfunction
+    call airline#parts#define(
+           \ 'foldlevel', {'function': 'GetFoldLevel', 'accents': 'bold'})
+    let g:airline_section_a = airline#section#create_left(
+           \ ['mode', 'crypt', 'paste', 'keymap', 'spell', 'capslock', 'xkblayout', 'iminsert', 'obsessionstatus'])
+    let g:airline_section_z = airline#section#create(
+           \ ['%p%%', 'linenr', 'maxlinenr', 'colnr', 'foldlevel', 'windownumber'])
 endif
-let g:airline_left_sep = ''
-let g:airline_right_sep = ''
-let g:airline_symbols.paste = 'ρ'
-
-function! GetObsessionSymbol()
-    let status = g:obsession_status
-    return status == 2 ? '' : status == 1 ? "$" : "S"
-endfunction
-call airline#parts#define(
-       \ 'obsessionstatus', {'function': 'GetObsessionSymbol', 'accents': 'bold'})
-
-function! GetWindowNumber()
-    return ' Ш' .. tabpagewinnr(tabpagenr())
-endfunction
-call airline#parts#define(
-       \ 'windownumber', {'function': 'GetWindowNumber', 'accents': 'bold'})
-
-function! GetFoldLevel()
-    return foldlevel(line('.')) > 0 ? ' Ɀ' .. foldlevel(line('.')) : ''
-endfunction
-call airline#parts#define(
-       \ 'foldlevel', {'function': 'GetFoldLevel', 'accents': 'bold'})
-let g:airline_section_a = airline#section#create_left(
-       \ ['mode', 'crypt', 'paste', 'keymap', 'spell', 'capslock', 'xkblayout', 'iminsert', 'obsessionstatus'])
-let g:airline_section_z = airline#section#create(
-       \ ['%p%%', 'linenr', 'maxlinenr', 'colnr', 'foldlevel', 'windownumber'])
 
 let g:airline#extensions#tmuxline#enabled = 0
 let g:tmuxline_preset = {
@@ -338,115 +340,115 @@ let g:tmuxline_separators = {
         \ 'space' : ' '}
 
 " -------------------------- coc ----------------------------------------------
-inoremap <silent><expr> <TAB>
-      \ coc#pum#visible() ? coc#pum#next(1) :
-      \ CheckBackspace() ? "\<Tab>" :
-      \ coc#refresh()
-inoremap <expr><S-TAB> coc#pum#visible() ? coc#pum#prev(1) : "\<C-h>"
+if exists('*coc#pum#visible')
+    inoremap <silent><expr> <TAB>
+          \ coc#pum#visible() ? coc#pum#next(1) :
+          \ CheckBackspace() ? "\<Tab>" :
+          \ coc#refresh()
+    inoremap <expr><S-TAB> coc#pum#visible() ? coc#pum#prev(1) : "\<C-h>"
 
-inoremap <silent><expr> <CR> coc#pum#visible() ? coc#pum#confirm()
-                              \: "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
+    inoremap <silent><expr> <CR> coc#pum#visible() ? coc#pum#confirm()
+                                  \: "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
 
-function! CheckBackspace() abort
-    let col = col('.') - 1
-    return !col || getline('.')[col - 1]  =~# '\s'
-endfunction
+    function! CheckBackspace() abort
+        let col = col('.') - 1
+        return !col || getline('.')[col - 1]  =~# '\s'
+    endfunction
 
-" Use <c-space> to trigger completion
-if has('nvim')
-    inoremap <silent><expr> <c-space> coc#refresh()
-else
-    inoremap <silent><expr> <c-@> coc#refresh()
-endif
-
-" GoTo code navigation
-nmap <silent> gd <Plug>(coc-definition)
-nmap <silent> gt <Plug>(coc-type-definition)
-nmap <silent> gi <Plug>(coc-implementation)
-nmap <silent> gr <Plug>(coc-references)
-
-" Use K to show documentation in preview window
-nnoremap <silent> K :call ShowDocumentation()<CR>
-
-function! ShowDocumentation()
-    if CocAction('hasProvider', 'hover')
-        call CocActionAsync('doHover')
+    " Use <c-space> to trigger completion
+    if has('nvim')
+        inoremap <silent><expr> <c-space> coc#refresh()
     else
-        call feedkeys('K', 'in')
+        inoremap <silent><expr> <c-@> coc#refresh()
     endif
-endfunction
 
-" Highlight the symbol and its references when holding the cursor
-if exists('*CocActionAsync')
-    autocmd CursorHold * silent call CocActionAsync('highlight')
+    " GoTo code navigation
+    nmap <silent> gd <Plug>(coc-definition)
+    nmap <silent> gt <Plug>(coc-type-definition)
+    nmap <silent> gi <Plug>(coc-implementation)
+    nmap <silent> gr <Plug>(coc-references)
+
+    " Use K to show documentation in preview window
+    nnoremap <silent> K :call ShowDocumentation()<CR>
+
+    function! ShowDocumentation()
+        if CocAction('hasProvider', 'hover')
+            call CocActionAsync('doHover')
+        else
+            call feedkeys('K', 'in')
+        endif
+    endfunction
+
+    " Highlight the symbol and its references when holding the cursor
+    if exists('*CocActionAsync')
+        autocmd CursorHold * silent call CocActionAsync('highlight')
+    endif
+
+    augroup mygroup
+        autocmd!
+        " Setup formatexpr specified filetype(s)
+        autocmd FileType typescript,json setl formatexpr=CocAction('formatSelected')
+        " Update signature help on jump placeholder
+        autocmd User CocJumpPlaceholder call CocActionAsync('showSignatureHelp')
+    augroup end
+
+
+    " Map function and class text objects
+    " NOTE: Requires 'textDocument.documentSymbol' support from the language server
+    xmap if <Plug>(coc-funcobj-i)
+    omap if <Plug>(coc-funcobj-i)
+    xmap af <Plug>(coc-funcobj-a)
+    omap af <Plug>(coc-funcobj-a)
+    xmap ic <Plug>(coc-classobj-i)
+    omap ic <Plug>(coc-classobj-i)
+    xmap ac <Plug>(coc-classobj-a)
+    omap ac <Plug>(coc-classobj-a)
+
+    " Remap <C-f> and <C-b> to scroll float windows/popups
+    if has('nvim-0.4.0') || has('patch-8.2.0750')
+        nnoremap <silent><nowait><expr> <C-f>
+                \ coc#float#has_scroll() ? coc#float#scroll(1) : "\<C-f>"
+        nnoremap <silent><nowait><expr> <C-b>
+                \ coc#float#has_scroll() ? coc#float#scroll(0) : "\<C-b>"
+        inoremap <silent><nowait><expr> <C-f>
+                \ coc#float#has_scroll() ? "\<c-r>=coc#float#scroll(1)\<cr>" : "\<Right>"
+        inoremap <silent><nowait><expr> <C-b>
+                \ coc#float#has_scroll() ? "\<c-r>=coc#float#scroll(0)\<cr>" : "\<Left>"
+        vnoremap <silent><nowait><expr> <C-f>
+                \ coc#float#has_scroll() ? coc#float#scroll(1) : "\<C-f>"
+        vnoremap <silent><nowait><expr> <C-b>
+                \ coc#float#has_scroll() ? coc#float#scroll(0) : "\<C-b>"
+    endif
+
+    " Mappings for CoCList
+    " Show all diagnostics
+    " Do default action for next item
+    nnoremap <silent><nowait> <leader>j  :<C-u>CocNext<CR>
+    " Do default action for previous item
+    nnoremap <silent><nowait> <leader>k  :<C-u>CocPrev<CR>
+    " Resume latest coc list
+    nnoremap <silent><nowait> <leader>;  :<C-u>CocListResume<CR>
+
+    let g:coc_global_extensions = [
+                \ 'coc-yank',
+                \ 'coc-json',
+                \ 'coc-html',
+                \ 'coc-diagnostic',
+                \ 'coc-sh',
+                \ 'coc-pyright',
+                \ 'coc-markdownlint',
+                \ 'coc-docker',
+                \ 'coc-clangd',
+                \ 'coc-css',
+                \ 'coc-yaml',
+                \ 'coc-cmake'
+                \ ]
+    " coc-clangd     --> sudo apt-get install clangd-12
+    nnoremap <silent> <leader>p  :<C-u>CocList -A --normal yank<cr>
+
+    autocmd FileType css setl iskeyword+=-
+    autocmd FileType scss setl iskeyword+=@-@
 endif
-
-augroup mygroup
-    autocmd!
-    " Setup formatexpr specified filetype(s)
-    autocmd FileType typescript,json setl formatexpr=CocAction('formatSelected')
-    " Update signature help on jump placeholder
-    autocmd User CocJumpPlaceholder call CocActionAsync('showSignatureHelp')
-augroup end
-
-
-" Map function and class text objects
-" NOTE: Requires 'textDocument.documentSymbol' support from the language server
-xmap if <Plug>(coc-funcobj-i)
-omap if <Plug>(coc-funcobj-i)
-xmap af <Plug>(coc-funcobj-a)
-omap af <Plug>(coc-funcobj-a)
-xmap ic <Plug>(coc-classobj-i)
-omap ic <Plug>(coc-classobj-i)
-xmap ac <Plug>(coc-classobj-a)
-omap ac <Plug>(coc-classobj-a)
-
-" Remap <C-f> and <C-b> to scroll float windows/popups
-if has('nvim-0.4.0') || has('patch-8.2.0750')
-    nnoremap <silent><nowait><expr> <C-f>
-            \ coc#float#has_scroll() ? coc#float#scroll(1) : "\<C-f>"
-    nnoremap <silent><nowait><expr> <C-b>
-            \ coc#float#has_scroll() ? coc#float#scroll(0) : "\<C-b>"
-    inoremap <silent><nowait><expr> <C-f>
-            \ coc#float#has_scroll() ? "\<c-r>=coc#float#scroll(1)\<cr>" : "\<Right>"
-    inoremap <silent><nowait><expr> <C-b>
-            \ coc#float#has_scroll() ? "\<c-r>=coc#float#scroll(0)\<cr>" : "\<Left>"
-    vnoremap <silent><nowait><expr> <C-f>
-            \ coc#float#has_scroll() ? coc#float#scroll(1) : "\<C-f>"
-    vnoremap <silent><nowait><expr> <C-b>
-            \ coc#float#has_scroll() ? coc#float#scroll(0) : "\<C-b>"
-endif
-
-" Mappings for CoCList
-" Show all diagnostics
-" Do default action for next item
-nnoremap <silent><nowait> <leader>j  :<C-u>CocNext<CR>
-" Do default action for previous item
-nnoremap <silent><nowait> <leader>k  :<C-u>CocPrev<CR>
-" Resume latest coc list
-nnoremap <silent><nowait> <leader>;  :<C-u>CocListResume<CR>
-
-let g:coc_global_extensions = [
-            \ 'coc-yank',
-            \ 'coc-json',
-            \ 'coc-html',
-            \ 'coc-diagnostic',
-            \ 'coc-sh',
-            \ 'coc-pyright',
-            \ 'coc-markdownlint',
-            \ 'coc-docker',
-            \ 'coc-clangd',
-            \ 'coc-css',
-            \ 'coc-yaml',
-            \ 'coc-cmake'
-            \ ]
-" coc-clangd     --> sudo apt-get install clangd-12
-nnoremap <silent> <leader>p  :<C-u>CocList -A --normal yank<cr>
-
-autocmd FileType css setl iskeyword+=-
-autocmd FileType scss setl iskeyword+=@-@
-
-
 
 " ------------------------------- Obsession ----------------------------------
 " Obsession status
@@ -598,176 +600,178 @@ command! -bang -complete=dir -nargs=? LS
 
 
 " ------------------------- quickui -------------------------------------------
-function! PopupLines()
-    let lines = &lines - 5
-    if &lines > 25
-        let lines = 25
-    endif
-    return lines
-endfunction
+if exists('*quickui#menu#open')
+    function! PopupLines()
+        let lines = &lines - 5
+        if &lines > 25
+            let lines = 25
+        endif
+        return lines
+    endfunction
 
-function! PopupColumns()
-    let columns = &columns - 20
-    if &columns > 120
-        let columns = 100
-    endif
-    return columns
-endfunction
+    function! PopupColumns()
+        let columns = &columns - 20
+        if &columns > 120
+            let columns = 100
+        endif
+        return columns
+    endfunction
 
-function! QuickuiSaveBackup()
-    let versionname = quickui#input#open('Enter version name:', 'old')
-    call SaveBackup(versionname)
-endfunction
+    function! QuickuiSaveBackup()
+        let versionname = quickui#input#open('Enter version name:', 'old')
+        call SaveBackup(versionname)
+    endfunction
 
-" default menu
-call quickui#menu#switch('def')
+    " default menu
+    call quickui#menu#switch('def')
 
-" clear all the menus
-call quickui#menu#reset()
+    " clear all the menus
+    call quickui#menu#reset()
 
-call quickui#menu#install("&Files", [
-            \ ['&Paste', "set paste!"],
-            \ ['--',''],
-            \ ['&NERD Tree', "NERDTreeToggle"],
-            \ ['&Tag Bar', "TagbarToggle"],
-            \ ['--',''],
-            \ ['Search &Git File', "normal \<Plug>SearchGitFile"],
-            \ ['--',''],
-            \ ['&Save Session Toggle', "call ObsessionToggle()"],
-            \ ['&Delete Session', "call ObsessionDelete()"],
-            \ ['--',''],
-            \ ['Save Backup', "call QuickuiSaveBackup()"],
-            \ ['Delete Swap', "call DeleteSwap()"],
-            \ ])
+    call quickui#menu#install("&Files", [
+                \ ['&Paste', "set paste!"],
+                \ ['--',''],
+                \ ['&NERD Tree', "NERDTreeToggle"],
+                \ ['&Tag Bar', "TagbarToggle"],
+                \ ['--',''],
+                \ ['Search &Git File', "normal \<Plug>SearchGitFile"],
+                \ ['--',''],
+                \ ['&Save Session Toggle', "call ObsessionToggle()"],
+                \ ['&Delete Session', "call ObsessionDelete()"],
+                \ ['--',''],
+                \ ['Save Backup', "call QuickuiSaveBackup()"],
+                \ ['Delete Swap', "call DeleteSwap()"],
+                \ ])
 
-call quickui#menu#install("&Tags", [
-            \ ['Function &List', "call quickui#tools#list_function()"],
-            \ ['Preview &Tag  <F3>', ":call quickui#tools#preview_tag('')"],
-            \ ])
+    call quickui#menu#install("&Tags", [
+                \ ['Function &List', "call quickui#tools#list_function()"],
+                \ ['Preview &Tag  <F3>', ":call quickui#tools#preview_tag('')"],
+                \ ])
 
-function! TermExit(code)
-    echom "terminal exit code: " .. a:code
-endfunc
+    function! TermExit(code)
+        echom "terminal exit code: " .. a:code
+    endfunc
 
-function! OpenShell()
-	let opts = {'w':call("PopupColumns",[]),
-                \ 'h':call("PopupLines",[]), 'callback':'TermExit'}
-	let opts.title = 'Terminal Popup'
-	call quickui#terminal#open('bash', opts)
-endfunction
+    function! OpenShell()
+        let opts = {'w':call("PopupColumns",[]),
+                    \ 'h':call("PopupLines",[]), 'callback':'TermExit'}
+        let opts.title = 'Terminal Popup'
+        call quickui#terminal#open('bash', opts)
+    endfunction
 
-function! OpenPython()
-	let opts = {'w':call("PopupColumns",[]),
-                \ 'h':call("PopupLines",[]), 'callback':'TermExit'}
-	let opts.title = 'Python Popup'
-    call quickui#terminal#open(
-        \ 'bash -c "if [ ! -z $(which ipython) ]; then ipython; else python; fi"',
-        \ opts)
-endfunction
+    function! OpenPython()
+        let opts = {'w':call("PopupColumns",[]),
+                    \ 'h':call("PopupLines",[]), 'callback':'TermExit'}
+        let opts.title = 'Python Popup'
+        call quickui#terminal#open(
+            \ 'bash -c "if [ ! -z $(which ipython) ]; then ipython; else python; fi"',
+            \ opts)
+    endfunction
 
-function! TabRename()
-    let previous_tabname = TabooTabName(0)
-    let tabname = quickui#input#open('Enter this tab name', previous_tabname)
-    execute "TabooRename " .. tabname
-endfunction
+    function! TabRename()
+        let previous_tabname = TabooTabName(0)
+        let tabname = quickui#input#open('Enter this tab name', previous_tabname)
+        execute "TabooRename " .. tabname
+    endfunction
 
-call quickui#menu#install("&Window", [
-            \ ['Buffer &Delete', 'bdelete'],
-            \ ['Tab &New', 'tabnew'],
-            \ ['Tab &Close', 'tabclose'],
-            \ ['Tab &Rename', 'call TabRename()'],
-            \ ['Tab NameReset', 'TabooReset'],
-            \ ['--',''],
-            \ ['&Shell', 'call OpenShell()'],
-            \ ['&Python', 'call OpenPython()'],
-            \ ['&Messages', 'Messages'],
-            \ ['--',''],
-            \ ['Toggle Cursor High&light', 'call ToggleCursorHighlight()'],
-            \ ['Toggle Color &TextWidth', 'call ToggleColorColumn()'],
-            \ ['--',''],
-            \ ['&Buffer Switcher  <F4>', 'call quickui#tools#list_buffer("e")'],
-            \ ])
+    call quickui#menu#install("&Window", [
+                \ ['Buffer &Delete', 'bdelete'],
+                \ ['Tab &New', 'tabnew'],
+                \ ['Tab &Close', 'tabclose'],
+                \ ['Tab &Rename', 'call TabRename()'],
+                \ ['Tab NameReset', 'TabooReset'],
+                \ ['--',''],
+                \ ['&Shell', 'call OpenShell()'],
+                \ ['&Python', 'call OpenPython()'],
+                \ ['&Messages', 'Messages'],
+                \ ['--',''],
+                \ ['Toggle Cursor High&light', 'call ToggleCursorHighlight()'],
+                \ ['Toggle Color &TextWidth', 'call ToggleColorColumn()'],
+                \ ['--',''],
+                \ ['&Buffer Switcher  <F4>', 'call quickui#tools#list_buffer("e")'],
+                \ ])
 
-call quickui#menu#install("Coc &Refactor", [
-            \ ['Code &Action', "call CocActionAsync('codeAction', visualmode())"],
-            \ ['Code Action &Cursor', "normal \<Plug>(coc-codeaction-cursor)"],
-            \ ['Code Action &source', "normal \<Plug>(coc-codeaction-source)"],
-            \ ['&Rename', "normal \<Plug>(coc-rename)"],
-            \ ])
+    call quickui#menu#install("Coc &Refactor", [
+                \ ['Code &Action', "call CocActionAsync('codeAction', visualmode())"],
+                \ ['Code Action &Cursor', "normal \<Plug>(coc-codeaction-cursor)"],
+                \ ['Code Action &source', "normal \<Plug>(coc-codeaction-source)"],
+                \ ['&Rename', "normal \<Plug>(coc-rename)"],
+                \ ])
 
-call quickui#menu#install("&CocList", [
-            \ ['&Diagnostics', 'CocList diagnostics'],
-            \ ['&Extensions', 'CocList extensions'],
-            \ ['&Commands', 'CocList commands'],
-            \ ['&Outline', 'CocList outline'],
-            \ ['&Symbols', 'CocList symbols'],
-            \ ])
+    call quickui#menu#install("&CocList", [
+                \ ['&Diagnostics', 'CocList diagnostics'],
+                \ ['&Extensions', 'CocList extensions'],
+                \ ['&Commands', 'CocList commands'],
+                \ ['&Outline', 'CocList outline'],
+                \ ['&Symbols', 'CocList symbols'],
+                \ ])
 
-" register HELP menu with weight 10000
-call quickui#menu#install('Help (&?)', [
-            \ ["&Index", 'tab help index', ''],
-            \ ['Ti&ps', 'tab help tips', ''],
-            \ ['--',''],
-            \ ["&Tutorial", 'tab help tutor', ''],
-            \ ['&Quick Reference', 'tab help quickref', ''],
-            \ ['&Summary', 'tab help summary', ''],
-            \ ['--',''],
-            \ ['&Vim Script', 'tab help eval', ''],
-            \ ['&Function List', 'tab help function-list', ''],
-            \ ['&Dash Help', 'call asclib#utils#dash_ft(&ft, expand("<cword>"))'],
-            \ ], 10000)
+    " register HELP menu with weight 10000
+    call quickui#menu#install('Help (&?)', [
+                \ ["&Index", 'tab help index', ''],
+                \ ['Ti&ps', 'tab help tips', ''],
+                \ ['--',''],
+                \ ["&Tutorial", 'tab help tutor', ''],
+                \ ['&Quick Reference', 'tab help quickref', ''],
+                \ ['&Summary', 'tab help summary', ''],
+                \ ['--',''],
+                \ ['&Vim Script', 'tab help eval', ''],
+                \ ['&Function List', 'tab help function-list', ''],
+                \ ['&Dash Help', 'call asclib#utils#dash_ft(&ft, expand("<cword>"))'],
+                \ ], 10000)
 
-" enable to display tips in the cmdline
-let g:quickui_show_tip = 1
+    " enable to display tips in the cmdline
+    let g:quickui_show_tip = 1
 
-" hit space twice to open menu
-noremap <F1> :call quickui#menu#open()<cr>
-call quickui#menu#open('default')
+    " hit space twice to open menu
+    noremap <F1> :call quickui#menu#open()<cr>
+    call quickui#menu#open('default')
 
-let g:quickui_border_style = 2
-let g:quickui_color_scheme = 'gruvbox'
+    let g:quickui_border_style = 2
+    let g:quickui_color_scheme = 'gruvbox'
 
-autocmd VimResized * let g:quickui_preview_w = 100
-autocmd VimResized * let g:quickui_preview_h = 20
+    autocmd VimResized * let g:quickui_preview_w = 100
+    autocmd VimResized * let g:quickui_preview_h = 20
 
-" display vim messages in the textbox
-function! DisplayMessages()
-    let x = ''
-    redir => x
-    silent! messages
-    redir END
-    let x = substitute(x, '[\n\r]\+\%$', '', 'g')
-    let content = filter(split(x, "\n"), 'v:key != ""')
-    let opts = {"close":"button", "title":"Vim Messages"}
-    call quickui#textbox#open(content, opts)
-endfunc
+    " display vim messages in the textbox
+    function! DisplayMessages()
+        let x = ''
+        redir => x
+        silent! messages
+        redir END
+        let x = substitute(x, '[\n\r]\+\%$', '', 'g')
+        let content = filter(split(x, "\n"), 'v:key != ""')
+        let opts = {"close":"button", "title":"Vim Messages"}
+        call quickui#textbox#open(content, opts)
+    endfunc
 
-command -nargs=0 Messages call DisplayMessages()
+    command -nargs=0 Messages call DisplayMessages()
 
-let cursor_context_content = [
-            \ ['Find Symbols               \s', "normal \<Plug>CscopeFindSym"],
-            \ ['Find Definition            \g', "normal \<Plug>CscopeFindDef"],
-            \ ['Find Functions Called by   \c', "normal \<Plug>CscopeFindClr"],
-            \ ['Find Functions Calling     \t', "normal \<Plug>CscopeFindCll"],
-            \ ['Find Text String           \e', "normal \<Plug>CscopeFindTxt"],
-            \ ['Find Egrep Pattern         \f', "normal \<Plug>CscopeFindGrp"],
-            \ ['Find File                  \i', "normal \<Plug>CscopeFindFle"],
-            \ ['Find Files #including      \d', "normal \<Plug>CscopeFindInc"],
-            \ ['Find where value assigned  \a', "normal \<Plug>CscopeFindAsn"],
-            \ ['Find Struct                \S', "normal \<Plug>CscopeFindStc"],
-            \ ['-'],
-            \ ['Code Action &Cursor', "normal \<Plug>(coc-codeaction-cursor)"],
-            \ ['Code Action &source', "normal \<Plug>(coc-codeaction-source)"],
-            \ ['&Rename', "normal \<Plug>(coc-rename)"],
-            \ ]
-" set cursor to the last position
-let cursor_context_opts = {'index':g:quickui#context#cursor}
-noremap <F2> :call quickui#context#open(cursor_context_content, cursor_context_opts)<cr>
+    let cursor_context_content = [
+                \ ['Find Symbols               \s', "normal \<Plug>CscopeFindSym"],
+                \ ['Find Definition            \g', "normal \<Plug>CscopeFindDef"],
+                \ ['Find Functions Called by   \c', "normal \<Plug>CscopeFindClr"],
+                \ ['Find Functions Calling     \t', "normal \<Plug>CscopeFindCll"],
+                \ ['Find Text String           \e', "normal \<Plug>CscopeFindTxt"],
+                \ ['Find Egrep Pattern         \f', "normal \<Plug>CscopeFindGrp"],
+                \ ['Find File                  \i', "normal \<Plug>CscopeFindFle"],
+                \ ['Find Files #including      \d', "normal \<Plug>CscopeFindInc"],
+                \ ['Find where value assigned  \a', "normal \<Plug>CscopeFindAsn"],
+                \ ['Find Struct                \S', "normal \<Plug>CscopeFindStc"],
+                \ ['-'],
+                \ ['Code Action &Cursor', "normal \<Plug>(coc-codeaction-cursor)"],
+                \ ['Code Action &source', "normal \<Plug>(coc-codeaction-source)"],
+                \ ['&Rename', "normal \<Plug>(coc-rename)"],
+                \ ]
+    " set cursor to the last position
+    let cursor_context_opts = {'index':g:quickui#context#cursor}
+    noremap <F2> :call quickui#context#open(cursor_context_content, cursor_context_opts)<cr>
 
-augroup MyQuickfixPreview
-    au!
-    au FileType qf noremap <silent><buffer> p :call quickui#tools#preview_quickfix()<cr>
-augroup END
+    augroup MyQuickfixPreview
+        au!
+        au FileType qf noremap <silent><buffer> p :call quickui#tools#preview_quickfix()<cr>
+    augroup END
+endif
 
 " --------------------------------- Key Mapping -------------------------------
 " Editor
