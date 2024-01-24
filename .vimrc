@@ -279,11 +279,16 @@ highlight DiffText      ctermbg=237
 " --------------------------- statusbar/ airline ------------------------------
 set laststatus=2 " vim-airline을 위해 상태바 2줄
 if 1
+    let g:airline_powerline_fonts = 1
     let g:airline#extensions#tabline#enabled = 1
     let g:airline#extensions#tabline#left_sep = ''
     let g:airline#extensions#tabline#left_alt_sep = ''
     let g:airline#extensions#tabline#right_sep = ''
     let g:airline#extensions#tabline#right_alt_sep = ''
+    " let g:airline#extensions#tabline#left_sep = ' '
+    " let g:airline#extensions#tabline#left_alt_sep = ' '
+    " let g:airline#extensions#tabline#right_sep = ' '
+    " let g:airline#extensions#tabline#right_alt_sep = ' '
     let g:airline#extensions#tabline#formatter = 'unique_tail'
     let g:airline#extensions#tabline#tab_nr_type = 1
     let g:airline#extensions#tabline#show_tab_nr = 1
@@ -297,25 +302,33 @@ if 1
     if !exists('g:airline_symbols')
         let g:airline_symbols = {}
     endif
+    let g:airline_left_alt_sep = ''
+    let g:airline_right_alt_sep = ''
     let g:airline_left_sep = ''
     let g:airline_right_sep = ''
-    let g:airline_symbols.paste = 'ρ'
+    let g:airline_symbols.paste = ' '
+    " let g:airline_left_sep = ' '
+    " let g:airline_right_sep = ' '
+    " let g:airline_symbols.paste = 'PASTE'
 
     function! GetObsessionSymbol()
         let status = g:obsession_status
-        return status == 2 ? '' : status == 1 ? "$" : "S"
+        return status == 2 ? '' : status == 1 ? ' ' : ' '
+        " return status == 2 ? '' : status == 1 ? '$' : 'S'
     endfunction
     call airline#parts#define(
            \ 'obsessionstatus', {'function': 'GetObsessionSymbol', 'accents': 'bold'})
 
     function! GetWindowNumber()
-        return ' Ш' .. tabpagewinnr(tabpagenr())
+        return ' 󱇛 ' .. tabpagewinnr(tabpagenr())
+        " return ' W' .. tabpagewinnr(tabpagenr())
     endfunction
     call airline#parts#define(
            \ 'windownumber', {'function': 'GetWindowNumber', 'accents': 'bold'})
 
     function! GetFoldLevel()
-        return foldlevel(line('.')) > 0 ? ' Ɀ' .. foldlevel(line('.')) : ''
+        return foldlevel(line('.')) > 0 ? '  ' .. foldlevel(line('.')) : ''
+        " return foldlevel(line('.')) > 0 ? ' Z' .. foldlevel(line('.')) : ''
     endfunction
     call airline#parts#define(
            \ 'foldlevel', {'function': 'GetFoldLevel', 'accents': 'bold'})
