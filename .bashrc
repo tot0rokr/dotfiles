@@ -205,8 +205,7 @@ if [ $(lsb_release -i | awk '{print $3}') == "Ubuntu" ]; then
         if [ ! -z $(which fdfind) ]; then
             ln -s $(which fdfind) $LOCAL_BIN_PATH/fd
         else
-            sudo apt install -y fd-find
-            ln -s $(which fdfind) $LOCAL_BIN_PATH/fd
+            sudo apt install -y fd-find && ln -s $(which fdfind) $LOCAL_BIN_PATH/fd
         fi
     fi
 
@@ -214,8 +213,7 @@ if [ $(lsb_release -i | awk '{print $3}') == "Ubuntu" ]; then
         if [ ! -z $(which batcat) ]; then
             ln -s $(which batcat) $LOCAL_BIN_PATH/bat
         else
-            sudo apt install -y bat
-            ln -s $(which batcat) $LOCAL_BIN_PATH/bat
+            sudo apt install -y bat && ln -s $(which batcat) $LOCAL_BIN_PATH/bat
         fi
     fi
 
