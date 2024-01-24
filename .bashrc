@@ -220,6 +220,9 @@ if [ $(lsb_release -i | awk '{print $3}') == "Ubuntu" ]; then
     fi
 
     if [ -z $(which vim) ]; then
+        if [ -z $(which add-apt-repository) ]; then
+            sudo apt install -y software-properties-common
+        fi
         sudo add-apt-repository ppa:jonathonf/vim
         sudo apt update
         sudo apt install -y vim
