@@ -1,7 +1,28 @@
+# All files ignore
+*
+
+# White lists
+!.vim/
+!.tmux/
+!.bash_aliases
+!.bash_logout
+!.bashrc
+!.fzf-git.sh
+!.fzf.bash
+!.git-completion.bash
+!.git-prompt.sh
+!.gitconfig
+!.gitignore
+!.profile
+!.tmux.conf
+!.vimrc
+!README.md
+
+# Black lists
 .vim/temp
 .vim/undo
 .vim/obsession
-.vim/bundle
+.vim/plugged
 .git-credentials
 .bash_history
 .python_history
