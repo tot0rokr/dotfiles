@@ -170,6 +170,10 @@ if [ $(lsb_release -i | awk '{print $3}') == "Ubuntu" ]; then
         sudo apt install -y python3
     fi
 
+    if ! dpkg -l | grep python3-venv 2>&1 > /dev/null; then
+        sudo apt install -y python3-venv
+    fi
+
     if [ -z $(which tmux) ]; then
         sudo apt install -y tmux
     fi
