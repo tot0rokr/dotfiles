@@ -30,3 +30,4 @@ if [ -d "$HOME/bin" ] ; then
     fi
 fi
 
+export LANG="C.UTF-8"
