@@ -367,7 +367,7 @@ if 1
           \ CheckBackspace() ? "\<TAB>" :
           \ coc#refresh()
     inoremap <expr><S-TAB> coc#pum#visible() ? coc#pum#prev(1) : "\<C-h>"
-    inoremap <silent><expr> <CR> coc#pum#visible() ? coc#_select_confirm()
+    inoremap <silent><expr> <CR> coc#pum#visible() ? coc#pum#confirm()
                                   \: "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
 
     " inoremap <silent><expr> <TAB>
