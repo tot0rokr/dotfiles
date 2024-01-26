@@ -187,8 +187,8 @@ autocmd BufEnter COMMIT_EDITMSG match CommitEditor '\%1l\%50v'
 " ------------------------- 라인 끝 공백 highlight --------------------------
 highlight ExtraWhitespace ctermbg=88
 match ExtraWhitespace /\s\+$/
-autocmd BufWinEnter * match ExtraWhitespace /\s\+$/
-autocmd BufWinLeave * call clearmatches()
+autocmd WinEnter * match ExtraWhitespace /\s\+$/
+autocmd WinLeave * call clearmatches()
 
 
 " ---------------------------------- folding ---------------------------------
