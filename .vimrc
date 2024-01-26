@@ -128,6 +128,11 @@ let g:taboo_modified_tab_flag='+'
 Plug 'tpope/vim-obsession'
 let g:obsession_no_bufenter = 1
 
+" Snippets
+" Plug 'SirVer/ultisnips'
+Plug 'honza/vim-snippets'
+
+
 " Initialize plugin system
 " - Automatically executes `filetype plugin indent on` and `syntax enable`.
 call plug#end()
@@ -359,12 +364,17 @@ let g:tmuxline_separators = {
 if 1
     inoremap <silent><expr> <TAB>
           \ coc#pum#visible() ? coc#pum#next(1) :
-          \ CheckBackspace() ? "\<Tab>" :
+          \ CheckBackspace() ? "\<TAB>" :
           \ coc#refresh()
     inoremap <expr><S-TAB> coc#pum#visible() ? coc#pum#prev(1) : "\<C-h>"
-
-    inoremap <silent><expr> <CR> coc#pum#visible() ? coc#pum#confirm()
+    inoremap <silent><expr> <CR> coc#pum#visible() ? coc#_select_confirm()
                                   \: "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
+
+    " inoremap <silent><expr> <TAB>
+          " \ coc#pum#visible() ? coc#_select_confirm() :
+          " \ coc#expandableOrJumpable() ? "\<C-r>=coc#rpc#request('doKeymap', ['snippets-expand-jump',''])\<CR>" :
+          " \ CheckBackspace() ? "\<TAB>" :
+          " \ coc#refresh()
 
     function! CheckBackspace() abort
         let col = col('.') - 1
@@ -445,6 +455,22 @@ if 1
     " Resume latest coc list
     nnoremap <silent><nowait> <leader>;  :<C-u>CocListResume<CR>
 
+
+    " Snippets
+    "
+    " Use <C-l> for trigger snippet expand.
+    imap <C-l> <Plug>(coc-snippets-expand)
+    " Use <C-j> for select text for visual placeholder of snippet.
+    vmap <C-j> <Plug>(coc-snippets-select)
+    " Use <C-j> for jump to next placeholder, it's default of coc.nvim
+    let g:coc_snippet_next = '<c-j>'
+    " Use <C-k> for jump to previous placeholder, it's default of coc.nvim
+    let g:coc_snippet_prev = '<c-k>'
+    " Use <C-j> for both expand and jump (make expand higher priority.)
+    imap <C-j> <Plug>(coc-snippets-expand-jump)
+    " Use <leader>x for convert visual selected code to snippet
+    xmap <leader>x  <Plug>(coc-convert-snippet)
+
     let g:coc_global_extensions = [
                 \ 'coc-yank',
                 \ 'coc-json',
@@ -456,6 +482,7 @@ if 1
                 \ 'coc-docker',
                 \ 'coc-clangd',
                 \ 'coc-css',
+                \ 'coc-snippets',
                 \ 'coc-yaml',
                 \ 'coc-cmake'
                 \ ]
@@ -720,6 +747,7 @@ if 1
                 \ ['&Commands', 'CocList commands'],
                 \ ['&Outline', 'CocList outline'],
                 \ ['&Symbols', 'CocList symbols'],
+                \ ['Sni&ppets', 'CocList snippets'],
                 \ ])
 
     " register HELP menu with weight 10000
