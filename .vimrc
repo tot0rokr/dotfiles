@@ -137,9 +137,9 @@ Plug 'dart-lang/dart-vim-plugin'
 let g:dart_html_in_string = v:true
 let g:dart_style_guide = 2
 let g:dart_format_on_save = v:true
-Plug 'natebosch/vim-lsc'
-Plug 'natebosch/vim-lsc-dart'
-let g:lsc_auto_map = v:true
+" Plug 'natebosch/vim-lsc'
+" Plug 'natebosch/vim-lsc-dart'
+" let g:lsc_auto_map = v:true
 
 
 " Initialize plugin system
