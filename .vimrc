@@ -132,6 +132,15 @@ let g:obsession_no_bufenter = 1
 " Plug 'SirVer/ultisnips'
 Plug 'honza/vim-snippets'
 
+" Flutter
+Plug 'dart-lang/dart-vim-plugin'
+let g:dart_html_in_string = v:true
+let g:dart_style_guide = 2
+let g:dart_format_on_save = v:true
+" Plug 'natebosch/vim-lsc'
+" Plug 'natebosch/vim-lsc-dart'
+" let g:lsc_auto_map = v:true
+
 
 " Initialize plugin system
 " - Automatically executes `filetype plugin indent on` and `syntax enable`.
@@ -484,6 +493,7 @@ if 1
                 \ 'coc-css',
                 \ 'coc-snippets',
                 \ 'coc-yaml',
+                \ 'coc-flutter',
                 \ 'coc-cmake'
                 \ ]
     " coc-clangd     --> sudo apt-get install clangd-12
@@ -737,7 +747,8 @@ if 1
     call quickui#menu#install("Coc &Refactor", [
                 \ ['Code &Action', "call CocActionAsync('codeAction', visualmode())"],
                 \ ['Code Action &Cursor', "normal \<Plug>(coc-codeaction-cursor)"],
-                \ ['Code Action &source', "normal \<Plug>(coc-codeaction-source)"],
+                \ ['Code Action &Source', "normal \<Plug>(coc-codeaction-source)"],
+                \ ['Code Action S&elected', "normal \<Plug>(coc-codeaction-selected)"],
                 \ ['&Rename', "normal \<Plug>(coc-rename)"],
                 \ ])
 
@@ -805,6 +816,7 @@ if 1
                 \ ['-'],
                 \ ['Code Action &Cursor', "normal \<Plug>(coc-codeaction-cursor)"],
                 \ ['Code Action &source', "normal \<Plug>(coc-codeaction-source)"],
+                \ ['Code Action S&elected', "normal \<Plug>(coc-codeaction-selected)"],
                 \ ['&Rename', "normal \<Plug>(coc-rename)"],
                 \ ]
     " set cursor to the last position
