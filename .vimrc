@@ -45,7 +45,7 @@ let g:NERDSpaceDelims=1
 Plug 'xolox/vim-misc'
 
 " easymotion
-Plug 'Lokaltog/vim-easymotion'
+Plug 'easymotion/vim-easymotion'
 
 " argument movable
 Plug 'peterrincker/vim-argumentative'
@@ -64,7 +64,7 @@ Plug 'christoomey/vim-conflicted'
 " Plug 'tommcdo/vim-lion'
 
 " MarkDown
-Plug 'iamcco/markdown-preview.nvim'
+Plug 'iamcco/markdown-preview.nvim', { 'do': 'cd app && npx --yes yarn install' }
 nmap <leader><leader>m <Plug>MarkdownPreviewToggle
 
 " code break game
