@@ -893,6 +893,7 @@ function! SaveBackup (versionname)
     endif
 endfunction
 
+command! SaveBackup call SaveBackup(input('Enter backup version name: ', strftime("%Y%m%d_%H%M%S")))
 
 " -------------------------- skel file ---------------------------------------
 let blog_skel = findfile("_draft/skel.md", ".;")
@@ -927,6 +928,8 @@ exec 'set bdir=' .. swapfile_path
 function! DeleteSwap()
     exec "! rm " .. swapname(expand('%'))
 endfunction
+
+command! DeleteSwap call DeleteSwap()
 
 " --------------------------- vim local setting -----------------------------
 let vimrc_adv = findfile(".vimrc_adv", $HOME)
