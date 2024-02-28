@@ -203,7 +203,7 @@ autocmd WinLeave * call clearmatches()
 " ---------------------------------- folding ---------------------------------
 set foldmethod=manual
 set foldnestmax=2
-set foldlevel=1
+set foldlevel=0
 set foldcolumn=0
 exec 'set fillchars=fold:\ '
 
@@ -226,6 +226,30 @@ if !empty(python_fold)
     exec 'autocmd FileType python source ' .. python_fold
 endif
 
+function! FindDeepestFoldLevel()
+    let maxFoldLevel = 0
+    for i in range(1, line('$'))
+        let currentFoldLevel = foldlevel(i)
+        if currentFoldLevel > maxFoldLevel
+            let maxFoldLevel = currentFoldLevel
+        endif
+    endfor
+    return maxFoldLevel
+endfunction
+
+function! ToggleFoldColumn()
+    if &foldcolumn
+        set foldcolumn=0
+    else
+        let max_fold_level = FindDeepestFoldLevel()
+        if max_fold_level > 0
+            let max_fold_level += 1
+        endif
+        exec 'set foldcolumn=' .. max_fold_level
+    endif
+endfunction
+
+command! FoldColumn call ToggleFoldColumn()
 
 " -------------------------------- quick fix --------------------------------
 function! OpenQuickfixWindow()
@@ -738,6 +762,7 @@ if 1
                 \ ['&Python', 'call OpenPython()'],
                 \ ['&Messages', 'Messages'],
                 \ ['--',''],
+                \ ['Toggle &FoldColumn', 'call ToggleFoldColumn()'],
                 \ ['Toggle Cursor High&light', 'call ToggleCursorHighlight()'],
                 \ ['Toggle Color &TextWidth', 'call ToggleColorColumn()'],
                 \ ['--',''],
