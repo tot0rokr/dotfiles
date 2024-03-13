@@ -27,3 +27,4 @@
 .bash_history
 .python_history
 .tmux/plugins
+.tmux/.resurrect
