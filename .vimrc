@@ -284,10 +284,10 @@ function! ToggleCursorHighlight ()
     endif
 endfunction
 
-" ------------------------------- color columns ------------------------------
+" ------------------------------- ruler --------------------------------------
 
 autocmd BufReadPre * let b:colorcolumns = &cc
-function! ToggleColorColumn ()
+function! ToggleRuler ()
     if &cc != '0'
         let b:colorcolumns = &cc
         exec 'set cc=0'
@@ -764,7 +764,7 @@ if 1
                 \ ['--',''],
                 \ ['Toggle &FoldColumn', 'call ToggleFoldColumn()'],
                 \ ['Toggle Cursor High&light', 'call ToggleCursorHighlight()'],
-                \ ['Toggle Color &TextWidth', 'call ToggleColorColumn()'],
+                \ ['Toggle Color R&uler', 'call ToggleRuler()'],
                 \ ['--',''],
                 \ ['&Buffer Switcher  <F4>', 'call quickui#tools#list_buffer("e")'],
                 \ ])
