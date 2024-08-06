@@ -5,13 +5,19 @@
 [color]
 	ui = auto
 [alias]
+    chp = cherry-pick
+    dfs = diff --staged
+    df = diff
+    sh = stash
 	st = status
 	co = checkout
 	br = branch
 	rb = rebase
     cm = commit
+    cmm = commit -m
+    cma = commit --amend
     sw = switch
-    rst = reset
+    rt = reset
     rs = restore
 	lg = log --graph --abbrev-commit --decorate --format=format:'%C(cyan)%h%C(reset) - %C(green)(%ar)%C(reset) %C(white)%s%C(reset) %C(blue)- %an%C(reset)%C(yellow)%d%C(reset)'
 	lga = log --all --graph --abbrev-commit --decorate --format=format:'%C(cyan)%h%C(reset) - %C(green)(%ar)%C(reset) %C(white)%s%C(reset) %C(blue)- %an%C(reset)%C(yellow)%d%C(reset)'
