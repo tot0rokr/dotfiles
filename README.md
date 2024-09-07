@@ -28,3 +28,17 @@ sudo apt update \
 || git clone https://github.com/tot0rokr/bash.git ~ \
 && bash
 ```
+
+
+### Desktop 사용
+
+- mpv 설치
+    - `sudo apt install mpv`
+- ffmpeg 설치
+    - `sudo apt install ffmpeg`
+- yt-dlp 설치
+    - https://github.com/yt-dlp/yt-dlp?tab=readme-ov-file#release-files
+- img2sixel 설치
+    - `sudo apt install libsixel-bin`
+- timg 설치
+    - `sudo apt install timg`
