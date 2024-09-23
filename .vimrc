@@ -145,6 +145,18 @@ let g:dart_format_on_save = v:true
 Plug 'opalmay/vim-smoothie'
 " let g:smoothie_enabled = 0
 
+" Code minimap
+Plug 'wfxr/minimap.vim', {'do': ':!cargo install --locked code-minimap'}
+let g:minimap_auto_start = 1
+let g:minimap_auto_start_win_enter = 1
+let g:minimap_width = 15
+let g:minimap_exec_warning = 0
+let g:minimap_highlight_range = 1
+let g:minimap_highlight_search = 1
+let g:minimap_git_colors = 1
+command! Noh execute 'nohlsearch' | call minimap#vim#ClearColorSearch()
+cnoreabbrev noh Noh
+
 " Code context viewer
 Plug 'wellle/context.vim'
 
@@ -724,6 +736,7 @@ if 1
     call quickui#menu#install("&Files", [
                 \ ['&Paste', "set paste!"],
                 \ ['--',''],
+                \ ['S&croll bar', "MinimapToggle"],
                 \ ['&NERD Tree', "NERDTreeToggle"],
                 \ ['&Tag Bar', "TagbarToggle"],
                 \ ['--',''],
