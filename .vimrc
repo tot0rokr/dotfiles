@@ -220,16 +220,16 @@ function! MyFoldText()
     return txt
 endfunction
 set foldtext=MyFoldText()
-nnoremap <space> za
-vnoremap <space> zf
+nnoremap <space><space> za
+vnoremap <space><space> zf
 highlight FoldColumn ctermfg=3 ctermbg=none
 highlight Folded ctermfg=245 ctermbg=none
 
 let foldfiles = {
-            \ "python": g:vimdir .. "/python_fold.vim"
+            \ 'python': g:vimdir .. '/python_fold.vim'
             \}
-let python_fold = findfile(foldfiles.python)
-if !empty(python_fold)
+" let python_fold = findfile(foldfiles.python)
+if exists("python_fold")
     exec 'autocmd FileType python source ' .. python_fold
 endif
 
