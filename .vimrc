@@ -185,15 +185,15 @@ set shiftwidth=4
 set softtabstop=4
 set autoindent
 set smartindent
-set textwidth=80
+set textwidth=100
 set formatoptions-=t
 
-autocmd FileType c setlocal ts=4 sts=4 sw=4 noexpandtab cc=+0
-autocmd FileType cpp setlocal ts=4 sts=4 sw=4 expandtab cc=+0
+autocmd FileType c setlocal ts=8 sts=8 sw=8 noexpandtab cc=+0 tw=80
+autocmd FileType cpp setlocal ts=8 sts=8 sw=8 noexpandtab cc=+0
 autocmd FileType vim setlocal ts=4 sts=4 sw=4 expandtab cc=+0
-autocmd FileType python setlocal ts=4 sts=4 sw=4 expandtab textwidth=88 cc=+0
-autocmd FileType markdown setlocal ts=4 sts=4 sw=4 expandtab textwidth=100 cc=+0
-autocmd FileType html setlocal ts=4 sts=4 sw=4 expandtab textwidth=100 cc=+0
+autocmd FileType python setlocal ts=4 sts=4 sw=4 expandtab tw=88 cc=+0
+autocmd FileType markdown setlocal ts=4 sts=4 sw=4 expandtab tw=100 cc=+0
+autocmd FileType html setlocal ts=4 sts=4 sw=4 expandtab tw=100 cc=+0
 
 " --------------------------- COMMIT_EDITMSG ---------------------------------
 autocmd BufEnter COMMIT_EDITMSG set textwidth=72 cc=+0 formatoptions+=t
