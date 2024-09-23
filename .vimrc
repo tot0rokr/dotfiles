@@ -141,6 +141,13 @@ let g:dart_format_on_save = v:true
 " Plug 'natebosch/vim-lsc-dart'
 " let g:lsc_auto_map = v:true
 
+" Scrolling
+Plug 'opalmay/vim-smoothie'
+" let g:smoothie_enabled = 0
+
+" Code context viewer
+Plug 'wellle/context.vim'
+
 
 " Initialize plugin system
 " - Automatically executes `filetype plugin indent on` and `syntax enable`.
