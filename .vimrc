@@ -952,37 +952,3 @@ let vimrc_adv = findfile(".vimrc_adv", $HOME)
 if (!empty(vimrc_adv))
     exec 'source ' .. vimrc_adv
 endif
-
-
-" ---------------------------- Keyboard Layout ------------------------------
-let s:qwerty = [
-      \ 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p',
-      \ 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';',
-      \ 'z', 'x', 'c', 'v', 'b', 'n', 'm',
-      \ 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P',
-      \ 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ':',
-      \ 'Z', 'X', 'C', 'V', 'B', 'N', 'M']
-
-let s:workman = [
-      \ 'q', 'd', 'r', 'w', 'b', 'j', 'f', 'u', 'p', ';',
-      \ 'a', 's', 'h', 't', 'g', 'y', 'n', 'e', 'o', 'i',
-      \ 'z', 'x', 'm', 'c', 'v', 'k', 'l',
-      \ 'Q', 'D', 'R', 'W', 'B', 'J', 'F', 'U', 'P', ':',
-      \ 'A', 'S', 'H', 'T', 'G', 'Y', 'N', 'E', 'O', 'I',
-      \ 'Z', 'X', 'M', 'C', 'V', 'K', 'L' ]
-
-function! WorkmanLayout()
-    for [workman_key, qwerty_key] in map(copy(s:workman), '[v:val, s:qwerty[v:key]]')
-        execute "noremap!" qwerty_key workman_key
-    endfor
-endfunction
-
-command! WorkmanLayout call WorkmanLayout()
-
-function! QwertyLayout()
-    for [workman_key, qwerty_key] in map(copy(s:workman), '[v:val, s:qwerty[v:key]]')
-        execute "unmap!" qwerty_key
-    endfor
-endfunction
-
-command! QwertyLayout call QwertyLayout()
