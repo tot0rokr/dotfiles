@@ -496,6 +496,14 @@ if 1
     " Resume latest coc list
     nnoremap <silent><nowait> <leader>;  :<C-u>CocListResume<CR>
 
+    " Jump to next/previous problem
+    nmap <silent> [g <Plug>(coc-diagnostic-next)
+    nmap <silent> ]g <Plug>(coc-diagnostic-prev)
+
+    " Prettier (coc-prettier)
+    vmap <leader><leader>p  <Plug>(coc-format-selected)
+    nmap <leader><leader>p  <Plug>(coc-format-selected)
+
 
     " Snippets
     "
