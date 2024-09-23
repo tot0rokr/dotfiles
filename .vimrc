@@ -161,6 +161,9 @@ cnoreabbrev noh Noh
 
 " Code context viewer
 Plug 'wellle/context.vim'
+let g:context_highlight_normal = 'Conceal'
+let g:context_highlight_border = '<hide>'
+let g:context_highlight_tag = '<hide>'
 
 
 " Initialize plugin system
