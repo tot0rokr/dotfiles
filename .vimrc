@@ -144,6 +144,8 @@ let g:dart_format_on_save = v:true
 " Scrolling
 Plug 'opalmay/vim-smoothie'
 " let g:smoothie_enabled = 0
+let g:smoothie_update_interval = 10
+let g:smoothie_speed_exponentiation_factor = 0.99
 
 " Code minimap
 Plug 'wfxr/minimap.vim', {'do': ':!cargo install --locked code-minimap'}
