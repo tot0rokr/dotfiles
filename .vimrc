@@ -141,6 +141,30 @@ let g:dart_format_on_save = v:true
 " Plug 'natebosch/vim-lsc-dart'
 " let g:lsc_auto_map = v:true
 
+" Scrolling
+Plug 'opalmay/vim-smoothie'
+" let g:smoothie_enabled = 0
+let g:smoothie_update_interval = 10
+let g:smoothie_speed_exponentiation_factor = 0.99
+
+" Code minimap
+Plug 'wfxr/minimap.vim', {'do': ':!cargo install --locked code-minimap'}
+let g:minimap_auto_start = 1
+let g:minimap_auto_start_win_enter = 1
+let g:minimap_width = 15
+let g:minimap_exec_warning = 0
+let g:minimap_highlight_range = 1
+let g:minimap_highlight_search = 1
+let g:minimap_git_colors = 1
+command! Noh execute 'nohlsearch' | call minimap#vim#ClearColorSearch()
+cnoreabbrev noh Noh
+
+" Code context viewer
+Plug 'wellle/context.vim'
+let g:context_highlight_normal = 'Conceal'
+let g:context_highlight_border = '<hide>'
+let g:context_highlight_tag = '<hide>'
+
 
 " Initialize plugin system
 " - Automatically executes `filetype plugin indent on` and `syntax enable`.
@@ -178,15 +202,15 @@ set shiftwidth=4
 set softtabstop=4
 set autoindent
 set smartindent
-set textwidth=80
+set textwidth=100
 set formatoptions-=t
 
-autocmd FileType c setlocal ts=4 sts=4 sw=4 noexpandtab cc=+0
-autocmd FileType cpp setlocal ts=4 sts=4 sw=4 expandtab cc=+0
+autocmd FileType c setlocal ts=8 sts=8 sw=8 noexpandtab cc=+0 tw=80
+autocmd FileType cpp setlocal ts=8 sts=8 sw=8 noexpandtab cc=+0
 autocmd FileType vim setlocal ts=4 sts=4 sw=4 expandtab cc=+0
-autocmd FileType python setlocal ts=4 sts=4 sw=4 expandtab textwidth=88 cc=+0
-autocmd FileType markdown setlocal ts=4 sts=4 sw=4 expandtab textwidth=100 cc=+0
-autocmd FileType html setlocal ts=4 sts=4 sw=4 expandtab textwidth=100 cc=+0
+autocmd FileType python setlocal ts=4 sts=4 sw=4 expandtab tw=88 cc=+0
+autocmd FileType markdown setlocal ts=4 sts=4 sw=4 expandtab tw=100 cc=+0
+autocmd FileType html setlocal ts=4 sts=4 sw=4 expandtab tw=100 cc=+0
 
 " --------------------------- COMMIT_EDITMSG ---------------------------------
 autocmd BufEnter COMMIT_EDITMSG set textwidth=72 cc=+0 formatoptions+=t
@@ -213,16 +237,16 @@ function! MyFoldText()
     return txt
 endfunction
 set foldtext=MyFoldText()
-nnoremap <space> za
-vnoremap <space> zf
+nnoremap <space><space> za
+vnoremap <space><space> zf
 highlight FoldColumn ctermfg=3 ctermbg=none
 highlight Folded ctermfg=245 ctermbg=none
 
 let foldfiles = {
-            \ "python": g:vimdir .. "/python_fold.vim"
+            \ 'python': g:vimdir .. '/python_fold.vim'
             \}
-let python_fold = findfile(foldfiles.python)
-if !empty(python_fold)
+" let python_fold = findfile(foldfiles.python)
+if exists("python_fold")
     exec 'autocmd FileType python source ' .. python_fold
 endif
 
@@ -319,14 +343,14 @@ set laststatus=2 " vim-airline을 위해 상태바 2줄
 if 1
     let g:airline_powerline_fonts = 1
     let g:airline#extensions#tabline#enabled = 1
-    let g:airline#extensions#tabline#left_sep = ''
-    let g:airline#extensions#tabline#left_alt_sep = ''
-    let g:airline#extensions#tabline#right_sep = ''
-    let g:airline#extensions#tabline#right_alt_sep = ''
-    " let g:airline#extensions#tabline#left_sep = ' '
-    " let g:airline#extensions#tabline#left_alt_sep = ' '
-    " let g:airline#extensions#tabline#right_sep = ' '
-    " let g:airline#extensions#tabline#right_alt_sep = ' '
+    " let g:airline#extensions#tabline#left_sep = ''
+    " let g:airline#extensions#tabline#left_alt_sep = ''
+    " let g:airline#extensions#tabline#right_sep = ''
+    " let g:airline#extensions#tabline#right_alt_sep = ''
+    let g:airline#extensions#tabline#left_sep = ' '
+    let g:airline#extensions#tabline#left_alt_sep = ' '
+    let g:airline#extensions#tabline#right_sep = ' '
+    let g:airline#extensions#tabline#right_alt_sep = ' '
     let g:airline#extensions#tabline#formatter = 'unique_tail'
     let g:airline#extensions#tabline#tab_nr_type = 1
     let g:airline#extensions#tabline#show_tab_nr = 1
@@ -335,18 +359,18 @@ if 1
         return TabooTabTitle(0)
     endfunction
 
-    let g:airline_theme='serene'
+    let g:airline_theme='simple'
 
     if !exists('g:airline_symbols')
         let g:airline_symbols = {}
     endif
     let g:airline_left_alt_sep = ''
     let g:airline_right_alt_sep = ''
-    let g:airline_left_sep = ''
-    let g:airline_right_sep = ''
+    " let g:airline_left_sep = ''
+    " let g:airline_right_sep = ''
     let g:airline_symbols.paste = ' '
-    " let g:airline_left_sep = ' '
-    " let g:airline_right_sep = ' '
+    let g:airline_left_sep = ' '
+    let g:airline_right_sep = ' '
     " let g:airline_symbols.paste = 'PASTE'
 
     function! GetObsessionSymbol()
@@ -397,8 +421,9 @@ let g:tmuxline_separators = {
 if 1
     inoremap <silent><expr> <TAB>
           \ coc#pum#visible() ? coc#pum#next(1) :
-          \ CheckBackspace() ? "\<TAB>" :
-          \ coc#refresh()
+          \ "\<TAB>"
+          " \ CheckBackspace() ? "\<TAB>" :
+          " \ coc#refresh()
     inoremap <expr><S-TAB> coc#pum#visible() ? coc#pum#prev(1) : "\<C-h>"
     inoremap <silent><expr> <CR> coc#pum#visible() ? coc#pum#confirm()
                                   \: "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
@@ -487,6 +512,14 @@ if 1
     nnoremap <silent><nowait> <leader>k  :<C-u>CocPrev<CR>
     " Resume latest coc list
     nnoremap <silent><nowait> <leader>;  :<C-u>CocListResume<CR>
+
+    " Jump to next/previous problem
+    nmap <silent> [g <Plug>(coc-diagnostic-next)
+    nmap <silent> ]g <Plug>(coc-diagnostic-prev)
+
+    " Prettier (coc-prettier)
+    vmap <leader><leader>p  <Plug>(coc-format-selected)
+    nmap <leader><leader>p  <Plug>(coc-format-selected)
 
 
     " Snippets
@@ -708,6 +741,7 @@ if 1
     call quickui#menu#install("&Files", [
                 \ ['&Paste', "set paste!"],
                 \ ['--',''],
+                \ ['S&croll bar', "MinimapToggle"],
                 \ ['&NERD Tree', "NERDTreeToggle"],
                 \ ['&Tag Bar', "TagbarToggle"],
                 \ ['--',''],
@@ -936,37 +970,3 @@ let vimrc_adv = findfile(".vimrc_adv", $HOME)
 if (!empty(vimrc_adv))
     exec 'source ' .. vimrc_adv
 endif
-
-
-" ---------------------------- Keyboard Layout ------------------------------
-let s:qwerty = [
-      \ 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p',
-      \ 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';',
-      \ 'z', 'x', 'c', 'v', 'b', 'n', 'm',
-      \ 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P',
-      \ 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ':',
-      \ 'Z', 'X', 'C', 'V', 'B', 'N', 'M']
-
-let s:workman = [
-      \ 'q', 'd', 'r', 'w', 'b', 'j', 'f', 'u', 'p', ';',
-      \ 'a', 's', 'h', 't', 'g', 'y', 'n', 'e', 'o', 'i',
-      \ 'z', 'x', 'm', 'c', 'v', 'k', 'l',
-      \ 'Q', 'D', 'R', 'W', 'B', 'J', 'F', 'U', 'P', ':',
-      \ 'A', 'S', 'H', 'T', 'G', 'Y', 'N', 'E', 'O', 'I',
-      \ 'Z', 'X', 'M', 'C', 'V', 'K', 'L' ]
-
-function! WorkmanLayout()
-    for [workman_key, qwerty_key] in map(copy(s:workman), '[v:val, s:qwerty[v:key]]')
-        execute "noremap!" qwerty_key workman_key
-    endfor
-endfunction
-
-command! WorkmanLayout call WorkmanLayout()
-
-function! QwertyLayout()
-    for [workman_key, qwerty_key] in map(copy(s:workman), '[v:val, s:qwerty[v:key]]')
-        execute "unmap!" qwerty_key
-    endfor
-endfunction
-
-command! QwertyLayout call QwertyLayout()
