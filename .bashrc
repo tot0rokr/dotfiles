@@ -205,6 +205,10 @@ if [ $(lsb_release -i | awk '{print $3}') == "Ubuntu" ]; then
         fi
     fi
 
+    if [ -f "$HOME/.cargo/env" ]; then
+        . "$HOME/.cargo/env"
+    fi
+
     if [ -z $(which cargo) ]; then
         curl https://sh.rustup.rs -sSf | sh -s -- -y
         . "$HOME/.cargo/env"
