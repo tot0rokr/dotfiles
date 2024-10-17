@@ -149,8 +149,8 @@ let g:smoothie_speed_exponentiation_factor = 0.99
 
 " Code minimap
 Plug 'wfxr/minimap.vim', {'do': ':!cargo install --locked code-minimap'}
-let g:minimap_auto_start = 1
-let g:minimap_auto_start_win_enter = 1
+let g:minimap_auto_start = 0
+let g:minimap_auto_start_win_enter = 0
 let g:minimap_width = 15
 let g:minimap_exec_warning = 0
 let g:minimap_highlight_range = 1
@@ -164,6 +164,9 @@ Plug 'wellle/context.vim'
 let g:context_highlight_normal = 'Conceal'
 let g:context_highlight_border = '<hide>'
 let g:context_highlight_tag = '<hide>'
+
+" Multi Cursor
+Plug 'mg979/vim-visual-multi', {'branch': 'master'}
 
 
 " Initialize plugin system
