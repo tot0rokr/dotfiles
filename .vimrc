@@ -165,6 +165,9 @@ let g:context_highlight_normal = 'Conceal'
 let g:context_highlight_border = '<hide>'
 let g:context_highlight_tag = '<hide>'
 
+" Multi Cursor
+Plug 'mg979/vim-visual-multi', {'branch': 'master'}
+
 
 " Initialize plugin system
 " - Automatically executes `filetype plugin indent on` and `syntax enable`.
