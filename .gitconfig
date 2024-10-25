@@ -13,6 +13,7 @@
     co = checkout
     br = branch
     rb = rebase
+    mg = merge
     cm = commit -v
     cmm = commit -v -m
     cma = commit -v --amend
