@@ -174,6 +174,10 @@ if [ $(lsb_release -i | awk '{print $3}') == "Ubuntu" ]; then
         sudo apt install -y python3-venv
     fi
 
+    if [ -z $(which ruby) ]; then
+        sudo apt install -y ruby-full
+    fi
+
     if [ -z $(which tmux) ]; then
         sudo apt install -y tmux
     fi
