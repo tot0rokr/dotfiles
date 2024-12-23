@@ -4,6 +4,7 @@
 # See /usr/share/doc/bash-doc/examples in the bash-doc package.
 
 alias vi='vim'
+alias vim='nvim'
 alias la='ls -A'
 alias l='ls -CF'
 alias lla='ls -AlF'

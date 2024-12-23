@@ -2,8 +2,11 @@
 " Language: vim-script
 " Author:   Junho Lee (TOT0Ro)
 
-let g:vimdir = $HOME .. '/.vim'
-
+if has('nvim')
+    let g:vimdir = $HOME .. '/.local/share/nvim'
+else
+    let g:vimdir = $HOME .. '/.vim'
+endif
 
 " -------------------------------- Plugin -----------------------------------
 
@@ -25,6 +28,9 @@ Plug 'ctrlpvim/ctrlp.vim'
 
 " thema (schema)
 "Plug 'junegunn/seoul256.vim'
+if has('nvim')
+    Plug 'projekt0n/github-nvim-theme'
+endif
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
 Plug 'edkolev/tmuxline.vim'
@@ -90,14 +96,23 @@ Plug 'ryanoasis/vim-devicons'
 Plug 'chrisbra/Recover.vim'
 
 " indent guide
-Plug 'nathanaelkane/vim-indent-guides'
-let g:indent_guides_enable_on_vim_startup = 1
-let g:indent_guides_auto_colors = 0
-autocmd VimEnter,Colorscheme * :hi IndentGuidesOdd ctermbg=235
-autocmd VimEnter,Colorscheme * :hi IndentGuidesEven ctermbg=235
-let g:indent_guides_guide_size = 1
-let g:indent_guides_start_level = 2
-let g:indent_guides_default_mapping = 0
+if has('nvim')
+    Plug 'lukas-reineke/indent-blankline.nvim'
+else
+    Plug 'nathanaelkane/vim-indent-guides'
+    let g:indent_guides_enable_on_vim_startup = 1
+    let g:indent_guides_auto_colors = 0
+    autocmd VimEnter,Colorscheme * :hi IndentGuidesOdd ctermbg=235 guibg=#262626
+    autocmd VimEnter,Colorscheme * :hi IndentGuidesEven ctermbg=237 guibg=#3a3a3a
+    let g:indent_guides_guide_size = 1
+    let g:indent_guides_start_level = 2
+    let g:indent_guides_default_mapping = 0
+endif
+
+" Highlight delimiters
+if has('nvim')
+    Plug 'HiPhish/rainbow-delimiters.nvim'
+endif
 
 " docstring
 " Need to make install
@@ -143,9 +158,14 @@ let g:dart_format_on_save = v:true
 
 " Scrolling
 Plug 'opalmay/vim-smoothie'
-" let g:smoothie_enabled = 0
-let g:smoothie_update_interval = 10
-let g:smoothie_speed_exponentiation_factor = 0.99
+let g:smoothie_enabled = 1
+if has('nvim')
+    let g:smoothie_update_interval = 10
+    let g:smoothie_speed_exponentiation_factor = 0.90
+else
+    let g:smoothie_update_interval = 10
+    let g:smoothie_speed_exponentiation_factor = 0.99
+endif
 
 " Code minimap
 Plug 'wfxr/minimap.vim', {'do': ':!cargo install --locked code-minimap'}
@@ -160,10 +180,14 @@ command! Noh execute 'nohlsearch' | call minimap#vim#ClearColorSearch()
 cnoreabbrev noh Noh
 
 " Code context viewer
-Plug 'wellle/context.vim'
+" Plug 'wellle/context.vim'
+Plug 'tot0rokr/context.vim'
+" set rtp+=$HOME/context.vim
+" Plug '~/context.vim'
 let g:context_highlight_normal = 'Conceal'
 let g:context_highlight_border = '<hide>'
 let g:context_highlight_tag = '<hide>'
+let g:context_delayed_update = 30
 
 " Multi Cursor
 Plug 'mg979/vim-visual-multi', {'branch': 'master'}
@@ -198,6 +222,20 @@ set autoread
 autocmd CursorHold * :checktime
 set hlsearch
 
+if has('nvim')
+    " ColorScheme
+    colorscheme github_dark_colorblind
+    set winhighlight=Normal:MyNormal,NormalNC:MyNormalNC,NormalSB:MyNormalNC
+    highlight Normal guifg=#c9d1d9 guibg=None
+    highlight NormalNC guibg=NONE
+    highlight NormalSB guibg=NONE
+    highlight MyNormal guifg=#c9d1d9 guibg=#0d1117    " github_dark_colorblind
+    highlight MyNormalNC guifg=#c9d1d9 guibg=None
+
+    " Use mount options
+    set mouse=v
+endif
+
 
 set expandtab
 set tabstop=4
@@ -217,13 +255,18 @@ autocmd FileType html setlocal ts=4 sts=4 sw=4 expandtab tw=100 cc=+0
 
 " --------------------------- COMMIT_EDITMSG ---------------------------------
 autocmd BufEnter COMMIT_EDITMSG set textwidth=72 cc=+0 formatoptions+=t
-autocmd BufEnter COMMIT_EDITMSG highlight CommitEditor ctermbg=105 cterm=None
+autocmd BufEnter COMMIT_EDITMSG highlight CommitEditor ctermbg=105 cterm=None guibg=#8787ff
 autocmd BufEnter COMMIT_EDITMSG match CommitEditor '\%1l\%50v'
 
 " ------------------------- 라인 끝 공백 highlight --------------------------
-highlight ExtraWhitespace ctermbg=88
+highlight ExtraWhitespace ctermbg=88 guibg=#870000
 match ExtraWhitespace /\s\+$/
-autocmd WinEnter * match ExtraWhitespace /\s\+$/
+function! ExtraWhitespaceIfNofile()
+    if &buftype ==# '' && &bufhidden ==# ''
+        match ExtraWhitespace /\s\+$/
+    endif
+endfunction
+autocmd WinEnter * call ExtraWhitespaceIfNofile()
 autocmd WinLeave * call clearmatches()
 
 
@@ -242,8 +285,8 @@ endfunction
 set foldtext=MyFoldText()
 nnoremap <space><space> za
 vnoremap <space><space> zf
-highlight FoldColumn ctermfg=3 ctermbg=none
-highlight Folded ctermfg=245 ctermbg=none
+highlight FoldColumn ctermfg=3 ctermbg=none guifg=#808000
+highlight Folded ctermfg=245 ctermbg=none guifg=#8a8a8a
 
 let foldfiles = {
             \ 'python': g:vimdir .. '/python_fold.vim'
@@ -326,9 +369,9 @@ function! ToggleRuler ()
     endif
 endfunction
 
-hi CursorLine ctermbg=237 cterm=None
-hi CursorColumn ctermbg=237 cterm=None
-hi ColorColumn ctermbg=105 cterm=None
+hi CursorLine ctermbg=237 cterm=None guibg=#3a3a3a
+hi CursorColumn ctermbg=237 cterm=None guibg=#3a3a3a
+hi ColorColumn ctermbg=105 cterm=None guibg=#8787ff
 " syntax enable
 " set wmnu
 " set nu
@@ -336,10 +379,10 @@ hi ColorColumn ctermbg=105 cterm=None
 " ------------------------------- diff ----------------------------------------
 
 " diff
-highlight DiffAdd       ctermbg=22
-highlight DiffChange    ctermbg=54
-highlight DiffDelete    ctermbg=88
-highlight DiffText      ctermbg=237
+highlight DiffAdd       ctermbg=22 guibg=#005f00
+highlight DiffChange    ctermbg=54 guibg=#5f0087
+highlight DiffDelete    ctermbg=88 guibg=#870000
+highlight DiffText      ctermbg=237 guibg=#3a3a3a
 
 " --------------------------- statusbar/ airline ------------------------------
 set laststatus=2 " vim-airline을 위해 상태바 2줄
@@ -627,45 +670,48 @@ endif
 " ctags
 autocmd BufEnter * exec "set tags=./tags,tags," .. findfile("tags", ".;")
 
-" cscope
-function! LoadCscope()
-    let db = findfile("cscope.out", ".;")
-    if (!empty(db))
-        let path = strpart(db, 0, match(db, "/cscope.out$"))
-        set nocscopeverbose
-        exe "cs add " .. db .. " " .. path
-        " exe "cs add " .. db
-        set cscopeverbose
-    elseif $CSCOPE_DB != ""
-        cs add $CSCOPE_DB
-    endif
-endfunction
-au BufEnter /* call LoadCscope()
-set cscopequickfix=s-,g-,d-,c-,t-,e-,f-,i-,a-
-set csto=1
-set cst
+if !has('nvim')
+    " cscope
+    function! LoadCscope()
+        let db = findfile("cscope.out", ".;")
+        if (!empty(db))
+            let path = strpart(db, 0, match(db, "/cscope.out$"))
+            set nocscopeverbose
+            exe "cs add " .. db .. " " .. path
+            " exe "cs add " .. db
+            set cscopeverbose
+        elseif $CSCOPE_DB != ""
+            cs add $CSCOPE_DB
+        endif
+    endfunction
+    au BufEnter /* call LoadCscope()
 
-nmap <Plug>CscopeFindSym :cs find s <C-R>=expand("<cword>")<CR><CR>
-nmap <Plug>CscopeFindDef :cs find g <C-R>=expand("<cword>")<CR><CR>
-nmap <Plug>CscopeFindClr :cs find c <C-R>=expand("<cword>")<CR><CR>
-nmap <Plug>CscopeFindCll :cs find t <C-R>=expand("<cword>")<CR><CR>
-nmap <Plug>CscopeFindTxt :cs find e <C-R>=expand("<cword>")<CR><CR>
-nmap <Plug>CscopeFindGrp :cs find f <C-R>=expand("<cfile>")<CR><CR>
-nmap <Plug>CscopeFindFle :cs find i ^<C-R>=expand("<cfile>")<CR>$<CR>
-nmap <Plug>CscopeFindInc :cs find d <C-R>=expand("<cword>")<CR><CR>
-nmap <Plug>CscopeFindAsn :cs find a <C-R>=expand("<cword>")<CR><CR>
-nmap <Plug>CscopeFindStc :cs find t struct <C-R>=expand("<cword>")<CR> {<CR>
+    set cscopequickfix=s-,g-,d-,c-,t-,e-,f-,i-,a-
+    set csto=1
+    set cst
 
-nmap <silent><leader>s <Plug>CscopeFindSym
-nmap <silent><leader>g <Plug>CscopeFindDef
-nmap <silent><leader>c <Plug>CscopeFindClr
-nmap <silent><leader>t <Plug>CscopeFindCll
-nmap <silent><leader>e <Plug>CscopeFindTxt
-nmap <silent><leader>f <Plug>CscopeFindGrp
-nmap <silent><leader>i <Plug>CscopeFindFle
-nmap <silent><leader>d <Plug>CscopeFindInc
-nmap <silent><leader>a <Plug>CscopeFindAsn
-nmap <silent><leader>S <Plug>CscopeFindStc
+    nmap <Plug>CscopeFindSym :cs find s <C-R>=expand("<cword>")<CR><CR>
+    nmap <Plug>CscopeFindDef :cs find g <C-R>=expand("<cword>")<CR><CR>
+    nmap <Plug>CscopeFindClr :cs find c <C-R>=expand("<cword>")<CR><CR>
+    nmap <Plug>CscopeFindCll :cs find t <C-R>=expand("<cword>")<CR><CR>
+    nmap <Plug>CscopeFindTxt :cs find e <C-R>=expand("<cword>")<CR><CR>
+    nmap <Plug>CscopeFindGrp :cs find f <C-R>=expand("<cfile>")<CR><CR>
+    nmap <Plug>CscopeFindFle :cs find i ^<C-R>=expand("<cfile>")<CR>$<CR>
+    nmap <Plug>CscopeFindInc :cs find d <C-R>=expand("<cword>")<CR><CR>
+    nmap <Plug>CscopeFindAsn :cs find a <C-R>=expand("<cword>")<CR><CR>
+    nmap <Plug>CscopeFindStc :cs find t struct <C-R>=expand("<cword>")<CR> {<CR>
+
+    nmap <silent><leader>s <Plug>CscopeFindSym
+    nmap <silent><leader>g <Plug>CscopeFindDef
+    nmap <silent><leader>c <Plug>CscopeFindClr
+    nmap <silent><leader>t <Plug>CscopeFindCll
+    nmap <silent><leader>e <Plug>CscopeFindTxt
+    nmap <silent><leader>f <Plug>CscopeFindGrp
+    nmap <silent><leader>i <Plug>CscopeFindFle
+    nmap <silent><leader>d <Plug>CscopeFindInc
+    nmap <silent><leader>a <Plug>CscopeFindAsn
+    nmap <silent><leader>S <Plug>CscopeFindStc
+endif
 
 
 " -------------------------- fzf(command-line fuzzy finder --------------------

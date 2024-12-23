@@ -1,7 +1,7 @@
 [credential]
     helper = store
 [core]
-    editor = vim
+    editor = nvim
 [color]
     ui = auto
 [alias]
@@ -23,14 +23,18 @@
     lg = log --graph --abbrev-commit --decorate --format=format:'%C(cyan)%h%C(reset) - %C(green)(%as - %ar)%C(reset) %C(white)%s%C(reset) %C(blue)- %an%C(reset)%C(yellow)%d%C(reset)'
     lga = log --all --graph --abbrev-commit --decorate --format=format:'%C(cyan)%h%C(reset) - %C(green)(%as - %ar)%C(reset) %C(white)%s%C(reset) %C(blue)- %an%C(reset)%C(yellow)%d%C(reset)'
     ig = !git-igitt --model simple
-    conflicted = !vim +Conflicted
+    conflicted = !nvim +Conflicted
 [diff]
-    tool = vimdiff
+    tool = nvimdiff
 [difftool]
     prompt = false
 [rerere]
     enabled = true
-[mergetool "vim-conflicted"]
-    cmd = vim +Conflicted
+[mergetool "nvim-conflicted"]
+    cmd = nvim +Conflicted
 [merge]
-    tool = vim-conflicted
+    tool = nvim-conflicted
+
+[user]
+       email = jhlee@neostack.co.kr
+       name = JHLEE
