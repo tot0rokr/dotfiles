@@ -24,9 +24,10 @@ Plug 'tpope/vim-sensible' " normal setup
 Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle' }
 
 " File finder
-Plug 'ctrlpvim/ctrlp.vim'
+" Plug 'ctrlpvim/ctrlp.vim'
+" Instead of ctrlp.vim, use fzf
 
-" thema (schema)
+" theme (schema)
 "Plug 'junegunn/seoul256.vim'
 if has('nvim')
     Plug 'projekt0n/github-nvim-theme'
@@ -124,7 +125,8 @@ let g:pydocstring_ignore_init = 1
 let g:pydocstring_enable_mapping = 0
 
 " quickui
-Plug 'skywind3000/vim-quickui'
+" Plug 'skywind3000/vim-quickui'
+Plug 'tot0rokr/vim-quickui'
 
 " fzf
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
@@ -191,6 +193,12 @@ let g:context_delayed_update = 30
 
 " Multi Cursor
 Plug 'mg979/vim-visual-multi', {'branch': 'master'}
+
+" Window Manager
+" set rtp+=$HOME/vimwm.vim
+" Plug '~/vimwm'
+Plug 'tot0rokr/vim-wm.vim'
+" Plug 'MisanthropicBit/winmove.nvim'
 
 
 " Initialize plugin system
@@ -835,7 +843,6 @@ if 1
     endfunction
 
     call quickui#menu#install("&Window", [
-                \ ['Buffer &Delete', 'bdelete'],
                 \ ['Tab &New', 'tabnew'],
                 \ ['Tab &Close', 'tabclose'],
                 \ ['Tab &Rename', 'call TabRename()'],
@@ -911,6 +918,11 @@ if 1
     command -nargs=0 Messages call DisplayMessages()
 
     let cursor_context_content = [
+                \ ['Code Action &Cursor', "normal \<Plug>(coc-codeaction-cursor)"],
+                \ ['Code Action &source', "normal \<Plug>(coc-codeaction-source)"],
+                \ ['Code Action S&elected', "normal \<Plug>(coc-codeaction-selected)"],
+                \ ['&Rename', "normal \<Plug>(coc-rename)"],
+                \ ['-'],
                 \ ['Find Symbols               \s', "normal \<Plug>CscopeFindSym"],
                 \ ['Find Definition            \g', "normal \<Plug>CscopeFindDef"],
                 \ ['Find Functions Called by   \c', "normal \<Plug>CscopeFindClr"],
@@ -921,11 +933,6 @@ if 1
                 \ ['Find Files #including      \d', "normal \<Plug>CscopeFindInc"],
                 \ ['Find where value assigned  \a', "normal \<Plug>CscopeFindAsn"],
                 \ ['Find Struct                \S', "normal \<Plug>CscopeFindStc"],
-                \ ['-'],
-                \ ['Code Action &Cursor', "normal \<Plug>(coc-codeaction-cursor)"],
-                \ ['Code Action &source', "normal \<Plug>(coc-codeaction-source)"],
-                \ ['Code Action S&elected', "normal \<Plug>(coc-codeaction-selected)"],
-                \ ['&Rename', "normal \<Plug>(coc-rename)"],
                 \ ]
     " set cursor to the last position
     let cursor_context_opts = {'index':g:quickui#context#cursor}
