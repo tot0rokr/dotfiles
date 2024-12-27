@@ -200,6 +200,27 @@ Plug 'mg979/vim-visual-multi', {'branch': 'master'}
 Plug 'tot0rokr/vim-wm.vim'
 " Plug 'MisanthropicBit/winmove.nvim'
 
+" AI LLM
+Plug 'github/copilot.vim'
+let g:copilot_filetypes = {
+    \ 'gitcommit': v:true,
+    \ 'markdown': v:true,
+    \ 'yaml': v:true,
+    \ 'c': v:true,
+    \ 'vim': v:true,
+    \ 'python': v:true,
+    \ 'lua ': v:true
+    \ }
+autocmd BufReadPre *
+    \ let f=getfsize(expand("<afile>"))
+    \ | if f > 100000 || f == -2
+    \ | let b:copilot_enabled = v:false
+    \ | endif
+if has('nvim')
+    Plug 'nvim-lua/plenary.nvim'
+    Plug 'CopilotC-Nvim/CopilotChat.nvim'
+endif
+
 
 " Initialize plugin system
 " - Automatically executes `filetype plugin indent on` and `syntax enable`.
@@ -809,6 +830,17 @@ if 1
                 \ ['--',''],
                 \ ['Save Backup', "call QuickuiSaveBackup()"],
                 \ ['Delete Swap', "call DeleteSwap()"],
+                \ ])
+
+    call quickui#menu#install("Co&pilot", [
+                \ ['Open &Chat', "CopilotChat"],
+                \ ['Open Chat &Explain', "CopilotChatExplain"],
+                \ ['Open Chat &Review', "CopilotChatReview"],
+                \ ['Open Chat &Fix', "CopilotChatFix"],
+                \ ['Open Chat &Optimize', "CopilotChatOptimize"],
+                \ ['Open Chat &Docs', "CopilotChatDocs"],
+                \ ['Open Chat &Tests', "CopilotChatTests"],
+                \ ['Open Chat Co&mmit', "CopilotChatCommit"],
                 \ ])
 
     call quickui#menu#install("&Tags", [
