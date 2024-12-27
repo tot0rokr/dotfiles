@@ -760,7 +760,15 @@ endif
 let fzfdir = $HOME .. '/.fzf'
 exec 'set rtp+=' .. fzfdir
 
+" An action can be a reference to a function that processes selected lines
+function! s:build_quickfix_list(lines)
+  call setqflist(map(copy(a:lines), '{ "filename": v:val, "lnum": 1 }'))
+  copen
+  cc
+endfunction
+
 let g:fzf_action = {
+  \ 'ctrl-q': function('s:build_quickfix_list'),
   \ 'ctrl-t': 'tab split',
   \ 'ctrl-s': 'split',
   \ 'ctrl-v': 'vsplit' }
@@ -797,7 +805,10 @@ nmap <Plug>SearchGitFile
 " The query history for this command will be stored as 'ls' inside g:fzf_history_dir.
 " The name is ignored if g:fzf_history_dir is not defined.
 command! -bang -complete=dir -nargs=? LS
-    \ call fzf#run(fzf#wrap('ls', {'source': 'ls', 'dir': <q-args>}, <bang>0))
+    \ call fzf#run(fzf#wrap('ls', {'source': 'ls', 'dir': <q-args>}))
+    " \ call fzf#run(fzf#wrap('ls', {'source': 'ls', 'dir': <q-args>}, <bang>0))
+
+nmap <c-p> :FZF<cr>
 
 
 " ------------------------- quickui -------------------------------------------
