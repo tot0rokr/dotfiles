@@ -221,6 +221,19 @@ if has('nvim')
     Plug 'CopilotC-Nvim/CopilotChat.nvim'
 endif
 
+" Keymap
+Plug 'liuchengxu/vim-which-key'
+set timeoutlen=500
+nnoremap <silent> <leader>      :<c-u>WhichKey '\'<CR>
+
+" Command Line
+if has('nvim')
+    Plug 'folke/noice.nvim'
+    Plug 'MunifTanjim/nui.nvim'
+    Plug 'rcarriga/nvim-notify'
+endif
+
+
 
 " Initialize plugin system
 " - Automatically executes `filetype plugin indent on` and `syntax enable`.
