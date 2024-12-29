@@ -14,6 +14,7 @@
     br = branch
     rb = rebase
     mg = merge
+    mgnoff = merge --no-ff
     cm = commit -v
     cmm = commit -v -m
     cma = commit -v --amend
