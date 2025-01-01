@@ -53,6 +53,7 @@ Plug 'xolox/vim-misc'
 
 " easymotion
 Plug 'easymotion/vim-easymotion'
+let g:EasyMotion_do_mapping = 0 " Disable default mappings
 
 " argument movable
 Plug 'peterrincker/vim-argumentative'
@@ -748,16 +749,16 @@ if !has('nvim')
     nmap <Plug>CscopeFindAsn :cs find a <C-R>=expand("<cword>")<CR><CR>
     nmap <Plug>CscopeFindStc :cs find t struct <C-R>=expand("<cword>")<CR> {<CR>
 
-    nmap <silent><leader>s <Plug>CscopeFindSym
-    nmap <silent><leader>g <Plug>CscopeFindDef
-    nmap <silent><leader>c <Plug>CscopeFindClr
-    nmap <silent><leader>t <Plug>CscopeFindCll
-    nmap <silent><leader>e <Plug>CscopeFindTxt
-    nmap <silent><leader>f <Plug>CscopeFindGrp
-    nmap <silent><leader>i <Plug>CscopeFindFle
-    nmap <silent><leader>d <Plug>CscopeFindInc
-    nmap <silent><leader>a <Plug>CscopeFindAsn
-    nmap <silent><leader>S <Plug>CscopeFindStc
+    " nmap <silent><leader>s <Plug>CscopeFindSym
+    " nmap <silent><leader>g <Plug>CscopeFindDef
+    " nmap <silent><leader>c <Plug>CscopeFindClr
+    " nmap <silent><leader>t <Plug>CscopeFindCll
+    " nmap <silent><leader>e <Plug>CscopeFindTxt
+    " nmap <silent><leader>f <Plug>CscopeFindGrp
+    " nmap <silent><leader>i <Plug>CscopeFindFle
+    " nmap <silent><leader>d <Plug>CscopeFindInc
+    " nmap <silent><leader>a <Plug>CscopeFindAsn
+    " nmap <silent><leader>S <Plug>CscopeFindStc
 endif
 
 
@@ -1088,3 +1089,12 @@ let vimrc_adv = findfile(".vimrc_adv", $HOME)
 if (!empty(vimrc_adv))
     exec 'source ' .. vimrc_adv
 endif
+
+" ---------------- motion --------------------------------
+map <leader>w <Plug>(easymotion-w)
+map <leader>W <Plug>(easymotion-W)
+map <leader>b <Plug>(easymotion-b)
+map <leader>B <Plug>(easymotion-B)
+map <leader>e <Plug>(easymotion-e)
+map <leader>E <Plug>(easymotion-E)
+map <leader>s <Plug>(easymotion-s)
