@@ -277,6 +277,13 @@ if [ $(lsb_release -i | awk '{print $3}') == "Ubuntu" ]; then
         sudo apt install -y ripgrep
     fi
 
+    if [ -z $(which delta) ]; then
+        delta_ver=$(curl -s https://api.github.com/repos/dandavison/delta/releases/latest | jq -r '.tag_name')
+        wget -O git-delta.deb "https://github.com/dandavison/delta/releases/download/${delta_ver}/git-delta_${delta_ver}_amd64.deb"
+        sudo dpkg -i git-delta.deb
+        rm git-delta.deb
+    fi
+
 fi
 
 # Alias definitions.

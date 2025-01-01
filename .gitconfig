@@ -1,7 +1,18 @@
 [credential]
     helper = store
 [core]
+    pager = delta
     editor = nvim
+[interactive]
+    diffFilter = delta --color-only
+
+[delta]
+    navigate = true
+    dark = true
+    line-numbers = true
+    hyperlinks = true
+    side-by-side = true
+
 [color]
     ui = auto
 [alias]
@@ -35,6 +46,7 @@
     cmd = nvim +Conflicted
 [merge]
     tool = nvim-conflicted
+    ; conflictstyle = zdiff3
 
 [user]
        email = jhlee@neostack.co.kr
