@@ -133,7 +133,11 @@ Plug 'tot0rokr/vim-quickui'
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 
 " Shell
-Plug 'Shougo/deol.nvim'
+if !has('nvim')
+    Plug 'Shougo/deol.nvim'
+else
+    Plug 'akinsho/toggleterm.nvim', {'tag' : '*'}
+endif
 
 " Tab
 Plug 'gcmt/taboo.vim'
@@ -877,6 +881,7 @@ if 1
         echom "terminal exit code: " .. a:code
     endfunc
 
+    " TODO: ToggleTerm으로 변경
     function! OpenShell()
         let opts = {'w':call("PopupColumns",[]),
                     \ 'h':call("PopupLines",[]), 'callback':'TermExit'}
