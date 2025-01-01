@@ -132,6 +132,9 @@ Plug 'tot0rokr/vim-quickui'
 
 " fzf
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
+if has('nvim')
+    Plug 'ibhagwan/fzf-lua'
+endif
 
 " Shell
 if !has('nvim')
