@@ -107,3 +107,11 @@ require("noice").setup({
         lsp_doc_border = false, -- add a border to hover docs and signature help
     },
 })
+
+-- nvim-Treesitter
+require('nvim-treesitter.configs').setup({
+    ensure_installed = { "c", "lua", "vim", "vimdoc", "query", "markdown", "markdown_inline", "python", "bash", "asm", "cpp", "cmake", "csv", "devicetree", "dart", "dockerfile", "diff", "git_config", "git_rebase", "gitcommit", "gitignore", "html", "htmldjango", "http", "kconfig", "nasm", "nginx", "ninja", "passwd", "pem", "rst", "tmux", "xml", "yaml", "json" },
+    highlight = {
+        enable = true,
+    },
+})

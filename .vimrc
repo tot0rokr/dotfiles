@@ -110,9 +110,10 @@ else
     let g:indent_guides_default_mapping = 0
 endif
 
-" Highlight delimiters
+" Highlight
 if has('nvim')
     Plug 'HiPhish/rainbow-delimiters.nvim'
+    Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
 endif
 
 " docstring
