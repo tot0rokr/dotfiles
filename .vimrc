@@ -272,6 +272,18 @@ set t_Co=256
 set autoread
 autocmd CursorHold * :checktime
 set hlsearch
+"
+" Autocmd를 설정하여 창 크기가 변경될 때 AdjustScrolloff 호출
+autocmd WinEnter * call AdjustScrolloff()
+autocmd WinResized * call AdjustScrolloff()
+
+" scrolloff를 창 높이의 10분의 1로 설정하는 함수
+function! AdjustScrolloff()
+  let l:win_height = winheight(0)
+  let l:scrolloff_value = max([1, l:win_height / 5])
+  execute 'setlocal scrolloff=' . float2nr(l:scrolloff_value)
+endfunction
+
 
 if has('nvim')
     " ColorScheme
