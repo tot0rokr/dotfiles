@@ -273,6 +273,10 @@ if [ $(lsb_release -i | awk '{print $3}') == "Ubuntu" ]; then
         nvim +PlugInstall +qall
     fi
 
+    if [ -z $(which rg) ]; then
+        sudo apt install -y ripgrep
+    fi
+
 fi
 
 # Alias definitions.
