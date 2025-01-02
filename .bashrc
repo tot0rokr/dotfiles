@@ -218,13 +218,11 @@ if [ $(lsb_release -i | awk '{print $3}') == "Ubuntu" ]; then
         . "$HOME/.cargo/env"
     fi
 
-    if [ ! -z $(which cargo) ]; then
-        if [ -z $(which git-graph) ]; then
-            cargo install git-graph
-        fi
-        if [ -z $(which git-igitt) ]; then
-            cargo install git-igitt
-        fi
+    if [ -z $(which lazygit) ]; then
+        LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | \grep -Po '"tag_name": *"v\K[^"]*')
+        curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/download/v${LAZYGIT_VERSION}/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
+        tar xf lazygit.tar.gz lazygit
+        sudo install lazygit -D -t /usr/local/bin/
     fi
 
     if [ -z $(which fd) ]; then
