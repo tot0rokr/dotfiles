@@ -401,6 +401,10 @@ autocmd QuickFixCmdPost * :call OpenQuickfixWindow()
         " \ | silent exec 'g/^/s//\=line(".")." "/'
         " \ | setlocal nomodifiable
 
+" Function to check if a command exists
+function! CommandExists(cmd)
+  return !empty(system('command -v ' . a:cmd))
+endfunction
 
 " -------------------------------- cursor ------------------------------------
 
@@ -666,6 +670,34 @@ if 1
 
     autocmd FileType css setl iskeyword+=-
     autocmd FileType scss setl iskeyword+=@-@
+
+    " Function to apply CoC configuration dynamically
+    function! ApplyCocConfig()
+      " Check if pylint and mypy are installed
+      let pylint_installed = CommandExists('pylint')
+      let mypy_installed = CommandExists('mypy')
+
+      " Define CoC settings
+      if pylint_installed && mypy_installed
+        call coc#config('pyright.disableDiagnostics', v:true)
+        call coc#config('python.sortImports.path', 'isort')
+        call coc#config('python.linting.enabled', v:true)
+        call coc#config('python.linting.flake8Enabled', v:true)
+        call coc#config('python.linting.mypyEnabled', v:true)
+        call coc#config('python.linting.pylintEnabled', v:true)
+      else
+        " Disable or reset CoC settings
+        call coc#config('pyright.disableDiagnostics', v:false)
+        call coc#config('python.sortImports.path', '')
+        call coc#config('python.linting.enabled', v:false)
+        call coc#config('python.linting.flake8Enabled', v:false)
+        call coc#config('python.linting.mypyEnabled', v:false)
+        call coc#config('python.linting.pylintEnabled', v:false)
+      endif
+    endfunction
+
+    " Automatically apply the configuration when Vim starts
+    autocmd VimEnter * call ApplyCocConfig()
 endif
 
 " ------------------------------- Obsession ----------------------------------

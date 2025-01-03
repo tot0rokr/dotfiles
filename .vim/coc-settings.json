@@ -5,13 +5,6 @@
 
     "clangd.path": "clangd-12",
 
-    "pyright.disableDiagnostics": true,
-    "python.sortImports.path": "isort",
-    "python.linting.enabled": true,
-    "python.linting.flake8Enabled": true,
-    "python.linting.mypyEnabled": true,
-    "python.linting.pylintEnabled": true,
-
     "suggest.noselect": true,
 
     "yank.priority": 10,
