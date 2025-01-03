@@ -17,8 +17,7 @@
 !.tmux.conf
 !.vimrc
 !README.md
-!.config/nvim/init.vim
-!.config/nvim/lua
+!.config/nvim/
 
 # Black lists
 .vim/temp

@@ -132,7 +132,6 @@ end
 -- if you only want these mappings for toggle term use term://*toggleterm#* instead
 vim.cmd('autocmd! TermOpen term://* lua set_terminal_keymaps()')
 
--- winmove
 winmove = require('winmove')
 vim.keymap.set('n', '<C-w>m', function() winmove.start_mode(winmove.Mode.Move) end, { noremap = true })
 vim.keymap.set('n', '<C-w>s', function() winmove.start_mode(winmove.Mode.Swap) end, { noremap = true })

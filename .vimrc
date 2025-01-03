@@ -2,10 +2,11 @@
 " Language: vim-script
 " Author:   Junho Lee (TOT0Ro)
 
+let g:vimdir = $HOME .. '/.vim'
 if has('nvim')
-    let g:vimdir = $HOME .. '/.local/share/nvim'
+    let g:local_data_dir = $HOME .. '/.local/share/nvim'
 else
-    let g:vimdir = $HOME .. '/.vim'
+    let g:local_data_dir = $HOME .. '/.vim/local'
 endif
 
 " -------------------------------- Plugin -----------------------------------
@@ -690,7 +691,7 @@ function! ObsessionDelete()
     endif
 endfunction
 
-let g:obsession_dir = g:vimdir .. '/obsession'
+let g:obsession_dir = g:local_data_dir .. '/obsession'
 if !isdirectory(g:obsession_dir)
     call mkdir(g:obsession_dir, "p", 0700)
 endif
@@ -1074,7 +1075,7 @@ endif
 
 " ----------------------------- undo history ---------------------------------
 " undofile directory
-let undofile_path = g:vimdir . "/undo"
+let undofile_path = g:local_data_dir . "/undo"
 if !isdirectory(undofile_path)
     call mkdir(undofile_path, "p", 0700)
 endif
@@ -1083,7 +1084,7 @@ set undofile
 
 " ---------------------------- swap ------------------------------------------
 " swap directory
-let swapfile_path = g:vimdir .. '/temp'
+let swapfile_path = g:local_data_dir .. '/temp'
 if !isdirectory(swapfile_path)
     call mkdir(swapfile_path, "p", 0700)
 endif
