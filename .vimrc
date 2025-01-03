@@ -204,10 +204,8 @@ let g:context_delayed_update = 30
 Plug 'mg979/vim-visual-multi', {'branch': 'master'}
 
 " Window Manager
-" set rtp+=$HOME/vimwm.vim
-" Plug '~/vimwm'
-Plug 'tot0rokr/vim-wm.vim'
-" Plug 'MisanthropicBit/winmove.nvim'
+" Plug 'tot0rokr/vim-wm.vim'
+Plug 'MisanthropicBit/winmove.nvim'
 
 " AI LLM
 Plug 'github/copilot.vim'
