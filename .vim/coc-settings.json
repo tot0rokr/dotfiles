@@ -20,5 +20,8 @@
     },
     "diagnostic-languageserver.filetypes": {
       "systemd": "systemd-analyze"
-    }
+    },
+    "snippets.ultisnips.pythonPrompt": false,
+
+    "list.source.files.excludePatterns": [".git", ".mypy_cache", "__pycache__", "dist", "docs", "venv", "node_modules", "build"]
 }
