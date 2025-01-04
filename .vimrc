@@ -287,7 +287,7 @@ endfunction
 if has('nvim')
     " ColorScheme
     colorscheme github_dark_colorblind
-    set winhighlight=Normal:MyNormal,NormalNC:MyNormalNC,NormalSB:MyNormalNC
+    set winhighlight+=Normal:MyNormal,NormalNC:MyNormalNC,NormalSB:MyNormalNC
     highlight Normal guifg=#c9d1d9 guibg=None
     highlight NormalNC guibg=NONE
     highlight NormalSB guibg=NONE
