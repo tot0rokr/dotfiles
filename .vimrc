@@ -265,6 +265,11 @@ set signcolumn=yes
 highlight SignColumn ctermbg=none
 set fencs=utf-8,euc-kr,ucs-bom,korea
 
+" side (vertical) scroll
+set nowrap
+set sidescroll=1
+set sidescrolloff=10
+
 set background=dark
 " set t_Co=16
 set t_Co=256
@@ -1081,6 +1086,12 @@ nnoremap <C-l> <C-w>l
 
 " highlight
 nnoremap <leader><leader>/ :noh<cr>
+
+" size(vertical) scroll
+nnoremap <M-h> 5zh
+nnoremap <M-H> zH
+nnoremap <M-l> 5zl
+nnoremap <M-L> zL
 
 
 " -------------------------------- save backup -------------------------------
