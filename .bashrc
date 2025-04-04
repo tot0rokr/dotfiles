@@ -2,6 +2,8 @@
 # see /usr/share/doc/bash/examples/startup-files (in the package bash-doc)
 # for examples
 
+ARCHITECTURE=$(dpkg --print-architecture)
+
 # If not running interactively, don't do anything
 case $- in
     *i*) ;;
@@ -258,12 +260,12 @@ if [ $(lsb_release -i | awk '{print $3}') == "Ubuntu" ]; then
     # fi
 
     if [ -z $(which nvim) ]; then
-        export PATH="$PATH:/opt/nvim-linux64/bin"
+        export PATH="$PATH:/opt/nvim-linux-${ARCHITECTURE}/bin"
         if [ -z $(which nvim) ]; then
-            curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux64.tar.gz
+            curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux-${ARCHITECTURE}.tar.gz
             sudo rm -rf /opt/nvim
-            sudo tar -C /opt -xzf nvim-linux64.tar.gz
-            rm nvim-linux64.tar.gz
+            sudo tar -C /opt -xzf nvim-linux-${ARCHITECTURE}.tar.gz
+            rm nvim-linux-${ARCHITECTURE}.tar.gz
         fi
     fi
 
@@ -282,8 +284,9 @@ if [ $(lsb_release -i | awk '{print $3}') == "Ubuntu" ]; then
     fi
 
     if [ -z $(which delta) ]; then
+
         delta_ver=$(curl -s https://api.github.com/repos/dandavison/delta/releases/latest | jq -r '.tag_name')
-        wget -O git-delta.deb "https://github.com/dandavison/delta/releases/download/${delta_ver}/git-delta_${delta_ver}_amd64.deb"
+        wget -O git-delta.deb "https://github.com/dandavison/delta/releases/download/${delta_ver}/git-delta_${delta_ver}_${ARCHITECTURE}.deb"
         sudo dpkg -i git-delta.deb
         rm git-delta.deb
     fi
