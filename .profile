@@ -31,3 +31,7 @@ if [ -d "$HOME/bin" ] ; then
 fi
 
 export LANG="C.UTF-8"
+
+export GTK_IM_MODULE=kime
+export QT_IM_MODULE=kime
+export XMODIFIERS=@im=kime

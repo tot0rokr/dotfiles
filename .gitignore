@@ -6,6 +6,8 @@
 !.bash_logout
 !.bashrc
 !.config/nvim/
+!.config/kanata/
+!.config/kime/
 !.fzf-git.sh
 !.fzf.bash
 !.git-completion.bash
