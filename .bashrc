@@ -264,13 +264,17 @@ if [ $(lsb_release -i | awk '{print $3}') == "Ubuntu" ]; then
     #     vim +PlugInstall +qall
     # fi
 
+    if [ ${ARCHITECTURE} == "amd64" ]; then
+        NVIM_ARCH="x86_64"
+    fi
+
     if [ -z $(which nvim) ]; then
-        export PATH="$PATH:/opt/nvim-linux-${ARCHITECTURE}/bin"
+        export PATH="$PATH:/opt/nvim-linux-${NVIM_ARCH}/bin"
         if [ -z $(which nvim) ]; then
-            curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux-${ARCHITECTURE}.tar.gz
+            curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux-${NVIM_ARCH}.tar.gz
             sudo rm -rf /opt/nvim
-            sudo tar -C /opt -xzf nvim-linux-${ARCHITECTURE}.tar.gz
-            rm nvim-linux-${ARCHITECTURE}.tar.gz
+            sudo tar -C /opt -xzf nvim-linux-${NVIM_ARCH}.tar.gz
+            rm nvim-linux-${NVIM_ARCH}.tar.gz
         fi
     fi
 
@@ -278,6 +282,7 @@ if [ $(lsb_release -i | awk '{print $3}') == "Ubuntu" ]; then
         curl -fLo ~/.local/share/nvim/site/autoload/plug.vim --create-dirs \
             https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
         nvim +PlugInstall +qall
+        pip3 install --user pynvim
     fi
 
     if [ -z $(which rg) ]; then
