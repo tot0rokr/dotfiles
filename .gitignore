@@ -2,22 +2,23 @@
 *
 
 # White lists
-!.vim/
-!.tmux/
 !.bash_aliases
 !.bash_logout
 !.bashrc
+!.config/nvim/
 !.fzf-git.sh
 !.fzf.bash
 !.git-completion.bash
 !.git-prompt.sh
 !.gitconfig
 !.gitignore
+!.inputrc
 !.profile
+!.tmux/
 !.tmux.conf
+!.vim/
 !.vimrc
 !README.md
-!.config/nvim/
 
 # Black lists
 .vim/temp

@@ -130,6 +130,11 @@ if ! echo "$PATH" | grep -q "$LOCAL_BIN_PATH"; then
     PATH="$LOCAL_BIN_PATH:$PATH"
 fi
 
+
+# Tab completion:
+bind 'TAB:menu-complete' # 리스트업
+bind '"\e[Z":menu-complete-backward' # 순환
+
 make_fake_sudo()
 {
 cat << EOF > $LOCAL_BIN_PATH/sudo

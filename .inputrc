@@ -1,0 +1,24 @@
+# 공통 접두어에 색상을 입힙니다.
+set colored-completion-prefix on
+# 모호한 완성 후보가 있을 때 자동으로 모든 목록을 표시
+set show-all-if-ambiguous on
+# 파일 이름 완성 시 대소문자를 무시
+set completion-ignore-case on
+# 하이픈(-)과 언더스코어(_)를 서로 같은 문자로 취급
+set completion-map-case on
+# menu-complete를 사용할 때, 공통 접두어가 있다면 그것을 먼저 표시한 후 순환
+set menu-complete-display-prefix on
+# 완성 후보가 이 숫자보다 많을 경우 출력 여부
+set completion-query-items 100
+
+# 완성된 디렉토리 이름 끝에 슬래시(/)를 추가
+set mark-directories on
+# 완성 목록이 화면을 넘을 때 페이지 단위로 표시
+set page-completions on
+# 완성 목록을 수평으로 출력
+set print-completions-horizontally on
+
+# 히스토리에서 불러온 명령어를 수정했을 때 해당 줄의 시각적 표식
+set mark-modified-lines on
+# 파일 이름 자동 완성 시 파일 유형에 대한 추가 정보를 시각적으로 표시
+set visible-stats on
