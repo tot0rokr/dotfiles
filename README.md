@@ -112,3 +112,19 @@ make
 # 5. 설치 (옵션)
 sudo make install
 ```
+
+
+.tmux.conf
+
+```
+set -ga terminal-overrides ',xterm-kitty:Tc:sitm=\E[3m' # kitty
+
+# 256 color
+set -g default-terminal "xterm-kitty" # kitty
+
+# true color
+set -as terminal-features ',xterm-kitty:RGB' # kitty
+
+# 터미널 에뮬레이터 고유 기능 사용을 위해 escape sequences tmux가 가로채지 않도록 하는 기능
+set -g allow-passthrough on # kitty
+```
