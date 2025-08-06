@@ -33,6 +33,8 @@ sudo apt update \
     - `sudo apt install libsixel-bin`
 - timg 설치
     - `sudo apt install timg`
+- ranger 설치
+    - `sudo apt install ranger`
 
 
 ## If Linux Desktop
@@ -70,3 +72,43 @@ export XMODIFIERS=@im=kime
 ### Kime (Korean input)
 
 https://osg.kr/archives/3109
+
+
+### Gnome-shell-extensions
+
+sudo apt install gnome-shell-extensions
+sudo apt install gnome-tweaks
+https://support.system76.com/articles/pop-keyboard-shortcuts/
+https://github.com/pop-os/shell
+
+### Audio
+
+sudo apt install pavucontrol    # audio manager
+
+### Bluetooth
+
+sudo apt install blueman        # bluetooth manager
+
+
+### TMUX
+
+```
+# 1. 필요 패키지 설치
+sudo apt update
+sudo apt install -y git build-essential libevent-dev libncurses-dev bison pkg-config autotools-dev automake
+
+# 2. 최신 tmux 소스 클론
+git clone https://github.com/tmux/tmux.git
+cd tmux
+
+# 3. 최신 안정 버전으로 체크아웃 (예: 3.3a)
+git checkout 3.3a
+
+# 4. 빌드
+sh autogen.sh
+./configure
+make
+
+# 5. 설치 (옵션)
+sudo make install
+```
