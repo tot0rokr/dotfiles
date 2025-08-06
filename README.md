@@ -114,6 +114,21 @@ sudo make install
 ```
 
 
+### Kitty
+
+~/.config/kitty/kitty.conf
+
+```
+# Truecolor 활성화
+enable_true_color yes
+
+# 외부 앱이 kitty 기능 제어 가능하게 허용
+allow_remote_control yes
+
+# (선택) 기본 TERM
+term xterm-kitty
+```
+
 .tmux.conf
 
 ```
