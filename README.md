@@ -37,6 +37,31 @@ sudo apt update \
     - `sudo apt install ranger`
 
 
+### Windows Xming from X11 on ssh
+
+1. ✅ 1. Windows에서 Xming 실행
+    - ```
+    Xming을 실행할 때 반드시 **XLaunch**를 이용해서 다음처럼 설정해야 합니다:
+    Multiple windows
+    Start no client
+    Clipboard: 체크 (optional)
+    No access control ← 이거 꼭 체크하세요 (그래야 외부 접속 허용됨)
+    ```
+    - Xming 바로가기 파일 속성에 -ac 추가
+1. SSH 접속 시 -X 또는 -Y 옵션 사용
+    ```
+    ssh -X <id>@<ubuntu-ip>
+    ssh -Y <id>@<ubuntu-ip>
+    ```
+1. Server SSH 설정(/etc/ssh/sshd_config)
+    ```
+    X11Forwarding yes
+    X11DisplayOffset 10
+    X11UseLocalhost no
+    ```
+    sudo systemctl restart ssh
+1. $DISPLAY 설정(.bashrc에 해놨음)
+
 ## If Linux Desktop
 
 ### Keyboard mapping
