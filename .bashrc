@@ -303,6 +303,11 @@ if [ $(lsb_release -i | awk '{print $3}') == "Ubuntu" ]; then
 
 fi
 
+# Safe X11 DISPLAY setup for SSH, even inside tmux
+if [[ -n "$SSH_CONNECTION" ]]; then
+  export DISPLAY=$(echo $SSH_CONNECTION | awk '{print $1}'):0
+fi
+
 # Alias definitions.
 # You may want to put all your additions into a separate file like
 # ~/.bash_aliases, instead of adding them here directly.
