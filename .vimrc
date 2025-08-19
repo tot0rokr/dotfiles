@@ -1216,7 +1216,29 @@ endfunction
 
 " Smooth Scrolling
 if s:check_installed_plugin('vim-smoothie')
-let g:smoothie_enabled = 1
+" 바이트 기준 임계값(예: 2MB)
+let g:largefile_threshold = 2 * 1024 * 1024
+
+function! s:HandleLargeFileSmoothie() abort
+  " 특수 버퍼/이름 없는 버퍼는 스킵
+  if &buftype !=# '' | return | endif
+  let l:fname = expand('%:p')
+  if empty(l:fname) || !filereadable(l:fname) | return | endif
+
+  let l:size = getfsize(l:fname)
+  if l:size >= g:largefile_threshold
+    let g:smoothie_enabled = 0
+
+  else
+    let g:smoothie_enabled = 1
+  endif
+endfunction
+
+augroup LargeFileDetect
+  autocmd!
+  autocmd BufEnter * call s:HandleLargeFileSmoothie()
+augroup END
+
 if has('nvim')
     let g:smoothie_update_interval = 10
     let g:smoothie_speed_exponentiation_factor = 0.90
