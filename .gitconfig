@@ -47,7 +47,3 @@
 [merge]
     tool = nvim-conflicted
     ; conflictstyle = zdiff3
-
-[user]
-       email = jhlee@neostack.co.kr
-       name = JHLEE
