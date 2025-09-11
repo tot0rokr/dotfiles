@@ -32,8 +32,8 @@
     sw = switch
     rt = reset
     rs = restore
-    lg = log --graph --abbrev-commit --decorate --format=format:'%C(cyan)%h%C(reset) - %C(green)(%as - %ar)%C(reset) %C(white)%s%C(reset) %C(blue)- %an%C(reset)%C(yellow)%d%C(reset)'
-    lga = log --all --graph --abbrev-commit --decorate --format=format:'%C(cyan)%h%C(reset) - %C(green)(%as - %ar)%C(reset) %C(white)%s%C(reset) %C(blue)- %an%C(reset)%C(yellow)%d%C(reset)'
+    lg = log --graph --abbrev-commit --decorate --format=format:'%C(cyan)%h%C(reset) - %C(green)(%as - %ar)%C(reset) %C(white)%s%C(reset) %C(blue)- %an%C(reset)%C(auto)%d%C(reset)'
+    lga = log --all --graph --abbrev-commit --decorate --format=format:'%C(cyan)%h%C(reset) - %C(green)(%as - %ar)%C(reset) %C(white)%s%C(reset) %C(blue)- %an%C(reset)%C(auto)%d%C(reset)'
     lz = !lazygit
     conflicted = !nvim +Conflicted
 [diff]
