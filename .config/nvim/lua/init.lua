@@ -136,3 +136,19 @@ winmove = require('winmove')
 vim.keymap.set('n', '<C-w>m', function() winmove.start_mode(winmove.Mode.Move) end, { noremap = true })
 vim.keymap.set('n', '<C-w>s', function() winmove.start_mode(winmove.Mode.Swap) end, { noremap = true })
 vim.keymap.set('n', '<C-w>r', function() winmove.start_mode(winmove.Mode.Resize) end, { noremap = true })
+
+
+
+
+-- cscope
+
+require('cscope_maps').setup({
+    prefix = "<leader>s",
+    exec = "cscope",
+    cscope = {
+        picker = "fzf-lua",
+    },
+    stack_view = {
+        tree_hl = true, -- toggle tree highlighting
+    }
+})

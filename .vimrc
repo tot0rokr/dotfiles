@@ -189,6 +189,11 @@ if has('nvim')
     Plug 'rcarriga/nvim-notify'
 endif
 
+" nvim cscope
+if has('nvim')
+    Plug 'dhananjaylatkar/cscope_maps.nvim'
+endif
+
 " Initialize plugin system
 " - Automatically executes `filetype plugin indent on` and `syntax enable`.
 call plug#end()
