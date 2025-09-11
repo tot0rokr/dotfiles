@@ -1192,13 +1192,14 @@ endif
 " ---------------- easy motion --------------------------------
 if s:check_installed_plugin('vim-easymotion')
 let g:EasyMotion_do_mapping = 0 " Disable default mappings
-map <leader>w <Plug>(easymotion-w)
-map <leader>W <Plug>(easymotion-W)
-map <leader>b <Plug>(easymotion-b)
-map <leader>B <Plug>(easymotion-B)
-map <leader>e <Plug>(easymotion-e)
-map <leader>E <Plug>(easymotion-E)
-map <leader>s <Plug>(easymotion-s)
+nmap <leader>w <Plug>(easymotion-bd-w)
+nmap <leader>W <Plug>(easymotion-bd-W)
+nmap <leader>e <Plug>(easymotion-bd-e)
+nmap <leader>E <Plug>(easymotion-bd-E)
+nmap <leader>j <Plug>(easymotion-bd-jk)
+nmap <leader>k <Plug>(easymotion-bd-jk)
+nmap <leader>n <Plug>(easymotion-bd-n)
+nmap <leader>f <Plug>(easymotion-s)
 endif
 
 " --------------------------- gitgutter -------------------------------------
