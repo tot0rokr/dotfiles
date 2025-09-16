@@ -1,0 +1,10 @@
+os:
+  editPreset: 'nvim'
+git:
+  paging:
+    colorArg: always
+    pager: delta --dark --paging=never --line-numbers --hyperlinks --hyperlinks-file-link-format="lazygit-edit://{path}:{line}"
+  branchLogCmd: git log --color=always --graph --abbrev-commit --decorate --date=relative --pretty=format:'%C(auto)%h %C(blue)%ad %C(green)%an%C(auto)%d%n%s%n%n%b'
+  allBranchesLogCmds:
+    - git log --color=always --graph --all --abbrev-commit --decorate --date=relative --pretty=format:'%C(auto)%h %C(blue)%ad %C(green)%an%C(auto)%d%n%s%n%n%b'
+
