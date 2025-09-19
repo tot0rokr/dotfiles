@@ -4,6 +4,8 @@ local wezterm = require 'wezterm'
 -- This will hold the configuration.
 local config = wezterm.config_builder()
 
+local home = wezterm.home_dir
+local sep  = package.config:sub(1,1)  -- 윈도우 '\' / 유닉스 '/'
 
 -- This is where you actually apply your config choices.
 -- config.default_prog = { "/bin/bash" }
@@ -68,12 +70,12 @@ config.colors = {
   scrollbar_thumb = 'black',
 }
 
-config.background = {
+local bg_path = table.concat({ home, "terminal_background.jpg" }, sep)
+
+local background = {
   -- This is the deepest/back-most layer. It will be rendered first
   {
-    source = {
-      File = 'C:\\Users\\charles\\OneDrive\\terminal_background_totoro.jpg',
-    },
+    source = { File = bg_path, },
     -- The texture tiles vertically but not horizontally.
     -- When we repeat it, mirror it so that it appears "more seamless".
     -- An alternative to this is to set `width = "100%"` and have
