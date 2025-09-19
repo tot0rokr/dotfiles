@@ -9,6 +9,56 @@ local sep  = package.config:sub(1,1)  -- 윈도우 '\' / 유닉스 '/'
 
 -- This is where you actually apply your config choices.
 -- config.default_prog = { "/bin/bash" }
+if wezterm.target_triple:find("windows") then
+  config.default_prog = { "powershell.exe", "-NoLogo"  }
+  config.launch_menu = {
+    { label = "PowerShell", args = { "powershell.exe" } },
+    { label = "PowerShell 7", args = { "pwsh.exe" } },
+    { label = "CMD", args = { "cmd.exe" } },
+    { label = "Admin CMD", args = { "C:\\Users\\charles\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\System Tools\\cmd.exe" } },
+    {
+      label = "Charles Desktop",
+      args = {
+        "cmd.exe", "/k",
+        [[ssh -i .\charles.pem -Y charles@172.18.10.1]]
+      },
+      cwd = [[C:\\Users\\charles]]
+    },
+    {
+      label = "BTOP on Charles",
+      args = {
+        "cmd.exe", "/k",
+        [[ssh -i .\charles.pem -t charles@172.18.10.1 btop]]
+      },
+      cwd = [[C:\\Users\\charles]]
+    },
+  }
+
+elseif triple:find("darwin") then
+  -- macOS
+  config.default_prog = { "/bin/zsh", "-l" }
+  config.launch_menu = {
+    { label = "zsh (login)", args = { "/bin/zsh", "-l" } },
+    {
+      label = "BTOP on Charles (macOS)",
+      -- 쉘을 통해 실행해야 alias/ssh 설정/키 경로가 자연스럽게 동작
+      args = { "/bin/zsh", "-lc", [[btop]] },
+    },
+  }
+
+elseif triple:find("linux") then
+  -- Linux
+  config.default_prog = { "/bin/bash", "-l" }
+  config.launch_menu = {
+    { label = "bash (login)", args = { "/bin/bash", "-l" } },
+    {
+      label = "BTOP on Charles (Linux)",
+      args = { "/bin/bash", "-lc", [[btop]] },
+    },
+  }
+end
+
+
 
 -- config.ssh_domains = {
 --  {
