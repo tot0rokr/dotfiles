@@ -26,7 +26,112 @@ local sep  = package.config:sub(1,1)  -- 윈도우 '\' / 유닉스 '/'
 config.window_decorations = "RESIZE"
 config.scrollback_lines = 10000
 config.force_reverse_video_cursor = true
+
+
+-- 단축키
 config.disable_default_key_bindings = true
+config.keys = {
+    -- 복사: Ctrl+Shift+C
+    {
+      key = 'C',
+      mods = 'CTRL|SHIFT',
+      action = wezterm.action.CopyTo 'Clipboard',
+    },
+    -- 붙여넣기: Ctrl+Shift+V
+    {
+      key = 'V',
+      mods = 'CTRL|SHIFT',
+      action = wezterm.action.PasteFrom 'Clipboard',
+    },
+-- 새 탭: Ctrl+Shift+T
+{
+  key = 'T',
+  mods = 'CTRL|SHIFT',
+  action = wezterm.action.SpawnTab 'CurrentPaneDomain',
+},
+
+-- 탭 전환 (다음/이전): Ctrl+Tab / Ctrl+Shift+Tab
+{
+  key = 'Tab',
+  mods = 'CTRL',
+  action = wezterm.action.ActivateTabRelative(1),
+},
+{
+  key = 'Tab',
+  mods = 'CTRL|SHIFT',
+  action = wezterm.action.ActivateTabRelative(-1),
+},
+
+-- 탭 닫기: Ctrl+Shift+W
+{
+  key = 'W',
+  mods = 'CTRL|SHIFT',
+  action = wezterm.action.CloseCurrentTab { confirm = true },
+},
+-- 전체화면
+{
+  key = 'Enter',
+  mods = 'CTRL|SHIFT',
+  action = wezterm.action.ToggleFullScreen,
+},
+-- 새창
+{
+  key = 'N',
+  mods = 'CTRL|SHIFT',
+  action = wezterm.action.SpawnWindow,
+},
+-- 탭 이동
+{
+  key = '1',
+  mods = 'CTRL|SHIFT',
+  action = wezterm.action.ActivateTab(0),
+},
+{
+  key = '2',
+  mods = 'CTRL|SHIFT',
+  action = wezterm.action.ActivateTab(1),
+},
+{
+  key = '3',
+  mods = 'CTRL|SHIFT',
+  action = wezterm.action.ActivateTab(2),
+},
+{
+  key = '4',
+  mods = 'CTRL|SHIFT',
+  action = wezterm.action.ActivateTab(3),
+},
+-- Search
+{
+  key = 'F',
+  mods = 'CTRL|SHIFT',
+  action = wezterm.action.Search 'CurrentSelectionOrEmptyString',
+},
+-- 커맨드 선택
+{
+  key = 'P',
+  mods = 'CTRL|SHIFT',
+  action = wezterm.action.ActivateCommandPalette,
+},
+-- 테마 토글
+{
+  key = 'T',
+  mods = 'CTRL|SHIFT|ALT',
+  action = wezterm.action.EmitEvent 'toggle-theme',
+},
+-- 배경 화면 토글
+    {
+      key = 'B',
+      mods = 'CTRL|SHIFT|ALT',
+      action = wezterm.action.EmitEvent 'toggle-bg',
+    },
+-- Launch menu
+  {
+    key = "L",
+    mods = "CTRL|SHIFT",
+    action = wezterm.action.ShowLauncher,
+  },
+}
 
 config.exit_behavior = "Hold"
 
@@ -50,6 +155,16 @@ config.font_size = 12
 config.color_scheme = 'BlulocoDark'
 -- config.color_scheme = 'Flatland'
 
+-- 테마 토글
+wezterm.on('toggle-theme', function(window, pane)
+  local overrides = window:get_config_overrides() or {}
+  if not overrides.color_scheme then
+    overrides.color_scheme = 'Flatland'
+  else
+    overrides.color_scheme = nil
+  end
+  window:set_config_overrides(overrides)
+end)
 
 
 config.inactive_pane_hsb = {
@@ -123,6 +238,20 @@ local background = {
     attachment = { Parallax = 0.3 },
   },
 }
+
+wezterm.on('toggle-bg', function(window, pane)
+  local overrides = window:get_config_overrides() or {}
+
+  if overrides.background then
+    print("🔄 배경화면 끔")
+    overrides.background = nil
+  else
+    print("🖼️ 배경화면 켬")
+    overrides.background = background
+  end
+
+  window:set_config_overrides(overrides)
+end)
 
 -------------
 
