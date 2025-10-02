@@ -126,6 +126,7 @@ Plug 'tot0rokr/vim-quickui'
 
 " fzf
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
+Plug 'junegunn/fzf.vim'
 if has('nvim')
     Plug 'ibhagwan/fzf-lua'
 endif
@@ -1192,14 +1193,14 @@ endif
 " ---------------- easy motion --------------------------------
 if s:check_installed_plugin('vim-easymotion')
 let g:EasyMotion_do_mapping = 0 " Disable default mappings
-nmap <leader>w <Plug>(easymotion-bd-w)
-nmap <leader>W <Plug>(easymotion-bd-W)
-nmap <leader>e <Plug>(easymotion-bd-e)
-nmap <leader>E <Plug>(easymotion-bd-E)
-nmap <leader>j <Plug>(easymotion-bd-jk)
-nmap <leader>k <Plug>(easymotion-bd-jk)
-nmap <leader>n <Plug>(easymotion-bd-n)
-nmap <leader>f <Plug>(easymotion-s)
+map <leader>w <Plug>(easymotion-bd-w)
+map <leader>W <Plug>(easymotion-bd-W)
+map <leader>e <Plug>(easymotion-bd-e)
+map <leader>E <Plug>(easymotion-bd-E)
+map <leader>j <Plug>(easymotion-bd-jk)
+map <leader>k <Plug>(easymotion-bd-jk)
+map <leader>n <Plug>(easymotion-bd-n)
+map <leader>f <Plug>(easymotion-s)
 endif
 
 " --------------------------- gitgutter -------------------------------------
