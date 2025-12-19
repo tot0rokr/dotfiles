@@ -317,12 +317,8 @@ if [ $(lsb_release -i | awk '{print $3}') == "Ubuntu" ]; then
 
     if [ -z $(which zoxide) ]; then
         echo "Install zoxide"
-        sudo apt install -y zoxide
-    fi
-
-    if [ ! -z $(which zoxide) ]; then
-        echo "Set zoxide"
-        eval "$(zoxide init bash)"
+        curl -sSfL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh
+        #sudo apt install -y zoxide
     fi
 
     if [ -z $(which nnn) ]; then
@@ -422,8 +418,21 @@ cd ~
 export PROMPT_COMMAND="history -a; history -n"
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
+# Added by LM Studio CLI (lms)
+export PATH="$PATH:/home/charles/.lmstudio/bin"
+# End of LM Studio CLI section
+
+
+export NOTI_WEBHOOK="https://discord.com/api/webhooks/1412624603498676308/5wXrCbZXfCUUDx96MA2Smh1CB352KchMFLNThoODvpohBQIgI9rr-TBroKxKTcJ09Akd"
+
 if [ ! -z $(which starship) ]; then
     echo "Set starship"
     eval "$(starship init bash)"
 fi
 
+if [ ! -z $(which zoxide) ]; then
+    echo "Set zoxide"
+    export _ZO_ECHO=1
+    eval "$(zoxide init bash --cmd cd)"
+    #eval "$(zoxide init bash)"
+fi

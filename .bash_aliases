@@ -3,10 +3,6 @@
 # ~/.bash_aliases, instead of adding them here directly.
 # See /usr/share/doc/bash-doc/examples in the bash-doc package.
 
-if [ ! -z $(which z) ]; then
-    alias cd='z'
-fi
-
 if [ ! -z $(which bat) ]; then
     alias cat="bat"
 fi
