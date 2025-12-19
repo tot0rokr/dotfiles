@@ -155,6 +155,7 @@ fi
 if [ $(lsb_release -i | awk '{print $3}') == "Ubuntu" ]; then
     if [ -z $(which git) ]; then
         sudo apt install -y git
+        echo "Install git"
     fi
 
     if [ -z $(which curl) ]; then
@@ -309,6 +310,84 @@ if [ $(lsb_release -i | awk '{print $3}') == "Ubuntu" ]; then
         sudo apt install wezterm
     fi
 
+    if [ -z $(which lazydocker) ]; then
+        echo "Install lazydocker"
+        curl https://raw.githubusercontent.com/jesseduffield/lazydocker/master/scripts/install_update_linux.sh | bash
+    fi
+
+    if [ -z $(which zoxide) ]; then
+        echo "Install zoxide"
+        sudo apt install -y zoxide
+    fi
+
+    if [ ! -z $(which zoxide) ]; then
+        echo "Set zoxide"
+        eval "$(zoxide init bash)"
+    fi
+
+    if [ -z $(which nnn) ]; then
+        sudo apt install -y nnn
+    fi
+
+    if [ -z $(which gdu) ]; then
+        sudo apt install -y gdu
+    fi
+
+    if [ -z $(which dust) ]; then
+        sudo snap install dust
+    fi
+
+    if [ -z $(which eza) ]; then
+        echo "Install eza"
+        sudo apt update
+        sudo apt install -y gpg
+        sudo mkdir -p /etc/apt/keyrings
+        wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc | sudo gpg --dearmor -o /etc/apt/keyrings/gierens.gpg
+        echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main" | sudo tee /etc/apt/sources.list.d/gierens.list
+        sudo chmod 644 /etc/apt/keyrings/gierens.gpg /etc/apt/sources.list.d/gierens.list
+        sudo apt update
+        sudo apt install -y eza
+    fi
+
+    if [ -z $(which starship) ]; then
+        echo "Install starship"
+        sudo curl -sS https://starship.rs/install.sh | sh -s -- -y
+    fi
+
+    if [ ! -f ~/.local/bin/choose ]; then
+        echo "Install choose"
+        git clone https://github.com/theryangeary/choose.git
+        cd choose
+        cargo build --release
+        install target/release/choose ~/.local/bin/
+        cd ..
+        rm -r choose
+    fi
+
+    if [ -z $(which hyperfine) ]; then
+        echo "Install hyperfine"
+        sudo apt install hyperfine
+    fi
+
+    if [ -z $(which difft) ]; then
+        echo "Install difftastic"
+        cargo install --locked difftastic
+    fi
+
+    if [ -z $(which tldr) ]; then
+        echo "Install tldr"
+        cargo install tealdeer
+        tldr --seed-config
+        tldr -u
+    fi
+
+    if [ ! -f ~/.local/bin/up ]; then
+        echo "Install up"
+        wget https://github.com/akavel/up/releases/latest/download/up
+        chmod a+x up
+        mv up ~/.local/bin
+    fi
+
 fi
 
 # Safe X11 DISPLAY setup for SSH, even inside tmux
@@ -342,3 +421,9 @@ cd ~
 
 export PROMPT_COMMAND="history -a; history -n"
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+if [ ! -z $(which starship) ]; then
+    echo "Set starship"
+    eval "$(starship init bash)"
+fi
+
