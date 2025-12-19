@@ -365,6 +365,11 @@ if [ $(lsb_release -i | awk '{print $3}') == "Ubuntu" ]; then
         sudo apt install hyperfine
     fi
 
+    if [ -z $(which btop) ]; then
+        echo "Install btop"
+        sudo apt install btop
+    fi
+
     if [ -z $(which difft) ]; then
         echo "Install difftastic"
         cargo install --locked difftastic
