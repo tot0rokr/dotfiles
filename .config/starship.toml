@@ -1,15 +1,15 @@
 "$schema" = 'https://starship.rs/config-schema.json'
 
 format = """
-[](red)\
+[░▒▓](red)\
 $os\
 $username\
-[](bg:peach fg:red)\
+[](bg:peach fg:red)\
 $directory\
-[](bg:yellow fg:peach)\
+[](bg:yellow fg:peach)\
 $git_branch\
 $git_status\
-[](fg:yellow bg:green)\
+[](fg:yellow bg:green)\
 $c\
 $rust\
 $golang\
@@ -19,9 +19,9 @@ $java\
 $kotlin\
 $haskell\
 $python\
-[](fg:green bg:sapphire)\
+[](fg:green bg:sapphire)\
 $conda\
-[](fg:sapphire bg:lavender)\
+[](fg:sapphire bg:lavender)\
 $time\
 [ ](fg:lavender)\
 $cmd_duration\
@@ -276,3 +276,50 @@ surface0 = "#363a4f"
 base = "#24273a"
 mantle = "#1e2030"
 crust = "#181926"
+
+# screenshot 느낌(=TokyoNight Storm 계열)로 만든 팔레트
+# 기존 field 이름은 그대로 두고, 아래에 theme용 색상 키도 몇 개 추가했어.
+[palettes.tokyonight]
+rosewater = "#c0caf5"
+flamingo  = "#dba0c1"
+pink      = "#d988c2"
+mauve     = "#bb9af7"
+red       = "#f7768e"
+maroon    = "#db4b4b"
+peach     = "#ff9e64"
+yellow    = "#e0af68"
+green     = "#9ece6a"
+teal      = "#2ac3de"
+sky       = "#7dcfff"
+sapphire  = "#0db9d7"
+blue      = "#7aa2f7"
+lavender  = "#9d7cd8"
+text      = "#c0caf5"
+subtext1  = "#a9b1d6"
+subtext0  = "#9aa5ce"
+overlay2  = "#737aa2"
+overlay1  = "#565f89"
+overlay0  = "#545c7e"
+surface2  = "#414868"
+surface1  = "#3b4261"
+surface0  = "#292e42"
+base      = "#24283b"
+mantle    = "#1f2335"
+crust     = "#16161e"
+# theme colors (추가)
+#background      = "#24283b"
+#background_alt  = "#1f2335"
+#foreground      = "#c0caf5"
+#foreground_alt  = "#a9b1d6"
+#border          = "#3b4261"
+#muted           = "#565f89"
+#selection       = "#364a82"
+#cursorline      = "#292e42"
+#accent          = "#7aa2f7"
+#accent_alt      = "#7dcfff"
+#success         = "#9ece6a"
+#warning         = "#e0af68"
+#error           = "#f7768e"
+#info            = "#2ac3de"
+#hint            = "#bb9af7"
+
