@@ -898,8 +898,27 @@ command! -bang -complete=dir -nargs=? LS
 
 if has('nvim')
     nmap <c-p> :FzfLua files<cr>
+    nmap <M-p> :FzfLua git_files<cr>
+    nnoremap <F5> :FzfLua buffers<cr>
+    nnoremap <F6> :FzfLua zoxide<cr>
+    nnoremap <F7> :FzfLua grep_project<cr>
+    nnoremap <S-F7> :FzfLua live_grep<cr>
+    nnoremap <F8> :FzfLua command_history<cr>
+    nnoremap <F9> :FzfLua blines<cr>
+    nnoremap <S-F9> :FzfLua lines<cr>
+    nnoremap <F10> :FzfLua git_bcommits<cr>
+    nnoremap <S-F10> :FzfLua git_commits<cr>
 else
-    nmap <c-p> :FZF<cr>
+    nmap <c-p> :Files<cr>
+    nmap <M-p> :GFiles<cr>
+    nnoremap <F5> :Buffers<cr>
+    nnoremap <F7> :Rg<cr>
+    nnoremap <S-F7> :RG<cr>
+    nnoremap <F8> :History:<cr>
+    nnoremap <F9> :Blines<cr>
+    nnoremap <S-F9> :Lines<cr>
+    nnoremap <F10> :BCommits<cr>
+    nnoremap <S-F10> :Commits<cr>
 endif
 
 endif
