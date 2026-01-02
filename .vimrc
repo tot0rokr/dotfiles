@@ -896,7 +896,12 @@ command! -bang -complete=dir -nargs=? LS
     \ call fzf#run(fzf#wrap('ls', {'source': 'ls', 'dir': <q-args>}))
     " \ call fzf#run(fzf#wrap('ls', {'source': 'ls', 'dir': <q-args>}, <bang>0))
 
-nmap <c-p> :FZF<cr>
+if has('nvim')
+    nmap <c-p> :FzfLua files<cr>
+else
+    nmap <c-p> :FZF<cr>
+endif
+
 endif
 
 
@@ -1120,6 +1125,7 @@ nnoremap <F6> :bn<cr>
 " tab
 nnoremap <F7> :tabp<cr>
 nnoremap <F8> :tabn<cr>
+nnoremap <F9> :FzfLua buffers<cr>
 
 " undo remap
 nnoremap U <C-r>
