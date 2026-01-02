@@ -1133,6 +1133,10 @@ nnoremap U <C-r>
 " like Shift-enter
 inoremap <C-r> <ESC>o
 
+" Save
+inoremap <C-s> <ESC>:w<cr>
+noremap <C-s> :w<cr>
+
 " window
 nnoremap <C-h> <C-w>h
 nnoremap <C-j> <C-w>j
