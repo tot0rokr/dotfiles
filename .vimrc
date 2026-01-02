@@ -1138,19 +1138,20 @@ nnoremap <F3> :call quickui#tools#preview_tag('')<cr>
 nnoremap <F4> :call quickui#tools#list_buffer("e")<cr>
 
 " buffer
-nnoremap <F5> :bp<cr>
-nnoremap <F6> :bn<cr>
+nnoremap <M-j> :bp<cr>
+nnoremap <M-k> :bn<cr>
 
 " tab
-nnoremap <F7> :tabp<cr>
-nnoremap <F8> :tabn<cr>
-nnoremap <F9> :FzfLua buffers<cr>
+nnoremap <C-w>t :tabnew<cr>
+nnoremap <C-w>d :tabclose<cr>
+nnoremap <M-J> :tabp<cr>
+nnoremap <M-K> :tabn<cr>
 
 " undo remap
 nnoremap U <C-r>
 
 " like Shift-enter
-inoremap <C-r> <ESC>o
+inoremap <C-o> <ESC>o
 
 " Save
 inoremap <C-s> <ESC>:w<cr>
