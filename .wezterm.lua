@@ -34,7 +34,7 @@ if wezterm.target_triple:find("windows") then
     },
   }
 
-elseif triple:find("darwin") then
+elseif wezterm.target_triple:find("darwin") then
   -- macOS
   config.default_prog = { "/bin/zsh", "-l" }
   config.launch_menu = {
@@ -46,7 +46,7 @@ elseif triple:find("darwin") then
     },
   }
 
-elseif triple:find("linux") then
+elseif wezterm.target_triple:find("linux") then
   -- Linux
   config.default_prog = { "/bin/bash", "-l" }
   config.launch_menu = {
