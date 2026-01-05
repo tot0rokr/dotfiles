@@ -58,6 +58,7 @@ elseif wezterm.target_triple:find("linux") then
   }
 end
 
+config.canonicalize_pasted_newlines = "LineFeed"
 
 
 -- config.ssh_domains = {
