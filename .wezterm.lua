@@ -182,6 +182,38 @@ config.keys = {
     mods = "CTRL|SHIFT|ALT",
     action = wezterm.action.ShowLauncher,
   },
+-- Font size: Ctrl + (+/-/0)
+-- (+)는 키보드 레이아웃에 따라 '=' + SHIFT로 들어가는 경우가 많아서 둘 다 넣어둠
+{
+  key = '=',
+  mods = 'CTRL|SHIFT|ALT',
+  action = wezterm.action.IncreaseFontSize,
+},
+{
+  key = '-',
+  mods = 'CTRL|SHIFT|ALT',
+  action = wezterm.action.DecreaseFontSize,
+},
+{
+  key = '+',
+  mods = 'CTRL|SHIFT|ALT',
+  action = wezterm.action.IncreaseFontSize,
+},
+{
+  key = '_',
+  mods = 'CTRL|SHIFT|ALT',
+  action = wezterm.action.DecreaseFontSize,
+},
+{
+  key = '0',
+  mods = 'CTRL|SHIFT|ALT',
+  action = wezterm.action.ResetFontSize,
+},
+{
+  key = ')',
+  mods = 'CTRL|SHIFT|ALT',
+  action = wezterm.action.ResetFontSize,
+},
 }
 
 config.exit_behavior = "Hold"
