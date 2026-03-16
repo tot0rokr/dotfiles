@@ -195,6 +195,7 @@ if has('nvim')
     Plug 'dhananjaylatkar/cscope_maps.nvim'
 endif
 
+
 " Initialize plugin system
 " - Automatically executes `filetype plugin indent on` and `syntax enable`.
 call plug#end()
@@ -798,6 +799,8 @@ endif
 
 " ctags
 autocmd BufEnter * exec "set tags=./tags,tags," .. findfile("tags", ".;")
+" autocmd BufEnter * exec "set tags=./tags,tags,"
+" autocmd BufEnter * exec "set tags+=../../tags,~/Project/tags," .. findfile("tags", ".;")
 
 if !has('nvim')
     " cscope
@@ -957,7 +960,7 @@ call quickui#menu#install("&Files", [
             \ ['&Paste', "set paste!"],
             \ ['--',''],
             \ ['S&croll bar', "MinimapToggle"],
-            \ ['&NERD Tree', "NERDTreeToggle"],
+            \ ['&NERD Tree <F4>', "NERDTreeToggle"],
             \ ['&Tag Bar', "TagbarToggle"],
             \ ['--',''],
             \ ['Search &Git File', "normal \<Plug>SearchGitFile"],
@@ -1026,7 +1029,7 @@ call quickui#menu#install("&Window", [
             \ ['Toggle Cursor High&light', 'call ToggleCursorHighlight()'],
             \ ['Toggle Color R&uler', 'call ToggleRuler()'],
             \ ['--',''],
-            \ ['&Buffer Switcher  <F4>', 'call quickui#tools#list_buffer("e")'],
+            \ ['&Buffer Switcher', 'call quickui#tools#list_buffer("e")'],
             \ ])
 
 call quickui#menu#install("Coc &Refactor", [
@@ -1088,7 +1091,7 @@ endfunc
 command -nargs=0 Messages call DisplayMessages()
 
 let cursor_context_content = [
-            \ ['Code Action &Cursor', "normal \<Plug>(coc-codeaction-cursor)"],
+            \ ['Code &Action Cursor', "normal \<Plug>(coc-codeaction-cursor)"],
             \ ['Code Action &source', "normal \<Plug>(coc-codeaction-source)"],
             \ ['Code Action S&elected', "normal \<Plug>(coc-codeaction-selected)"],
             \ ['&Rename', "normal \<Plug>(coc-rename)"],
@@ -1135,7 +1138,7 @@ endif
 " Editor
 " Should be -n options when making tags
 nnoremap <F3> :call quickui#tools#preview_tag('')<cr>
-nnoremap <F4> :call quickui#tools#list_buffer("e")<cr>
+nnoremap <F4> :NERDTreeToggle<cr>
 
 " buffer
 nnoremap <M-j> :bp<cr>
@@ -1157,11 +1160,24 @@ inoremap <C-o> <ESC>o
 inoremap <C-s> <ESC>:w<cr>
 noremap <C-s> :w<cr>
 
+" Yank
+xnoremap Y "+y
+
 " window
 nnoremap <C-h> <C-w>h
 nnoremap <C-j> <C-w>j
 nnoremap <C-k> <C-w>k
 nnoremap <C-l> <C-w>l
+
+function! ToggleNERDTreeFocus() abort
+  if exists('t:NERDTreeBufName') && bufname('%') ==# t:NERDTreeBufName
+    wincmd p
+  elseif exists(':NERDTreeFocus') == 2
+    silent NERDTreeFocus
+  endif
+endfunction
+
+nnoremap <silent> <C-w>n :call ToggleNERDTreeFocus()<CR>
 
 " highlight
 nnoremap <leader><leader>/ :noh<cr>
