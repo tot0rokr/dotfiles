@@ -1223,9 +1223,23 @@ endif
 exec 'set dir=' .. swapfile_path
 exec 'set bdir=' .. swapfile_path
 
-" remove swap
-function! DeleteSwap()
-    exec "! rm " .. swapname(expand('%'))
+" remove swap (.swp, .swo, .swn, ...)
+function! DeleteSwap() abort
+  let sw = swapname(expand('%:p'))
+  if empty(sw)
+    echo "swap file not found"
+    return
+  endif
+
+  " ".swp" -> ".sw?" 로 바꿔서 변종 전부 매칭
+  let pat = sw[:-2] . '?'
+
+  for f in glob(pat, 0, 1)
+    if filereadable(f)
+      call delete(f)
+      echom "deleted: " . f
+    endif
+  endfor
 endfunction
 
 command! DeleteSwap call DeleteSwap()
