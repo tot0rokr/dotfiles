@@ -25,7 +25,7 @@
     br = branch
     rb = rebase
     mg = merge
-    mgnoff = merge --no-ff
+    mgnf = merge --no-ff
     cm = commit -v
     cmm = commit -v -m
     cma = commit -v --amend
@@ -34,8 +34,10 @@
     rs = restore
     lg = log --graph --abbrev-commit --decorate --format=format:'%C(cyan)%h%C(reset) - %C(green)(%as - %ar)%C(reset) %C(white)%s%C(reset) %C(blue)- %an%C(reset)%C(auto)%d%C(reset)'
     lga = log --all --graph --abbrev-commit --decorate --format=format:'%C(cyan)%h%C(reset) - %C(green)(%as - %ar)%C(reset) %C(white)%s%C(reset) %C(blue)- %an%C(reset)%C(auto)%d%C(reset)'
+    lgp = log -p
     lz = !lazygit
     conflicted = !nvim +Conflicted
+    pushforce = "!f() {\n  set -e\n\n  # 1) 기본값: 업스트림 추적 브랜치에서 remote/dst 가져오기\n  if up=$(git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>/dev/null); then\n    remote=${up%%/*}\n    default_dst=${up#*/}\n  else\n    # 업스트림 없으면: remote는 인자 1(없으면 origin), dst는 현재 브랜치\n    remote=${1:-origin}\n    default_dst=$(git rev-parse --abbrev-ref HEAD)\n  fi\n\n  # 2) 사용자가 refspec을 주면 그걸 사용, 아니면 dst만 밀기\n  if [ $# -ge 2 ]; then\n    refspec=\"$2\"\n    case \"$refspec\" in\n      *:*) dst=${refspec##*:} ;;  # HEAD:dst 형태면 우측을 lease 대상으로\n      *)   dst=\"$refspec\" ;;\n    esac\n  else\n    dst=\"$default_dst\"\n    refspec=\"$dst\"\n  fi\n\n  exec git push --force-with-lease=\"$dst\" \"$remote\" \"$refspec\"\n}; f"
 [diff]
     tool = nvimdiff
 [difftool]
