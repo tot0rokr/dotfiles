@@ -312,7 +312,7 @@ if [ $(lsb_release -i | awk '{print $3}') == "Ubuntu" ]; then
 
     if [ -z $(which lazydocker) ]; then
         echo "Install lazydocker"
-        curl https://raw.githubusercontent.com/jesseduffield/lazydocker/master/scripts/install_update_linux.sh | bash
+        DIR=/usr/local/bin curl https://raw.githubusercontent.com/jesseduffield/lazydocker/master/scripts/install_update_linux.sh | sudo -E bash
     fi
 
     if [ -z $(which zoxide) ]; then
@@ -439,6 +439,6 @@ fi
 if [ ! -z $(which zoxide) ]; then
     echo "Set zoxide"
     export _ZO_ECHO=1
-    eval "$(zoxide init bash --cmd cd)"
-    #eval "$(zoxide init bash)"
+    #eval "$(zoxide init bash --cmd cd)"
+    eval "$(zoxide init bash)"
 fi
