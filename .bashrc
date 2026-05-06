@@ -166,6 +166,10 @@ if [ $(lsb_release -i | awk '{print $3}') == "Ubuntu" ]; then
         sudo apt install -y wget
     fi
 
+    if [ ! -x /usr/sbin/sshd ]; then
+        sudo apt install -y openssh-server
+    fi
+
     if [ -z $(which gcc) ]; then
         sudo apt install -y gcc
     fi
