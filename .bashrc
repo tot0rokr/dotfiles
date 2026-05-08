@@ -202,8 +202,8 @@ if [ $(lsb_release -i | awk '{print $3}') == "Ubuntu" ]; then
         sudo apt install -y cscope
     fi
 
-    if [ -z $(which clangd-12) ]; then
-        sudo apt install -y clangd-12
+    if [ -z $(which clangd-20) ]; then
+        sudo apt install -y clangd-20
     fi
 
     export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
