@@ -79,7 +79,9 @@ local CopilotPrompts = CopilotChat.config.prompts
 local additional_prompt = " Says In Korean."
 
 for _, prompt in pairs(CopilotPrompts) do
-    prompt.prompt = prompt.prompt .. additional_prompt
+    if prompt.prompt then
+        prompt.prompt = prompt.prompt .. additional_prompt
+    end
 end
 
 
