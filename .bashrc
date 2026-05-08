@@ -287,7 +287,7 @@ if [ $(lsb_release -i | awk '{print $3}') == "Ubuntu" ]; then
         curl -fLo ~/.local/share/nvim/site/autoload/plug.vim --create-dirs \
             https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
         nvim +PlugInstall +qall
-        sudo apt install -y python3-pynvim
+        sudo apt install -y --no-install-recommends python3-pynvim
     fi
 
     if [ -z $(which rg) ]; then
