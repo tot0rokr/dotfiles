@@ -121,7 +121,9 @@ if wezterm.target_triple:find("windows") then
     { label = "PowerShell", args = { "powershell.exe" } },
     { label = "PowerShell 7", args = { "pwsh.exe" } },
     { label = "CMD", args = { "cmd.exe" } },
-    { label = "Admin CMD", args = { "C:\\Users\\charles\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\System Tools\\cmd.exe" } },
+    -- UAC 프롬프트 → 관리자 cmd.exe가 별도 OS 윈도우로 뜸 (wezterm 탭 안에선 권한 격상 불가)
+    { label = "Admin CMD", args = { "powershell.exe", "-NoProfile", "-Command", "Start-Process -Verb RunAs cmd.exe" } },
+    { label = "Admin PowerShell", args = { "powershell.exe", "-NoProfile", "-Command", "Start-Process -Verb RunAs powershell.exe" } },
   }
   append_server_entries(config.launch_menu, "windows")
 
