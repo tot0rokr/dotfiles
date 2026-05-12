@@ -81,13 +81,24 @@ require("noice").setup({
     },
 })
 
--- nvim-Treesitter
-require('nvim-treesitter.configs').setup({
-    ensure_installed = { "c", "lua", "vim", "vimdoc", "query", "markdown", "markdown_inline", "python", "bash", "asm", "cpp", "cmake", "csv", "devicetree", "dart", "dockerfile", "diff", "git_config", "git_rebase", "gitcommit", "gitignore", "html", "htmldjango", "http", "kconfig", "nasm", "nginx", "ninja", "passwd", "pem", "rst", "tmux", "xml", "yaml", "json" },
-    highlight = {
-        enable = true,
-    },
-})
+-- nvim-Treesitter (main branch API)
+local ts_parsers = {
+    "c", "lua", "vim", "vimdoc", "query", "markdown", "markdown_inline",
+    "python", "bash", "asm", "cpp", "cmake", "csv", "devicetree", "dart",
+    "dockerfile", "diff", "git_config", "git_rebase", "gitcommit", "gitignore",
+    "html", "htmldjango", "http", "kconfig", "nasm", "nginx", "ninja",
+    "passwd", "pem", "rst", "tmux", "xml", "yaml", "json",
+}
+
+local ok_ts, ts = pcall(require, 'nvim-treesitter')
+if ok_ts then
+    ts.install(ts_parsers)
+    vim.api.nvim_create_autocmd('FileType', {
+        callback = function(args)
+            pcall(vim.treesitter.start, args.buf)
+        end,
+    })
+end
 
 require("toggleterm").setup()
 
