@@ -86,7 +86,7 @@ end
 local function append_server_entries(menu, platform)
   for _, s in ipairs(servers) do
     if platform == "windows" then
-      local key_prefix = ".\\"
+      local key_prefix = home .. sep
       local ssh_line  = table.concat(build_ssh_argv(s, key_prefix), " ")
       local btop_line = table.concat(build_ssh_argv(s, key_prefix, "btop"), " ")
       table.insert(menu, {
