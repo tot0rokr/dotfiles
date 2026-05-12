@@ -56,35 +56,6 @@ require("ibl").setup { scope = { highlight = vim.g.rainbow_delimiters.highlight 
 hooks.register(hooks.type.SCOPE_HIGHLIGHT, hooks.builtin.scope_highlight_from_extmark)
 
 
--- Copilot
-local CopilotChat = require("CopilotChat")
-
-CopilotChat.setup {
-    -- See Configuration section for options
-    mappings = {
-        reset = {
-            normal = '<M-l>',
-            insert = '',
-        },
-    },
-    -- window = {
-      -- layout = 'float',
-      -- relative = 'cursor',
-      -- width = 1,
-      -- height = 0.4,
-      -- row = 1
-    -- }
-}
-local CopilotPrompts = CopilotChat.config.prompts
-local additional_prompt = " Says In Korean."
-
-for _, prompt in pairs(CopilotPrompts) do
-    if prompt.prompt then
-        prompt.prompt = prompt.prompt .. additional_prompt
-    end
-end
-
-
 -- notify
 require("notify").setup({
     background_colour = "#000000",
