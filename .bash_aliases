@@ -17,6 +17,9 @@ fi
 
 if [ ! -z $(which eza) ]; then
     alias ls="eza"
+    alias l='ls -GF'
+else
+    alias l='ls -CGF'
 fi
 
 if [ ! -z $(which tldr) ]; then
@@ -34,7 +37,6 @@ fi
 alias vi='vim'
 alias vim='nvim'
 alias la='ls -AG'
-alias l='ls -CGF'
 alias lla='ls -AlGF'
 alias ll='ls -lGF'
 alias l.='ls -AGF -I[^.]*'
