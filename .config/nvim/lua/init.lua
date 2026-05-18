@@ -90,8 +90,63 @@ local ts_parsers = {
     "passwd", "pem", "rst", "tmux", "xml", "yaml", "json",
 }
 
+-- nvim-treesitter (main branch) shells out to the `tree-sitter` CLI to build
+-- parsers. If it's missing, download a prebuilt binary into ~/.local/bin —
+-- already on PATH per ~/.bashrc — so the FileType autocmd below can use it
+-- on the next nvim startup.
+local function ensure_tree_sitter_cli()
+    if vim.fn.executable('tree-sitter') == 1 then
+        return true
+    end
+
+    local bin_dir = vim.fn.expand('~/.local/bin')
+    local bin_path = bin_dir .. '/tree-sitter'
+
+    local uname = vim.uv.os_uname()
+    local platform
+    if uname.sysname == 'Linux' then
+        if uname.machine == 'x86_64' then platform = 'linux-x64'
+        elseif uname.machine == 'aarch64' then platform = 'linux-arm64'
+        end
+    elseif uname.sysname == 'Darwin' then
+        if uname.machine == 'arm64' then platform = 'macos-arm64'
+        elseif uname.machine == 'x86_64' then platform = 'macos-x64'
+        end
+    end
+
+    if not platform then
+        vim.notify(
+            string.format('tree-sitter CLI: unsupported platform %s/%s',
+                uname.sysname, uname.machine),
+            vim.log.levels.WARN)
+        return false
+    end
+
+    vim.fn.mkdir(bin_dir, 'p')
+    -- Pin to v0.25.10: v0.26+ Linux binaries require GLIBC 2.39 (Ubuntu 24.04+).
+    -- Bump once we're past the Ubuntu 22.04 baseline.
+    local version = 'v0.25.10'
+    local url = string.format(
+        'https://github.com/tree-sitter/tree-sitter/releases/download/%s/tree-sitter-%s.gz',
+        version, platform)
+    local script = string.format(
+        'curl -fsSL %q -o %q.gz && gunzip -f %q.gz && chmod +x %q',
+        url, bin_path, bin_path, bin_path)
+
+    vim.notify('Installing tree-sitter CLI to ' .. bin_path .. ' ...', vim.log.levels.INFO)
+    local result = vim.system({ 'sh', '-c', script }, { text = true }):wait()
+    if result.code ~= 0 then
+        vim.notify('Failed to install tree-sitter CLI: ' .. (result.stderr or ''),
+            vim.log.levels.ERROR)
+        return false
+    end
+
+    vim.notify('Installed tree-sitter CLI: ' .. bin_path, vim.log.levels.INFO)
+    return true
+end
+
 local ok_ts, ts = pcall(require, 'nvim-treesitter')
-if ok_ts then
+if ok_ts and ensure_tree_sitter_cli() then
     ts.install(ts_parsers)
     vim.api.nvim_create_autocmd('FileType', {
         callback = function(args)
