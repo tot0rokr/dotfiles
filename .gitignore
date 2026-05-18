@@ -21,6 +21,7 @@
 !.vim/
 !.vimrc
 !README.md
+!install.sh
 
 # Black lists
 .vim/temp
