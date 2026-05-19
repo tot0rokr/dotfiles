@@ -268,6 +268,28 @@ config.keys = {
     mods = "CTRL|SHIFT|ALT",
     action = wezterm.action.ShowLauncher,
   },
+-- Pane split: Ctrl+Shift+Alt + H(가로 분할) / V(세로 분할)
+{
+  key = 'H',
+  mods = 'CTRL|SHIFT|ALT',
+  action = wezterm.action.SplitHorizontal { domain = 'CurrentPaneDomain' },
+},
+{
+  key = 'V',
+  mods = 'CTRL|SHIFT|ALT',
+  action = wezterm.action.SplitVertical { domain = 'CurrentPaneDomain' },
+},
+-- Pane 이동: Ctrl+Shift+Alt + 화살표
+{ key = 'LeftArrow',  mods = 'CTRL|SHIFT|ALT', action = wezterm.action.ActivatePaneDirection 'Left' },
+{ key = 'RightArrow', mods = 'CTRL|SHIFT|ALT', action = wezterm.action.ActivatePaneDirection 'Right' },
+{ key = 'UpArrow',    mods = 'CTRL|SHIFT|ALT', action = wezterm.action.ActivatePaneDirection 'Up' },
+{ key = 'DownArrow',  mods = 'CTRL|SHIFT|ALT', action = wezterm.action.ActivatePaneDirection 'Down' },
+-- Pane 닫기: Ctrl+Shift+Alt+X
+{
+  key = 'X',
+  mods = 'CTRL|SHIFT|ALT',
+  action = wezterm.action.CloseCurrentPane { confirm = true },
+},
 -- Font size: Ctrl + (+/-/0)
 -- (+)는 키보드 레이아웃에 따라 '=' + SHIFT로 들어가는 경우가 많아서 둘 다 넣어둠
 {
