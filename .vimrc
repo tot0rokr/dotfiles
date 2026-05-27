@@ -1099,7 +1099,16 @@ endif
 " Editor
 " Should be -n options when making tags
 nnoremap <F3> :call quickui#tools#preview_tag('')<cr>
-nnoremap <F4> :NERDTreeToggle<cr>
+function! ToggleOrFocusNERDTree() abort
+  if exists('t:NERDTreeBufName') && bufname('%') ==# t:NERDTreeBufName
+    NERDTreeToggle
+  elseif exists('t:NERDTreeBufName') && bufwinnr(t:NERDTreeBufName) != -1
+    execute bufwinnr(t:NERDTreeBufName) . 'wincmd w'
+  else
+    NERDTreeToggle
+  endif
+endfunction
+nnoremap <silent> <F4> :call ToggleOrFocusNERDTree()<cr>
 
 " buffer
 nnoremap <M-j> :bp<cr>
