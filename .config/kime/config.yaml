@@ -82,11 +82,11 @@ engine:
     layout: Qwerty
     preferred_direct: true
   hangul:
-    layout: sebeolsik-3-90-custom
+    layout: sebeolsik-3sin-p2
     word_commit: false
     preedit_johab: Needed
     addons:
       all:
       - ComposeChoseongSsang
-      dubeolsik:
-      - TreatJongseongAsChoseong
+      sebeolsik-3sin-p2:
+      - ComposeJongseongSsang

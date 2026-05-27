@@ -96,7 +96,46 @@ export XMODIFIERS=@im=kime
 
 ### Kime (Korean input)
 
-https://osg.kr/archives/3109
+참고: https://osg.kr/archives/3109
+
+1. 설치
+
+    ```sh
+    sudo apt install kime
+    ```
+
+2. IM 등록 (`im-config`로 kime 선택 또는 `~/.xinputrc`에 `run_im kime`)
+
+    ```sh
+    im-config -n kime
+    ```
+
+    `.xprofile` / `.profile` 환경변수 (dotfiles에 포함):
+
+    ```sh
+    export GTK_IM_MODULE=kime
+    export QT_IM_MODULE=kime
+    export XMODIFIERS=@im=kime
+    ```
+
+3. GNOME 입력소스에서 ibus 제거 (안 하면 한/영 토글이 ibus-hangul로 가서 kime 레이아웃이 안 먹음)
+
+    ```sh
+    gsettings set org.gnome.desktop.input-sources sources "[('xkb', 'us')]"
+    pkill -f 'ibus-(daemon|engine|x11|portal|dconf|extension)'
+    ```
+
+4. 설정 파일 배치 (dotfiles에 포함되어 있음)
+
+    - `~/.config/kime/config.yaml` — 신세벌식 P2 (`sebeolsik-3sin-p2`), `ComposeChoseongSsang` + `ComposeJongseongSsang` (세벌식 한정)
+    - 한/영 토글 키: 우측 Alt, Hangul, Muhenkan, Super+Space, Shift+Space
+
+5. 데몬 기동
+
+    ```sh
+    pkill -x kime; pkill -x kime-indicator; pkill -x kime-xim
+    nohup kime >/dev/null 2>&1 & disown
+    ```
 
 
 ### Gnome-shell-extensions
