@@ -78,6 +78,9 @@ Plug 'christoomey/vim-conflicted'
 
 " MarkDown
 Plug 'iamcco/markdown-preview.nvim', { 'do': 'cd app && npx --yes yarn install' }
+if has('nvim')
+    Plug 'MeanderingProgrammer/render-markdown.nvim'
+endif
 
 " code break game
 Plug 'johngrib/vim-game-code-break'
@@ -934,6 +937,7 @@ call quickui#menu#install("&Files", [
             \ ['S&croll bar', "MinimapToggle"],
             \ ['&NERD Tree <F4>', "NERDTreeToggle"],
             \ ['&Tag Bar', "TagbarToggle"],
+            \ ['&Render Markdown', "RenderMarkdown toggle"],
             \ ['--',''],
             \ ['Search &Git File', "normal \<Plug>SearchGitFile"],
             \ ['--',''],

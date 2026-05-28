@@ -155,6 +155,46 @@ if ok_ts and ensure_tree_sitter_cli() then
     })
 end
 
+-- in-buffer markdown rendering
+pcall(function()
+    require("render-markdown").setup({
+        heading = {
+            width = "block",
+            left_pad = 2,
+            right_pad = 4,
+        },
+        code = {
+            style = "normal",
+            width = "block",
+            left_pad = 1,
+            right_pad = 1,
+        },
+    })
+
+    local heading_bgs = {
+        RenderMarkdownH1Bg = "#3d4a5e", -- blue
+        RenderMarkdownH2Bg = "#3a5550", -- teal
+        RenderMarkdownH3Bg = "#3f5238", -- green
+        RenderMarkdownH4Bg = "#574e35", -- yellow
+        RenderMarkdownH5Bg = "#5a4338", -- orange
+        RenderMarkdownH6Bg = "#503a48", -- mauve
+    }
+
+    local function muted_md_highlights()
+        for grp, bg in pairs(heading_bgs) do
+            vim.api.nvim_set_hl(0, grp, { bg = bg })
+        end
+        vim.api.nvim_set_hl(0, "RenderMarkdownCode", { bg = "#2a2a2a" })
+        vim.api.nvim_set_hl(0, "RenderMarkdownCodeInline", { bg = "#2a2a2a" })
+    end
+
+    -- defer so we apply after render-markdown's own ColorScheme handler
+    vim.api.nvim_create_autocmd("ColorScheme", {
+        callback = function() vim.schedule(muted_md_highlights) end,
+    })
+    vim.schedule(muted_md_highlights)
+end)
+
 require("toggleterm").setup()
 
 function _G.set_terminal_keymaps()
