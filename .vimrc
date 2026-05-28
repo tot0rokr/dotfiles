@@ -247,7 +247,7 @@ autocmd FileType html setlocal ts=4 sts=4 sw=4 expandtab tw=100 cc=+0
 " ColorScheme
 if s:check_installed_plugin('github-nvim-theme')
 if has('nvim')
-    " set termguicolors
+    set termguicolors
     " colorscheme github_dark
     " colorscheme github_light
     " colorscheme github_dark_dimmed
