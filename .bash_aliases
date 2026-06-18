@@ -18,6 +18,7 @@ fi
 if [ ! -z $(which eza) ]; then
     alias ls="eza"
     alias l='ls -GF'
+    alias lstree='ls --tree'
 else
     alias l='ls -CGF'
 fi
