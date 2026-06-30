@@ -19,6 +19,7 @@
 !.profile
 !.tmux/
 !.tmux.conf
+!.tmux.common.conf
 !.vim/
 !.vimrc
 !README.md

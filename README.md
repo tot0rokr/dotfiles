@@ -20,14 +20,15 @@ sudo apt update \
 && bash
 ```
 
-### Bash 설정 구조
+### 셸 / tmux 설정 구조
 
-이식 가능한 공통부와 머신 고유부를 분리한다.
+이식 가능한 공통부와 머신 고유부를 분리한다. `.bashrc`와 `.tmux.conf`가 같은 패턴을 쓴다.
 
-- `.bashrc` — 진입점. clone/install 시 `~/.bashrc`로 배치되는 기본 템플릿이다. `~/.bashrc.common`을 source 한 뒤, 이 머신 전용 설정(회사 toolchain, 토큰/웹훅 등)을 그 아래에 직접 적어 쓴다.
-- `.bashrc.common` — 이식 가능한 공통 설정: history/PATH/prompt/git/completion, `bootstrap_user_tools`·`bootstrap_system_tools` 등 설치 함수, starship/zoxide init. 시크릿 없음.
+- `.bashrc` / `.tmux.conf` — 진입점(추적됨). clone/install 시 `~/`로 배치되는 기본 템플릿이다. 각각 `~/.bashrc.common` / `~/.tmux.common.conf`를 불러온 뒤, 이 머신 전용 설정을 그 아래에 직접 적어 쓴다.
+- `.bashrc.common` — 이식 가능한 공통 셸 설정: history/PATH/prompt/git/completion, `bootstrap_user_tools`·`bootstrap_system_tools` 등 설치 함수, starship/zoxide init. 시크릿 없음.
+- `.tmux.common.conf` — 이식 가능한 공통 tmux 설정: 플러그인(TPM)·키바인딩·status·테마·truecolor. bell-bash 같은 도구 연동은 `~/.tmux.conf`에 머신 고유로 둔다.
 
-`~/.bashrc`에 추가한 머신 고유 설정은 repo로 커밋하지 않는다(repo의 `.bashrc`는 기본 템플릿 상태로 유지). 시크릿은 `~/.config/secrets.env`(chmod 600)에 두면 `.bashrc.common`이 자동 로드한다.
+진입점 파일(`~/.bashrc`·`~/.tmux.conf`)에 추가한 머신 고유 설정은 repo로 커밋하지 않는다(repo의 진입점은 기본 템플릿 상태 유지). 셸 시크릿은 `~/.config/secrets.env`(chmod 600)에 두면 `.bashrc.common`이 자동 로드한다.
 
 
 ### Desktop 사용
