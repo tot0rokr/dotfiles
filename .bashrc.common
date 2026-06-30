@@ -1,0 +1,728 @@
+# ~/.bashrc.common - shared shell configuration (tracked in dotfiles)
+# Portable, machine-agnostic, and secret-free. Sourced by ~/.bashrc.
+# Machine-specific settings and secrets belong in ~/.bashrc (NOT tracked here).
+# Manual bootstrap: `bootstrap_user_tools` (no root) / `bootstrap_system_tools` (sudo apt).
+
+# Not detected as shell by filename (.common suffix); force the filetype so
+# editors syntax-highlight it. Covers both Vim and Neovim (modelines on by default).
+# vim: set filetype=sh :
+
+# History settings.
+HISTCONTROL=ignoreboth:erasedups
+shopt -s histappend
+HISTSIZE=10000
+HISTFILESIZE=100000
+
+# Update terminal size after each command.
+shopt -s checkwinsize
+
+# User-local paths.
+export LOCAL_BIN_PATH="$HOME/.local/bin"
+export LOCAL_OPT_PATH="$HOME/.local/opt"
+export LOCAL_SRC_PATH="$HOME/.local/src"
+export LOCAL_STATE_PATH="$HOME/.local/state"
+mkdir -p "$LOCAL_BIN_PATH" "$LOCAL_OPT_PATH" "$LOCAL_SRC_PATH" "$LOCAL_STATE_PATH"
+
+__path_prepend() {
+    [ -n "$1" ] || return 0
+    [ -d "$1" ] || return 0
+    case ":$PATH:" in
+        *":$1:"*) ;;
+        *) PATH="$1:$PATH" ;;
+    esac
+}
+
+__path_prepend "$LOCAL_BIN_PATH"
+__path_prepend "$HOME/.cargo/bin"
+__path_prepend "$HOME/.fzf/bin"
+__path_prepend "$HOME/.lmstudio/bin"
+export PATH
+
+# Make less more friendly for non-text input files.
+[ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
+
+# Chroot name for the prompt.
+if [ -z "${debian_chroot:-}" ] && [ -r /etc/debian_chroot ]; then
+    debian_chroot=$(cat /etc/debian_chroot)
+fi
+
+# Prompt color support.
+case "$TERM" in
+    xterm-kitty|xterm-color|*-256color) color_prompt=yes ;;
+esac
+
+if [ -n "${force_color_prompt:-}" ]; then
+    if [ -x /usr/bin/tput ] && tput setaf 1 >&/dev/null; then
+        color_prompt=yes
+    else
+        color_prompt=
+    fi
+fi
+
+# Git prompt support from user-local files only.
+if [ -f "$HOME/.git-prompt.sh" ]; then
+    . "$HOME/.git-prompt.sh"
+fi
+
+if [ "$color_prompt" = yes ]; then
+    PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
+    if declare -F __git_ps1 >/dev/null 2>&1; then
+        PS1=$PS1'\[\033[01;35m\]$(__git_ps1 " (%s)")\[\033[00m\] '
+    fi
+else
+    if declare -F __git_ps1 >/dev/null 2>&1; then
+        PS1='${debian_chroot:+($debian_chroot)}\u:\W\$$(__git_ps1 " (%s)") '
+    else
+        PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
+    fi
+fi
+
+if [ -f "$HOME/.git-completion.bash" ]; then
+    . "$HOME/.git-completion.bash"
+fi
+
+unset color_prompt force_color_prompt
+
+# Set xterm title.
+case "$TERM" in
+    xterm*|rxvt*) PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1" ;;
+esac
+
+# Color aliases.
+if [ -x /usr/bin/dircolors ]; then
+    test -r "$HOME/.dircolors" && eval "$(dircolors -b "$HOME/.dircolors")" || eval "$(dircolors -b)"
+    alias ls='ls --color=auto'
+    alias grep='grep --color=auto'
+    alias fgrep='fgrep --color=auto'
+    alias egrep='egrep --color=auto'
+fi
+
+alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
+
+# Tab completion behavior.
+bind 'TAB:menu-complete'
+bind '"\e[Z":menu-complete-backward'
+
+# User-local NVM and Rust environments.
+export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
+[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+[ -s "$NVM_DIR/bash_completion" ] && . "$NVM_DIR/bash_completion"
+[ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"
+
+# Optional secret loading. Keep the actual webhook outside .bashrc.
+if [ -r "$HOME/.config/noti/webhook" ]; then
+    export NOTI_WEBHOOK="$(sed -n '1p' "$HOME/.config/noti/webhook")"
+fi
+
+# Load user secrets (tokens, API keys). File must be chmod 600.
+if [ -r "$HOME/.config/secrets.env" ]; then
+    . "$HOME/.config/secrets.env"
+fi
+
+__require_cmd() {
+    if ! command -v "$1" >/dev/null 2>&1; then
+        echo "Missing required command: $1"
+        return 1
+    fi
+}
+
+__host_arch() {
+    case "$(uname -m)" in
+        x86_64|amd64) echo "x86_64" ;;
+        aarch64|arm64) echo "arm64" ;;
+        *) echo "Unsupported CPU architecture: $(uname -m)" >&2; return 1 ;;
+    esac
+}
+
+__github_arch() {
+    case "$(uname -m)" in
+        x86_64|amd64) echo "x86_64" ;;
+        aarch64|arm64) echo "arm64" ;;
+        *) echo "Unsupported CPU architecture: $(uname -m)" >&2; return 1 ;;
+    esac
+}
+
+__deb_arch() {
+    case "$(uname -m)" in
+        x86_64|amd64) echo "amd64" ;;
+        aarch64|arm64) echo "arm64" ;;
+        *) echo "Unsupported CPU architecture: $(uname -m)" >&2; return 1 ;;
+    esac
+}
+
+__gnu_arch() {
+    case "$(uname -m)" in
+        x86_64|amd64) echo "x86_64-unknown-linux-gnu" ;;
+        aarch64|arm64) echo "aarch64-unknown-linux-gnu" ;;
+        *) echo "Unsupported CPU architecture: $(uname -m)" >&2; return 1 ;;
+    esac
+}
+
+install_neovim_user() {
+    __require_cmd curl || return 1
+    __require_cmd tar || return 1
+
+    local arch tmp archive
+    arch="$(__host_arch)" || return 1
+    tmp="$(mktemp -d)" || return 1
+    archive="$tmp/nvim-linux-${arch}.tar.gz"
+
+    echo "Installing Neovim under $LOCAL_OPT_PATH ..."
+    curl -fL --retry 3 -o "$archive" \
+        "https://github.com/neovim/neovim/releases/latest/download/nvim-linux-${arch}.tar.gz" || {
+        rm -rf "$tmp"
+        return 1
+    }
+
+    rm -rf "$LOCAL_OPT_PATH/nvim-linux-${arch}"
+    tar -C "$LOCAL_OPT_PATH" -xzf "$archive" || {
+        rm -rf "$tmp"
+        return 1
+    }
+
+    ln -sfn "$LOCAL_OPT_PATH/nvim-linux-${arch}/bin/nvim" "$LOCAL_BIN_PATH/nvim"
+    rm -rf "$tmp"
+    echo "Installed: $LOCAL_BIN_PATH/nvim"
+}
+
+install_vim_plug_user() {
+    __require_cmd curl || return 1
+
+    local plug_path
+    plug_path="$HOME/.local/share/nvim/site/autoload/plug.vim"
+
+    if [ ! -f "$plug_path" ]; then
+        echo "Installing vim-plug under ~/.local/share/nvim ..."
+        curl -fLo "$plug_path" --create-dirs \
+            https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim || return 1
+    fi
+
+    if command -v nvim >/dev/null 2>&1; then
+        nvim +'silent! PlugInstall' +qall || true
+    fi
+}
+
+install_nvm_user() {
+    __require_cmd curl || return 1
+
+    export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
+    if [ ! -s "$NVM_DIR/nvm.sh" ]; then
+        echo "Installing nvm under $NVM_DIR ..."
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash || return 1
+    fi
+
+    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+
+    if command -v nvm >/dev/null 2>&1; then
+        nvm install --lts
+        nvm alias default 'lts/*'
+    else
+        echo "nvm was not loaded. Open a new shell and try again."
+        return 1
+    fi
+}
+
+install_rustup_user() {
+    if command -v cargo >/dev/null 2>&1; then
+        return 0
+    fi
+
+    __require_cmd curl || return 1
+    echo "Installing rustup under ~/.cargo and ~/.rustup ..."
+    curl https://sh.rustup.rs -sSf | sh -s -- -y || return 1
+    [ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"
+}
+
+cargo_install_if_missing() {
+    local bin crate
+    bin="$1"
+    crate="$2"
+    shift 2
+
+    if command -v "$bin" >/dev/null 2>&1; then
+        return 0
+    fi
+
+    install_rustup_user || return 1
+    if ! command -v cargo >/dev/null 2>&1; then
+        echo "cargo is unavailable. Skipping $crate."
+        return 1
+    fi
+
+    echo "Installing $crate with cargo ..."
+    cargo install "$@" "$crate"
+}
+
+install_starship_user() {
+    if command -v starship >/dev/null 2>&1; then
+        return 0
+    fi
+
+    __require_cmd curl || return 1
+    echo "Installing starship under $LOCAL_BIN_PATH ..."
+    curl -sS https://starship.rs/install.sh | sh -s -- -y -b "$LOCAL_BIN_PATH"
+}
+
+install_jq_user() {
+    if [ -x "$LOCAL_BIN_PATH/jq" ] || command -v jq >/dev/null 2>&1; then
+        return 0
+    fi
+
+    __require_cmd curl || return 1
+    local arch
+    arch="$(__deb_arch)" || return 1
+
+    echo "Installing jq under $LOCAL_BIN_PATH ..."
+    curl -fL --retry 3 -o "$LOCAL_BIN_PATH/jq" \
+        "https://github.com/jqlang/jq/releases/latest/download/jq-linux-${arch}" || return 1
+    chmod 755 "$LOCAL_BIN_PATH/jq"
+}
+
+install_lazygit_user() {
+    if [ -x "$LOCAL_BIN_PATH/lazygit" ] || command -v lazygit >/dev/null 2>&1; then
+        return 0
+    fi
+
+    __require_cmd curl || return 1
+    __require_cmd tar || return 1
+
+    local version arch tmp archive
+    version="$(curl -fsSL https://api.github.com/repos/jesseduffield/lazygit/releases/latest | grep -Po '"tag_name": *"v\K[^"]+')" || return 1
+    arch="$(__github_arch)" || return 1
+    tmp="$(mktemp -d)" || return 1
+    archive="$tmp/lazygit.tar.gz"
+
+    echo "Installing lazygit under $LOCAL_BIN_PATH ..."
+    curl -fL --retry 3 -o "$archive" \
+        "https://github.com/jesseduffield/lazygit/releases/download/v${version}/lazygit_${version}_linux_${arch}.tar.gz" || {
+        rm -rf "$tmp"
+        return 1
+    }
+    tar -C "$tmp" -xzf "$archive" lazygit || {
+        rm -rf "$tmp"
+        return 1
+    }
+    install -m 755 "$tmp/lazygit" "$LOCAL_BIN_PATH/lazygit"
+    rm -rf "$tmp"
+}
+
+install_lazydocker_user() {
+    if [ -x "$LOCAL_BIN_PATH/lazydocker" ] || command -v lazydocker >/dev/null 2>&1; then
+        return 0
+    fi
+
+    __require_cmd curl || return 1
+    __require_cmd tar || return 1
+
+    local version arch tmp archive
+    version="$(curl -fsSL https://api.github.com/repos/jesseduffield/lazydocker/releases/latest | grep -Po '"tag_name": *"v\K[^"]+')" || return 1
+    arch="$(__github_arch)" || return 1
+    tmp="$(mktemp -d)" || return 1
+    archive="$tmp/lazydocker.tar.gz"
+
+    echo "Installing lazydocker under $LOCAL_BIN_PATH ..."
+    curl -fL --retry 3 -o "$archive" \
+        "https://github.com/jesseduffield/lazydocker/releases/download/v${version}/lazydocker_${version}_Linux_${arch}.tar.gz" || {
+        rm -rf "$tmp"
+        return 1
+    }
+    tar -C "$tmp" -xzf "$archive" lazydocker || {
+        rm -rf "$tmp"
+        return 1
+    }
+    install -m 755 "$tmp/lazydocker" "$LOCAL_BIN_PATH/lazydocker"
+    rm -rf "$tmp"
+}
+
+install_delta_user() {
+    if [ -x "$LOCAL_BIN_PATH/delta" ] || command -v delta >/dev/null 2>&1; then
+        return 0
+    fi
+
+    __require_cmd curl || return 1
+    __require_cmd tar || return 1
+
+    local version arch tmp archive dir
+    version="$(curl -fsSL https://api.github.com/repos/dandavison/delta/releases/latest | grep -Po '"tag_name": *"\K[^"]+')" || return 1
+    arch="$(__gnu_arch)" || return 1
+    tmp="$(mktemp -d)" || return 1
+    archive="$tmp/delta.tar.gz"
+    dir="delta-${version}-${arch}"
+
+    echo "Installing delta under $LOCAL_BIN_PATH ..."
+    curl -fL --retry 3 -o "$archive" \
+        "https://github.com/dandavison/delta/releases/download/${version}/${dir}.tar.gz" || {
+        rm -rf "$tmp"
+        return 1
+    }
+    tar -C "$tmp" -xzf "$archive" || {
+        rm -rf "$tmp"
+        return 1
+    }
+    install -m 755 "$tmp/$dir/delta" "$LOCAL_BIN_PATH/delta"
+    rm -rf "$tmp"
+}
+
+install_gdu_user() {
+    if [ -x "$LOCAL_BIN_PATH/gdu" ] || command -v gdu >/dev/null 2>&1; then
+        return 0
+    fi
+
+    __require_cmd curl || return 1
+    __require_cmd tar || return 1
+
+    local arch tmp archive bin
+    arch="$(__deb_arch)" || return 1
+    tmp="$(mktemp -d)" || return 1
+    archive="$tmp/gdu.tgz"
+    bin="gdu_linux_${arch}"
+
+    echo "Installing gdu under $LOCAL_BIN_PATH ..."
+    curl -fL --retry 3 -o "$archive" \
+        "https://github.com/dundee/gdu/releases/latest/download/gdu_linux_${arch}.tgz" || {
+        rm -rf "$tmp"
+        return 1
+    }
+    tar -C "$tmp" -xzf "$archive" || {
+        rm -rf "$tmp"
+        return 1
+    }
+    install -m 755 "$tmp/$bin" "$LOCAL_BIN_PATH/gdu"
+    rm -rf "$tmp"
+}
+
+install_up_user() {
+    if [ -x "$LOCAL_BIN_PATH/up" ] || command -v up >/dev/null 2>&1; then
+        return 0
+    fi
+
+    __require_cmd curl || return 1
+    echo "Installing up under $LOCAL_BIN_PATH ..."
+    curl -fL --retry 3 -o "$LOCAL_BIN_PATH/up" \
+        https://github.com/akavel/up/releases/latest/download/up || return 1
+    chmod 755 "$LOCAL_BIN_PATH/up"
+}
+
+install_fzf_user() {
+    if command -v fzf >/dev/null 2>&1; then
+        return 0
+    fi
+
+    if ! command -v git >/dev/null 2>&1; then
+        echo "git is unavailable. Skipping fzf."
+        return 0
+    fi
+
+    if [ ! -d "$HOME/.fzf" ]; then
+        echo "Installing fzf under ~/.fzf ..."
+        git clone --depth 1 https://github.com/junegunn/fzf.git "$HOME/.fzf" || return 1
+        "$HOME/.fzf/install" --bin --key-bindings --completion --no-update-rc || return 1
+    fi
+}
+
+install_pynvim_user() {
+    if ! command -v python3 >/dev/null 2>&1; then
+        echo "python3 is unavailable. Skipping pynvim."
+        return 0
+    fi
+
+    if python3 -m pip --version >/dev/null 2>&1; then
+        echo "Installing pynvim with pip --user ..."
+        python3 -m pip install --user --upgrade pynvim
+    else
+        echo "python3-pip is unavailable. Skipping pynvim."
+    fi
+}
+
+install_clangd_user() {
+    if [ -x "$LOCAL_BIN_PATH/clangd" ] || command -v clangd >/dev/null 2>&1; then
+        return 0
+    fi
+
+    __require_cmd curl || return 1
+    __require_cmd unzip || return 1
+
+    case "$(uname -m)" in
+        x86_64|amd64) ;;
+        *) echo "clangd prebuilt is x86_64-only. Skipping clangd on $(uname -m)."; return 0 ;;
+    esac
+
+    local version tmp archive dir
+    version="$(curl -fsSL https://api.github.com/repos/clangd/clangd/releases/latest | grep -Po '"tag_name": *"\K[^"]+')" || return 1
+    tmp="$(mktemp -d)" || return 1
+    archive="$tmp/clangd.zip"
+    dir="clangd_${version}"
+
+    echo "Installing clangd ${version} under $LOCAL_OPT_PATH ..."
+    curl -fL --retry 3 -o "$archive" \
+        "https://github.com/clangd/clangd/releases/download/${version}/clangd-linux-${version}.zip" || {
+        rm -rf "$tmp"
+        return 1
+    }
+    rm -rf "$LOCAL_OPT_PATH/$dir"
+    unzip -q "$archive" -d "$LOCAL_OPT_PATH" || {
+        rm -rf "$tmp"
+        return 1
+    }
+    ln -sfn "$LOCAL_OPT_PATH/$dir/bin/clangd" "$LOCAL_BIN_PATH/clangd"
+    rm -rf "$tmp"
+    echo "Installed: $LOCAL_BIN_PATH/clangd"
+}
+
+install_btop_user() {
+    if [ -x "$LOCAL_BIN_PATH/btop" ] || command -v btop >/dev/null 2>&1; then
+        return 0
+    fi
+
+    __require_cmd curl || return 1
+    __require_cmd tar || return 1
+
+    local march tmp archive
+    case "$(uname -m)" in
+        x86_64|amd64) march="x86_64" ;;
+        aarch64|arm64) march="aarch64" ;;
+        *) echo "Unsupported CPU architecture for btop: $(uname -m)" >&2; return 1 ;;
+    esac
+    tmp="$(mktemp -d)" || return 1
+    archive="$tmp/btop.tar.gz"
+
+    echo "Installing btop under $LOCAL_OPT_PATH ..."
+    curl -fL --retry 3 -o "$archive" \
+        "https://github.com/aristocratos/btop/releases/latest/download/btop-${march}-unknown-linux-musl.tar.gz" || {
+        rm -rf "$tmp"
+        return 1
+    }
+    rm -rf "$LOCAL_OPT_PATH/btop"
+    tar -C "$LOCAL_OPT_PATH" -xzf "$archive" || {
+        rm -rf "$tmp"
+        return 1
+    }
+    ln -sfn "$LOCAL_OPT_PATH/btop/bin/btop" "$LOCAL_BIN_PATH/btop"
+    if [ -d "$LOCAL_OPT_PATH/btop/themes" ]; then
+        mkdir -p "$HOME/.config/btop/themes"
+        cp -rf "$LOCAL_OPT_PATH/btop/themes/." "$HOME/.config/btop/themes/" 2>/dev/null || true
+    fi
+    rm -rf "$tmp"
+    echo "Installed: $LOCAL_BIN_PATH/btop"
+}
+
+install_nnn_user() {
+    if [ -x "$LOCAL_BIN_PATH/nnn" ] || command -v nnn >/dev/null 2>&1; then
+        return 0
+    fi
+
+    __require_cmd curl || return 1
+    __require_cmd tar || return 1
+
+    case "$(uname -m)" in
+        x86_64|amd64) ;;
+        *) echo "nnn static build is x86_64-only. Skipping nnn on $(uname -m)."; return 0 ;;
+    esac
+
+    local tag version tmp archive bin
+    tag="$(curl -fsSL https://api.github.com/repos/jarun/nnn/releases/latest | grep -Po '"tag_name": *"\K[^"]+')" || return 1
+    version="${tag#v}"
+    tmp="$(mktemp -d)" || return 1
+    archive="$tmp/nnn.tar.gz"
+
+    echo "Installing nnn ${version} under $LOCAL_BIN_PATH ..."
+    curl -fL --retry 3 -o "$archive" \
+        "https://github.com/jarun/nnn/releases/download/${tag}/nnn-static-${version}.x86_64.tar.gz" || {
+        rm -rf "$tmp"
+        return 1
+    }
+    tar -C "$tmp" -xzf "$archive" || {
+        rm -rf "$tmp"
+        return 1
+    }
+    bin=""
+    for f in "$tmp"/nnn*; do
+        [ -f "$f" ] && bin="$f" && break
+    done
+    if [ -z "$bin" ]; then
+        echo "Could not find nnn binary in archive." >&2
+        rm -rf "$tmp"
+        return 1
+    fi
+    install -m 755 "$bin" "$LOCAL_BIN_PATH/nnn"
+    rm -rf "$tmp"
+    echo "Installed: $LOCAL_BIN_PATH/nnn"
+}
+
+install_tmux_user() {
+    if [ -x "$LOCAL_BIN_PATH/tmux" ] || command -v tmux >/dev/null 2>&1; then
+        return 0
+    fi
+
+    __require_cmd curl || return 1
+    __require_cmd gzip || return 1
+
+    # Static, dependency-free tmux from the community build-static-tmux project.
+    local march tag tmp gz
+    case "$(uname -m)" in
+        x86_64|amd64) march="amd64" ;;
+        aarch64|arm64) march="arm64" ;;
+        *) echo "Unsupported CPU architecture for static tmux: $(uname -m)" >&2; return 1 ;;
+    esac
+    tag="$(curl -fsSL https://api.github.com/repos/mjakob-gh/build-static-tmux/releases/latest | grep -Po '"tag_name": *"\K[^"]+')" || return 1
+    tmp="$(mktemp -d)" || return 1
+    gz="$tmp/tmux.gz"
+
+    echo "Installing static tmux ${tag} (community build) under $LOCAL_BIN_PATH ..."
+    curl -fL --retry 3 -o "$gz" \
+        "https://github.com/mjakob-gh/build-static-tmux/releases/download/${tag}/tmux.linux-${march}.stripped.gz" || {
+        rm -rf "$tmp"
+        return 1
+    }
+    gzip -dc "$gz" > "$tmp/tmux" || {
+        rm -rf "$tmp"
+        return 1
+    }
+    install -m 755 "$tmp/tmux" "$LOCAL_BIN_PATH/tmux"
+    rm -rf "$tmp"
+    echo "Installed: $LOCAL_BIN_PATH/tmux"
+}
+
+show_user_only_notes() {
+    cat <<'NOTES'
+
+User-only notes:
+- bootstrap_user_tools never runs sudo/apt/snap/dpkg and installs everything under ~/.local.
+- It now also installs clangd, btop, nnn, and tmux from prebuilt/static downloads (no root needed; x86_64 mainly, see per-tool guards).
+- Tools that genuinely need root are NOT installed by bootstrap_user_tools. Run `bootstrap_system_tools` (sudo apt) for: git, curl, wget, gcc/make (build-essential), openssh-server, python3-venv, ruby-full, universal-ctags, cscope, unzip, wezterm.
+- Some cargo installs may fail if system build tools are missing; run bootstrap_system_tools first if so.
+- To keep NOTI_WEBHOOK private, put it in ~/.config/noti/webhook with chmod 600 instead of hard-coding it in .bashrc.
+NOTES
+}
+
+bootstrap_user_tools() {
+    mkdir -p "$LOCAL_BIN_PATH" "$LOCAL_OPT_PATH" "$LOCAL_SRC_PATH" "$LOCAL_STATE_PATH"
+
+    if [ -r /etc/os-release ]; then
+        . /etc/os-release
+        if [ "${ID:-}" != "ubuntu" ]; then
+            echo "This bootstrap was tuned for Ubuntu, but it will continue with user-local installs only."
+        fi
+    fi
+
+    __require_cmd curl || {
+        echo "Install curl first or download the tools manually. No sudo command was run."
+        return 1
+    }
+
+    install_neovim_user
+    install_vim_plug_user
+    install_nvm_user
+    install_rustup_user
+
+    cargo_install_if_missing fd fd-find
+    cargo_install_if_missing bat bat
+    cargo_install_if_missing rg ripgrep
+    cargo_install_if_missing dust du-dust
+    cargo_install_if_missing eza eza
+    cargo_install_if_missing hyperfine hyperfine
+    cargo_install_if_missing difft difftastic --locked
+    cargo_install_if_missing tldr tealdeer
+    cargo_install_if_missing choose choose
+    cargo_install_if_missing zoxide zoxide --locked
+
+    if command -v tldr >/dev/null 2>&1; then
+        tldr --seed-config || true
+        tldr -u || true
+    fi
+
+    install_starship_user
+    install_jq_user
+    install_lazygit_user
+    install_lazydocker_user
+    install_delta_user
+    install_gdu_user
+    install_up_user
+    install_fzf_user
+    install_pynvim_user
+
+    install_clangd_user
+    install_btop_user
+    install_nnn_user
+    install_tmux_user
+
+    show_user_only_notes
+}
+
+# Install the system/root packages that the user-local path cannot provide.
+# This is the ONLY function here that uses sudo/apt. It is never auto-run;
+# call it manually on a Debian/Ubuntu host when you have sudo.
+bootstrap_system_tools() {
+    if ! command -v sudo >/dev/null 2>&1; then
+        echo "sudo is required for bootstrap_system_tools. Aborting." >&2
+        return 1
+    fi
+    if ! command -v apt-get >/dev/null 2>&1; then
+        echo "bootstrap_system_tools currently supports Debian/Ubuntu (apt) only." >&2
+        return 1
+    fi
+
+    echo "Installing system packages with sudo apt-get ..."
+    sudo apt-get update || return 1
+    sudo apt-get install -y \
+        ca-certificates gnupg \
+        git curl wget \
+        build-essential gcc make \
+        openssh-server \
+        python3 python3-venv python3-pip \
+        ruby-full \
+        universal-ctags cscope \
+        unzip || return 1
+
+    # wezterm is not in the default repos; add the official fury repo first.
+    if ! command -v wezterm >/dev/null 2>&1; then
+        echo "Adding WezTerm apt repository ..."
+        curl -fsSL https://apt.fury.io/wez/gpg.key | sudo gpg --yes --dearmor -o /usr/share/keyrings/wezterm-fury.gpg || return 1
+        echo 'deb [signed-by=/usr/share/keyrings/wezterm-fury.gpg] https://apt.fury.io/wez/ * *' | sudo tee /etc/apt/sources.list.d/wezterm.list >/dev/null
+        sudo chmod 644 /usr/share/keyrings/wezterm-fury.gpg
+        sudo apt-get update || return 1
+        sudo apt-get install -y wezterm || return 1
+    fi
+
+    echo "System packages installed."
+}
+
+# Safe X11 DISPLAY setup for SSH, even inside tmux.
+if [[ -n "${SSH_CONNECTION:-}" ]]; then
+    export DISPLAY=$(echo "$SSH_CONNECTION" | awk '{print $1}'):0
+fi
+
+# User aliases.
+if [ -f "$HOME/.bash_aliases" ]; then
+    . "$HOME/.bash_aliases"
+fi
+
+# Programmable completion from existing system files only.
+if ! shopt -oq posix; then
+    if [ -f /usr/share/bash-completion/bash_completion ]; then
+        . /usr/share/bash-completion/bash_completion
+    elif [ -f /etc/bash_completion ]; then
+        . /etc/bash_completion
+    fi
+fi
+
+[ -f "$HOME/.fzf.bash" ] && . "$HOME/.fzf.bash"
+
+PROMPT_COMMAND="${PROMPT_COMMAND:+$PROMPT_COMMAND; }history -a; history -n"
+
+if command -v starship >/dev/null 2>&1; then
+    eval "$(starship init bash)"
+fi
+
+if command -v zoxide >/dev/null 2>&1; then
+    export _ZO_ECHO=1
+    eval "$(zoxide init bash)"
+fi
+
+# >>> modern grep/find (rg/fd) >>>
+# Translate common grep/find invocations to rg/fd; fall back to the real tool
+# for anything unrecognized. Interactive-only (the file self-guards on $-).
+# Per-call bypass: `command grep ...` / `command find ...`.
+[ -f "$HOME/.config/shell/modern-grep-find.bash" ] && source "$HOME/.config/shell/modern-grep-find.bash"
+# <<< modern grep/find <<<
+

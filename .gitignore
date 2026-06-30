@@ -5,6 +5,7 @@
 !.bash_aliases
 !.bash_logout
 !.bashrc
+!.bashrc.common
 !.config/nvim/
 !.config/kanata/
 !.config/kime/
