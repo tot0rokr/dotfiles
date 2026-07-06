@@ -31,6 +31,26 @@ sudo apt update \
 진입점 파일(`~/.bashrc`·`~/.tmux.conf`)에 추가한 머신 고유 설정은 repo로 커밋하지 않는다(repo의 진입점은 기본 템플릿 상태 유지). 셸 시크릿은 `~/.config/secrets.env`(chmod 600)에 두면 `.bashrc.common`이 자동 로드한다.
 
 
+### 휴대용 HOME 진입 (남의 계정 안 건드리기)
+
+`install.sh`는 이 설정을 계정에 **영구 적용**한다(홈으로 복사). 반면 공유 계정이나 임시 서버처럼 **그 계정 환경을 건드리고 싶지 않을 때**는 `enter.sh`를 쓴다.
+
+`enter.sh`는 아무것도 복사하지 않는다. 대신 `$HOME`(과 `XDG_*`)을 이 체크아웃으로 돌린 뒤 인터랙티브 셸을 띄운다. bash의 `~`·startup 파일·`git --global`·ssh·vim·fzf·starship·zoxide 등이 전부 `$HOME` 기준으로 홈을 찾으므로, **이 dotfiles로 로그인한 것처럼** 쓰인다. 계정 본래의 `~/.bashrc` 등은 아예 읽지 않는다.
+
+```sh
+# 대상 호스트에 별도 디렉터리로 clone → 이 체크아웃이 곧 휴대용 HOME
+git clone https://github.com/tot0rokr/dotfiles.git ~/.myhome
+
+~/.myhome/enter.sh                 # 인터랙티브 진입
+~/.myhome/enter.sh tmux            # 전용 소켓으로 tmux 진입
+ssh host -t '~/.myhome/enter.sh'   # SSH 접속 즉시 내 환경으로
+```
+
+되돌리기는 `rm -rf ~/.myhome` 하나면 끝(계정은 손댄 적 없음). 런타임 산출물(툴 설치·캐시·`.tmux/plugins`)은 전부 이 dir 안에 들어가고 `.gitignore`가 자동으로 무시한다.
+
+한계: `$USER`/`whoami`/`id`, `~다른유저` 확장, `sudo`(HOME 리셋)는 여전히 실제 계정을 가리킨다. HOME은 "홈을 어디서 찾을지" 화살표만 바꾸는 것이지 chroot가 아니다. 또한 repo-local `.git/config`처럼 더 구체적인 설정원은 전역(`~/.gitconfig`)을 이기므로 HOME과 무관하게 그대로 적용된다.
+
+
 ### Desktop 사용
 
 - mpv 설치
