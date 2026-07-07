@@ -305,6 +305,8 @@ function M.apply(config, servers)
   config.font = wezterm.font { family = 'D2CodingLigature Nerd Font' }
   -- or, changing the font size and color scheme.
   config.font_size = 12
+  -- 글자 크기 조절 시 창 크기는 고정하고 행/열 수만 조정 (창이 커졌다 줄었다 안 하게)
+  config.adjust_window_size_when_changing_font_size = false
   -- config.color_scheme = 'BirdsOfParadise'
   config.color_scheme = 'BlulocoDark'
   -- config.color_scheme = 'Flatland'
