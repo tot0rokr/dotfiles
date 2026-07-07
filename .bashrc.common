@@ -109,6 +109,22 @@ export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
 [ -s "$NVM_DIR/bash_completion" ] && . "$NVM_DIR/bash_completion"
 [ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"
 
+# bell-bash: long-running command notifications (installed by
+# bootstrap_user_tools into $LOCAL_OPT_PATH). Wired here rather than by the
+# repo's own installer so the tracked dotfiles stay the single owner of the
+# shell env; the guard makes it a no-op on hosts where it isn't installed.
+# Override BELL_BASH_BACKENDS per host in ~/.bashrc (e.g. add ',webhook').
+if [ -f "$LOCAL_OPT_PATH/bell-bash/bell" ]; then
+    export BELL_BASH_BACKENDS='bel,notify-send'
+    __path_prepend "$LOCAL_OPT_PATH/bell-bash/bin"
+    . "$LOCAL_OPT_PATH/bell-bash/bell"
+fi
+
+# noti-bash: Discord/Slack webhook CLI, cloned by bootstrap_user_tools. Its
+# executable comes from the clone (no longer vendored in this repo); put its
+# bin on PATH here. __path_prepend no-ops when the clone isn't present.
+__path_prepend "$LOCAL_OPT_PATH/noti-bash/bin"
+
 # Optional secret loading. Keep the actual webhook outside .bashrc.
 if [ -r "$HOME/.config/noti/webhook" ]; then
     export NOTI_WEBHOOK="$(sed -n '1p' "$HOME/.config/noti/webhook")"
@@ -583,12 +599,96 @@ install_tmux_user() {
     echo "Installed: $LOCAL_BIN_PATH/tmux"
 }
 
+# bell-bash / noti-bash are cloned into $LOCAL_OPT_PATH and updated with
+# `git pull`. We do NOT run their bundled installers: the shell/tmux wiring is
+# owned by the tracked .bashrc.common / .tmux.common.conf, so these helpers only
+# clone (or update) the repo, link the Claude Code skill, and (for bell) merge
+# the Stop/Notification hooks into ~/.claude/settings.json.
+__clone_or_pull() {
+    local url="$1" dst="$2"
+    if [ -d "$dst/.git" ]; then
+        git -C "$dst" pull --ff-only || true
+    else
+        echo "Cloning $(basename "$dst") into $dst ..."
+        git clone --depth 1 "$url" "$dst" || return 1
+    fi
+}
+
+# Point ~/.claude/skills/<name> at the clone. Only replace a symlink or an
+# absent entry; if a real directory is already there (e.g. a copy owned by
+# another repo) leave it untouched rather than clobbering it.
+__link_skill() {
+    local src="$1" link="$2"
+    [ -d "$(dirname "$link")" ] || return 0
+    if [ -L "$link" ] || [ ! -e "$link" ]; then
+        ln -sfn "$src" "$link"
+    else
+        echo "Leaving existing skill dir in place (not a symlink): $link"
+    fi
+}
+
+# Register bell-bash's default Stop/Notification toast hooks in
+# ~/.claude/settings.json via an idempotent jq merge: any existing hooks are
+# preserved, and re-running replaces (never duplicates) our bell-send entries.
+# bell-send is referenced by absolute path because Claude runs hooks in a
+# non-interactive shell, where ~/.bashrc's interactive guard skips the PATH
+# that would otherwise expose it.
+__install_bell_claude_hook() {
+    [ -d "$HOME/.claude" ] || return 0
+    if ! command -v jq >/dev/null 2>&1; then
+        echo "jq not found; skipping bell Claude Code hook (skill still works)."
+        return 0
+    fi
+    local settings="$HOME/.claude/settings.json"
+    local bin="$HOME/.local/opt/bell-bash/bin/bell-send"
+    local stop="$bin --backends=bel,notify-send 'claude done' >/dev/null 2>&1"
+    local notif="$bin --backends=bel,notify-send 'claude needs input' >/dev/null 2>&1"
+    [ -f "$settings" ] || echo '{}' > "$settings"
+
+    local tmp
+    tmp="$(mktemp)" || return 1
+    if jq --arg stop "$stop" --arg notif "$notif" '
+        def upsert($evt; $cmd):
+            .hooks[$evt] = (((.hooks[$evt] // [])
+                | map(select((.hooks // []) | any(.command | test("bell-send")) | not)))
+                + [{hooks: [{type: "command", command: $cmd, async: true}]}]);
+        (.hooks //= {}) | upsert("Stop"; $stop) | upsert("Notification"; $notif)
+    ' "$settings" > "$tmp"; then
+        mv "$tmp" "$settings"
+        echo "Registered bell Stop/Notification hooks in $settings"
+    else
+        rm -f "$tmp"
+        echo "Could not update $settings (invalid JSON?); left it unchanged." >&2
+        return 1
+    fi
+}
+
+install_bell_bash_user() {
+    __require_cmd git || return 1
+    local repo="$LOCAL_OPT_PATH/bell-bash"
+    __clone_or_pull https://github.com/tot0rokr/bell-bash.git "$repo" || return 1
+    # Interactive shell hook + tmux block live in the tracked dotfiles; link the
+    # skill and register the Claude Code Stop/Notification toast hooks.
+    __link_skill "$repo/skills/bell" "$HOME/.claude/skills/bell"
+    __install_bell_claude_hook
+}
+
+install_noti_bash_user() {
+    __require_cmd git || return 1
+    local repo="$LOCAL_OPT_PATH/noti-bash"
+    __clone_or_pull https://github.com/tot0rokr/noti-bash.git "$repo" || return 1
+    # The clone provides both the `noti` CLI (its bin/ is added to PATH in the
+    # noti-bash block near the top of this file) and the Claude Code skill.
+    __link_skill "$repo/skills/noti" "$HOME/.claude/skills/noti"
+}
+
 show_user_only_notes() {
     cat <<'NOTES'
 
 User-only notes:
 - bootstrap_user_tools never runs sudo/apt/snap/dpkg and installs everything under ~/.local.
 - It now also installs clangd, btop, nnn, and tmux from prebuilt/static downloads (no root needed; x86_64 mainly, see per-tool guards).
+- It clones bell-bash and noti-bash into ~/.local/opt (the `noti` CLI and `bell`/`bell-send` come from these clones, not vendored copies), links their Claude Code skills, and merges bell's Stop/Notification toast hooks into ~/.claude/settings.json (idempotent jq merge; existing hooks preserved). The shell/tmux hooks are wired by the tracked .bashrc.common / .tmux.common.conf, not the repos' own installers. Update the tools with `git -C ~/.local/opt/<repo> pull`.
 - Tools that genuinely need root are NOT installed by bootstrap_user_tools. Run `bootstrap_system_tools` (sudo apt) for: git, curl, wget, gcc/make (build-essential), openssh-server, python3-venv, ruby-full, universal-ctags, cscope, unzip, wezterm.
 - Some cargo installs may fail if system build tools are missing; run bootstrap_system_tools first if so.
 - To keep NOTI_WEBHOOK private, put it in ~/.config/noti/webhook with chmod 600 instead of hard-coding it in .bashrc.
@@ -645,6 +745,9 @@ bootstrap_user_tools() {
     install_btop_user
     install_nnn_user
     install_tmux_user
+
+    install_bell_bash_user
+    install_noti_bash_user
 
     show_user_only_notes
 }
