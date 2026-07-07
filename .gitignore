@@ -22,6 +22,8 @@
 !.tmux.common.conf
 !.vim/
 !.vimrc
+!.wezterm.lua
+!.wezterm.common.lua
 !README.md
 !install.sh
 !enter.sh
