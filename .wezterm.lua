@@ -199,11 +199,37 @@ config.keys = {
   action = wezterm.action.ActivateTabRelative(-1),
 },
 
+-- 탭 순서 이동: Ctrl+Shift+Alt+PageUp/PageDown
+{
+  key = 'PageUp',
+  mods = 'CTRL|SHIFT|ALT',
+  action = wezterm.action.MoveTabRelative(-1),
+},
+{
+  key = 'PageDown',
+  mods = 'CTRL|SHIFT|ALT',
+  action = wezterm.action.MoveTabRelative(1),
+},
+
 -- 탭 닫기
 {
   key = 'W',
   mods = 'CTRL|SHIFT|ALT',
   action = wezterm.action.CloseCurrentTab { confirm = true },
+},
+-- 탭 이름 변경: Ctrl+Shift+Alt+R
+{
+  key = 'R',
+  mods = 'CTRL|SHIFT|ALT',
+  action = wezterm.action.PromptInputLine {
+    description = '새 탭 이름 입력 (빈 값 = 자동 제목으로 복귀)',
+    action = wezterm.action_callback(function(window, pane, line)
+      -- line == nil : ESC로 취소 / '' : 빈 입력 → 자동 제목 복귀
+      if line then
+        window:active_tab():set_title(line)
+      end
+    end),
+  },
 },
 -- 전체화면
 {
@@ -218,26 +244,15 @@ config.keys = {
   action = wezterm.action.SpawnWindow,
 },
 -- 탭 이동
--- {
---   key = '1',
---   mods = 'CTRL|SHIFT',
---   action = wezterm.action.ActivateTab(0),
--- },
--- {
---   key = '2',
---   mods = 'CTRL|SHIFT',
---   action = wezterm.action.ActivateTab(1),
--- },
--- {
---   key = '3',
---   mods = 'CTRL|SHIFT',
---   action = wezterm.action.ActivateTab(2),
--- },
--- {
---   key = '4',
---   mods = 'CTRL|SHIFT',
---   action = wezterm.action.ActivateTab(3),
--- },
+-- { key = '1', mods = 'CTRL|SHIFT|ALT', action = wezterm.action.ActivateTab(0) },
+-- { key = '2', mods = 'CTRL|SHIFT|ALT', action = wezterm.action.ActivateTab(1) },
+-- { key = '3', mods = 'CTRL|SHIFT|ALT', action = wezterm.action.ActivateTab(2) },
+-- { key = '4', mods = 'CTRL|SHIFT|ALT', action = wezterm.action.ActivateTab(3) },
+-- { key = '5', mods = 'CTRL|SHIFT|ALT', action = wezterm.action.ActivateTab(4) },
+-- { key = '6', mods = 'CTRL|SHIFT|ALT', action = wezterm.action.ActivateTab(5) },
+-- { key = '7', mods = 'CTRL|SHIFT|ALT', action = wezterm.action.ActivateTab(6) },
+-- { key = '8', mods = 'CTRL|SHIFT|ALT', action = wezterm.action.ActivateTab(7) },
+-- { key = '9', mods = 'CTRL|SHIFT|ALT', action = wezterm.action.ActivateTab(-1) },
 -- Search
 {
   key = 'F',
