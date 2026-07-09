@@ -66,17 +66,31 @@ local function ssh_remote_cmd(server)
   return nil
 end
 
+-- PS-quote a single argv element. Wraps in single quotes only if the value
+-- contains characters that PowerShell would otherwise interpret (whitespace,
+-- ;, |, <, >, &, parens). Internal single quotes are doubled (PS convention).
+-- Kept minimal — no need to quote plain args like `-M`, `0`, `Key=Value`.
+local function ps_quote_arg(a)
+  if not a:find("[%s;|<>&%(%)`]") then return a end
+  return "'" .. a:gsub("'", "''") .. "'"
+end
+
 -- Build a PowerShell -Command string that emits OSC 2 (tab-title escape) to
--- the terminal and then invokes `program` with the remaining args. `--%`
--- (PS stop-parsing token) forwards args verbatim to the native command,
--- avoiding PS re-parsing of things like `bash -lc '…'`.
+-- the terminal and then invokes `program` with the remaining args.
+-- Each arg is PS-quoted individually so shell-flavored bits inside the
+-- remote command string (';', '||' 등)이 PS 파서로 새어들어가지 않음.
 -- ESC/BEL via [char]27 / [char]7 so this works on Windows PowerShell 5.1
--- too (5.1 doesn't understand PS7's backtick-e / backtick-a escapes).
+-- too (5.1 doesn't understand PS7's backtick-e / backtick-a escapes, nor
+-- the '||'/'&&' pipeline operators).
 local function ps_launcher(title, argv)
   local prog = argv[1]
-  local rest = table.concat(argv, " ", 2)
+  local parts = {}
+  for i = 2, #argv do
+    parts[#parts + 1] = ps_quote_arg(argv[i])
+  end
+  local rest = table.concat(parts, " ")
   return string.format(
-    '[Console]::Write(([char]27) + "]2;%s" + ([char]7)); & %s --%% %s',
+    '[Console]::Write(([char]27) + "]2;%s" + ([char]7)); & %s %s',
     title, prog, rest
   )
 end
