@@ -62,33 +62,59 @@ local function ssh_remote_cmd(server)
   return nil
 end
 
+-- Build a PowerShell -Command string that emits OSC 2 (tab-title escape) to
+-- the terminal and then invokes `program` with the remaining args. `--%`
+-- (PS stop-parsing token) forwards args verbatim to the native command,
+-- avoiding PS re-parsing of things like `bash -lc '…'`.
+-- ESC/BEL via [char]27 / [char]7 so this works on Windows PowerShell 5.1
+-- too (5.1 doesn't understand PS7's backtick-e / backtick-a escapes).
+local function ps_launcher(title, argv)
+  local prog = argv[1]
+  local rest = table.concat(argv, " ", 2)
+  return string.format(
+    '[Console]::Write(([char]27) + "]2;%s" + ([char]7)); & %s --%% %s',
+    title, prog, rest
+  )
+end
+
 -- Append per-server menu entries (SSH + BTOP) to `menu`.
+-- Each entry sets an initial tab title (server name-based) via OSC 2 so
+-- tabs are auto-labeled without needing the Ctrl+Shift+Alt+R rename.
+-- Windows uses powershell.exe as the wrapper (only way to reliably emit
+-- the ESC byte inline). Unix uses printf.
 local function append_server_entries(menu, platform, servers)
   for _, s in ipairs(servers) do
     local key_prefix = home .. sep
     local ssh_opts  = { remote_cmd = ssh_remote_cmd(s), autossh = s.autossh }
     local btop_opts = { remote_cmd = "btop" }
+    local ssh_argv  = build_ssh_argv(s, key_prefix, ssh_opts)
+    local btop_argv = build_ssh_argv(s, key_prefix, btop_opts)
+    local ssh_title  = s.name
+    local btop_title = "BTOP " .. s.name
     if platform == "windows" then
-      local ssh_line  = table.concat(build_ssh_argv(s, key_prefix, ssh_opts),  " ")
-      local btop_line = table.concat(build_ssh_argv(s, key_prefix, btop_opts), " ")
       table.insert(menu, {
         label = "SSH " .. s.name,
-        args  = { "cmd.exe", "/k", ssh_line },
+        args  = { "powershell.exe", "-NoLogo", "-NoProfile", "-NoExit",
+                  "-Command", ps_launcher(ssh_title, ssh_argv) },
         cwd   = s.cwd or home,
       })
       table.insert(menu, {
         label = "BTOP on " .. s.name,
-        args  = { "cmd.exe", "/k", btop_line },
+        args  = { "powershell.exe", "-NoLogo", "-NoProfile", "-NoExit",
+                  "-Command", ps_launcher(btop_title, btop_argv) },
         cwd   = s.cwd or home,
       })
     else
+      local ssh_cmd  = table.concat(ssh_argv,  " ")
+      local btop_cmd = table.concat(btop_argv, " ")
+      local function prefix(t) return "printf '\\033]2;" .. t .. "\\007'; exec " end
       table.insert(menu, {
         label = "SSH " .. s.name,
-        args  = build_ssh_argv(s, key_prefix, ssh_opts),
+        args  = { "sh", "-c", prefix(ssh_title)  .. ssh_cmd  },
       })
       table.insert(menu, {
         label = "BTOP on " .. s.name,
-        args  = build_ssh_argv(s, key_prefix, btop_opts),
+        args  = { "sh", "-c", prefix(btop_title) .. btop_cmd },
       })
     end
   end
