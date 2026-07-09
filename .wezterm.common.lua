@@ -45,16 +45,20 @@ local function build_ssh_argv(server, key_prefix, opts)
   return argv
 end
 
--- Two independent per-server switches:
---   server.enter (string) : optional remote command. 그대로 `ssh -t host <enter>`
---                           에 전달됨. tmux/체이닝/무엇이든 이 문자열 안에서
---                           직접 조립하세요.
---                             예: enter = "tmux attach || tmux new-session"
---                                 enter = "~/enter.sh; tmux attach || tmux new-session"
---   server.autossh (bool) : true면 autossh(또는 PATH의 autossh shim)로 실행.
---                           ssh가 stall/drop 시 자동 재시도. enter와 무관하게
---                           독립적으로 켜고 끌 수 있음. 원격 상태를 유지하려면
---                           enter에 tmux를 함께 넣어두는 게 일반적.
+-- Three independent per-server switches:
+--   server.enter (string)   : optional remote command. 그대로 `ssh -t host <enter>`
+--                             에 전달됨. tmux/체이닝/무엇이든 이 문자열 안에서
+--                             직접 조립하세요.
+--                               예: enter = "tmux attach || tmux new-session"
+--                                   enter = "~/enter.sh; tmux attach || tmux new-session"
+--   server.autossh (bool)   : true면 autossh(또는 PATH의 autossh shim)로 실행.
+--                             ssh가 stall/drop 시 자동 재시도. enter와 무관하게
+--                             독립적으로 켜고 끌 수 있음. 원격 상태를 유지하려면
+--                             enter에 tmux를 함께 넣어두는 게 일반적.
+--   server.password (str)   : optional plaintext password. 있으면 sshpass 로
+--                             매 접속 자동 인증. 재접속마다 조용히 붙음.
+--                             .wezterm.lua는 machine-local — repo에 절대 커밋 금지.
+--                             sshpass 바이너리가 PATH 에 있어야 함.
 local function has_enter(server) return server.enter and server.enter ~= "" end
 
 local function ssh_remote_cmd(server)
@@ -77,11 +81,23 @@ local function ps_launcher(title, argv)
   )
 end
 
+-- Prepend `prefix` argv onto `argv`, returning a new table (originals unchanged).
+local function argv_prepend(prefix, argv)
+  local out = {}
+  for _, v in ipairs(prefix) do out[#out + 1] = v end
+  for _, v in ipairs(argv)   do out[#out + 1] = v end
+  return out
+end
+
 -- Append per-server menu entries (SSH + BTOP) to `menu`.
 -- Each entry sets an initial tab title (server name-based) via OSC 2 so
 -- tabs are auto-labeled without needing the Ctrl+Shift+Alt+R rename.
 -- Windows uses powershell.exe as the wrapper (only way to reliably emit
 -- the ESC byte inline). Unix uses printf.
+-- When `server.password` is set, the SSHPASS env-var is exported to both
+-- launcher entries. The SSH entry's autossh shim reads SSHPASS internally
+-- so each retry iteration re-authenticates silently. The BTOP entry has
+-- no shim, so we wrap its argv with `sshpass -e` here directly.
 local function append_server_entries(menu, platform, servers)
   for _, s in ipairs(servers) do
     local key_prefix = home .. sep
@@ -89,6 +105,11 @@ local function append_server_entries(menu, platform, servers)
     local btop_opts = { remote_cmd = "btop" }
     local ssh_argv  = build_ssh_argv(s, key_prefix, ssh_opts)
     local btop_argv = build_ssh_argv(s, key_prefix, btop_opts)
+    local has_pw    = s.password and s.password ~= ""
+    if has_pw then
+      btop_argv = argv_prepend({ "sshpass", "-e" }, btop_argv)
+    end
+    local env = has_pw and { SSHPASS = s.password } or nil
     local ssh_title  = s.name
     local btop_title = "BTOP " .. s.name
     if platform == "windows" then
@@ -97,12 +118,14 @@ local function append_server_entries(menu, platform, servers)
         args  = { "powershell.exe", "-NoLogo", "-NoProfile", "-NoExit",
                   "-Command", ps_launcher(ssh_title, ssh_argv) },
         cwd   = s.cwd or home,
+        set_environment_variables = env,
       })
       table.insert(menu, {
         label = "BTOP on " .. s.name,
         args  = { "powershell.exe", "-NoLogo", "-NoProfile", "-NoExit",
                   "-Command", ps_launcher(btop_title, btop_argv) },
         cwd   = s.cwd or home,
+        set_environment_variables = env,
       })
     else
       local ssh_cmd  = table.concat(ssh_argv,  " ")
@@ -111,10 +134,12 @@ local function append_server_entries(menu, platform, servers)
       table.insert(menu, {
         label = "SSH " .. s.name,
         args  = { "sh", "-c", prefix(ssh_title)  .. ssh_cmd  },
+        set_environment_variables = env,
       })
       table.insert(menu, {
         label = "BTOP on " .. s.name,
         args  = { "sh", "-c", prefix(btop_title) .. btop_cmd },
+        set_environment_variables = env,
       })
     end
   end
