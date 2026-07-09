@@ -9,13 +9,26 @@ local M = {}
 local home = wezterm.home_dir
 local sep  = package.config:sub(1,1)  -- 윈도우 '\' / 유닉스 '/'
 
--- Build an `ssh` argv for the given server.
+-- Build an `ssh` (or `autossh`) argv for the given server.
 --   key_prefix : path prefix prepended to `server.key` (e.g. ".\\" on Windows,
 --                "$HOME/" on Unix). Ignored when the server has no key.
---   remote_cmd : optional command to run on the remote (e.g. "btop").
---                When set, `-t` is added so the remote command gets a TTY.
-local function build_ssh_argv(server, key_prefix, remote_cmd)
-  local argv = { "ssh" }
+--   opts.remote_cmd : optional command to run on the remote (e.g. "btop").
+--                     When set, `-t` is added so the remote command gets a TTY.
+--   opts.autossh    : when true, use `autossh -M 0` with ServerAlive* keepalives
+--                     so dropped TCP sessions (WiFi/Ethernet 전환 등) 자동 재연결.
+local function build_ssh_argv(server, key_prefix, opts)
+  opts = opts or {}
+  local remote_cmd = opts.remote_cmd
+  local argv
+  if opts.autossh then
+    -- ServerAliveInterval=3 / CountMax=2 → 약 6초 만에 stall 감지 → ssh exit
+    -- → autossh 재시도. WiFi↔유선 스위치 시 총 ~10초 안에 복구.
+    argv = { "autossh", "-M", "0",
+             "-o", "ServerAliveInterval=3",
+             "-o", "ServerAliveCountMax=2" }
+  else
+    argv = { "ssh" }
+  end
   if server.key then
     table.insert(argv, "-i")
     table.insert(argv, (key_prefix or "") .. server.key)
@@ -32,13 +45,32 @@ local function build_ssh_argv(server, key_prefix, remote_cmd)
   return argv
 end
 
+-- Two independent per-server switches:
+--   server.enter (string) : optional remote command. 그대로 `ssh -t host <enter>`
+--                           에 전달됨. tmux/체이닝/무엇이든 이 문자열 안에서
+--                           직접 조립하세요.
+--                             예: enter = "tmux attach || tmux new-session"
+--                                 enter = "~/enter.sh; tmux attach || tmux new-session"
+--   server.autossh (bool) : true면 autossh(또는 PATH의 autossh shim)로 실행.
+--                           ssh가 stall/drop 시 자동 재시도. enter와 무관하게
+--                           독립적으로 켜고 끌 수 있음. 원격 상태를 유지하려면
+--                           enter에 tmux를 함께 넣어두는 게 일반적.
+local function has_enter(server) return server.enter and server.enter ~= "" end
+
+local function ssh_remote_cmd(server)
+  if has_enter(server) then return server.enter end
+  return nil
+end
+
 -- Append per-server menu entries (SSH + BTOP) to `menu`.
 local function append_server_entries(menu, platform, servers)
   for _, s in ipairs(servers) do
+    local key_prefix = home .. sep
+    local ssh_opts  = { remote_cmd = ssh_remote_cmd(s), autossh = s.autossh }
+    local btop_opts = { remote_cmd = "btop" }
     if platform == "windows" then
-      local key_prefix = home .. sep
-      local ssh_line  = table.concat(build_ssh_argv(s, key_prefix, s.enter), " ")
-      local btop_line = table.concat(build_ssh_argv(s, key_prefix, "btop"), " ")
+      local ssh_line  = table.concat(build_ssh_argv(s, key_prefix, ssh_opts),  " ")
+      local btop_line = table.concat(build_ssh_argv(s, key_prefix, btop_opts), " ")
       table.insert(menu, {
         label = "SSH " .. s.name,
         args  = { "cmd.exe", "/k", ssh_line },
@@ -50,14 +82,13 @@ local function append_server_entries(menu, platform, servers)
         cwd   = s.cwd or home,
       })
     else
-      local key_prefix = home .. sep
       table.insert(menu, {
         label = "SSH " .. s.name,
-        args  = build_ssh_argv(s, key_prefix, s.enter),
+        args  = build_ssh_argv(s, key_prefix, ssh_opts),
       })
       table.insert(menu, {
         label = "BTOP on " .. s.name,
-        args  = build_ssh_argv(s, key_prefix, "btop"),
+        args  = build_ssh_argv(s, key_prefix, btop_opts),
       })
     end
   end

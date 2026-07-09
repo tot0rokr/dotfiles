@@ -17,8 +17,15 @@ local sep  = package.config:sub(1,1)  -- 윈도우 '\' / 유닉스 '/'
 --   user : (선택) SSH 사용자명. 호스트 별칭에 이미 user가 있으면 생략 가능
 --   key  : (선택) 개인키 파일명. $HOME 아래에서 탐색
 --   cwd  : (선택, Windows 전용) cmd.exe의 작업 디렉터리
---   enter: (선택) 접속 시 실행할 원격 명령. 지정하면 "SSH <name>"
---          런처가 `ssh ... -t <enter>` 형태로 이 명령을 실행합니다.
+--   enter  : (선택) 접속 시 실행할 원격 명령. 그대로 `ssh -t host <enter>`에
+--            전달됩니다. tmux/체이닝 등 원하는 조합은 이 문자열 안에서 직접 조립.
+--              예1: enter = "tmux attach || tmux new-session"
+--              예2: enter = "~/enter.sh; tmux attach || tmux new-session"
+--   autossh: (선택, boolean) true면 autossh(또는 PATH의 autossh shim)로 실행.
+--            ssh가 stall/drop 시 자동 재시도(약 10초 안에 복구). enter와는
+--            독립적으로 켜고 끌 수 있음. 원격 상태를 유지하려면 enter에
+--            tmux를 함께 넣어두는 게 일반적. 재접속마다 SSH 재인증이 일어나므로
+--            의미 있게 쓰려면 키 인증 필수(아래 절차 참고).
 --
 -- 새 서버 항목 추가 시 일회성 SSH 키 등록 절차:
 --
@@ -53,7 +60,7 @@ local servers = {
   -- Examples:
   -- { name = "Dev",     host = "192.168.0.42", user = "you", key = "id_ed25519.pem", cwd = [[C:\Users\you]] },
   -- { name = "Aliased", host = "my-host-alias-from-ssh-config" },
-  -- { name = "Box",     host = "10.0.0.5", user = "me", enter = "~/dotfiles/enter.sh ~" },
+  -- { name = "Box",     host = "10.0.0.5", user = "me", enter = "~/dotfiles/enter.sh ~; tmux attach || tmux new-session", autossh = true },
 }
 
 -- 공용 설정 적용 (dotfiles-tracked). common 을 수정하면 자동 리로드되도록 감시목록에 추가.
