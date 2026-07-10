@@ -95,7 +95,16 @@ case "$MODE" in
     tmux)
         # Dedicated socket: never attach to the account's existing tmux server,
         # whose shells would inherit the original $HOME instead of ours.
-        "${run[@]}" tmux -L "portable-$(basename "$TARGET")" -f "$TARGET/.tmux.conf"
+        # Attach to whatever's already running on this socket; if the server is
+        # dead, spawn a fresh unnamed session (same semantics as the classic
+        # `tmux attach || tmux new-session`).
+        L="portable-$(basename "$TARGET")"
+        F="$TARGET/.tmux.conf"
+        if tmux -L "$L" has-session 2>/dev/null; then
+            "${run[@]}" tmux -L "$L" attach
+        else
+            "${run[@]}" tmux -L "$L" -f "$F" new-session
+        fi
         ;;
     bash)
         # --rcfile is belt-and-suspenders: HOME already points here, but this
