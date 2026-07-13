@@ -14,20 +14,22 @@ local sep  = package.config:sub(1,1)  -- 윈도우 '\' / 유닉스 '/'
 --                "$HOME/" on Unix). Ignored when the server has no key.
 --   opts.remote_cmd : optional command to run on the remote (e.g. "btop").
 --                     When set, `-t` is added so the remote command gets a TTY.
---   opts.autossh    : when true, use `autossh -M 0` with ServerAlive* keepalives
---                     so dropped TCP sessions (WiFi/Ethernet 전환 등) 자동 재연결.
+--   opts.autossh_bin : when true, prefix with real `autossh -M 0` (Unix).
+--   opts.keepalive   : when true, add ServerAlive* opts so ssh detects a
+--                      stalled TCP session in ~6s (used by both real autossh
+--                      on Unix and the PS retry-loop wrapper on Windows).
 local function build_ssh_argv(server, key_prefix, opts)
   opts = opts or {}
   local remote_cmd = opts.remote_cmd
   local argv
-  if opts.autossh then
-    -- ServerAliveInterval=3 / CountMax=2 → 약 6초 만에 stall 감지 → ssh exit
-    -- → autossh 재시도. WiFi↔유선 스위치 시 총 ~10초 안에 복구.
-    argv = { "autossh", "-M", "0",
-             "-o", "ServerAliveInterval=3",
-             "-o", "ServerAliveCountMax=2" }
+  if opts.autossh_bin then
+    argv = { "autossh", "-M", "0" }
   else
     argv = { "ssh" }
+  end
+  if opts.keepalive then
+    table.insert(argv, "-o"); table.insert(argv, "ServerAliveInterval=3")
+    table.insert(argv, "-o"); table.insert(argv, "ServerAliveCountMax=2")
   end
   if server.key then
     table.insert(argv, "-i")
@@ -66,82 +68,110 @@ local function ssh_remote_cmd(server)
   return nil
 end
 
--- PS-quote a single argv element. Wraps in single quotes only if the value
--- contains characters that PowerShell would otherwise interpret (whitespace,
--- ;, |, <, >, &, parens). Internal single quotes are doubled (PS convention).
--- Kept minimal — no need to quote plain args like `-M`, `0`, `Key=Value`.
-local function ps_quote_arg(a)
-  if not a:find("[%s;|<>&%(%)`]") then return a end
+-- NOTE (Windows): the launcher uses NATIVE Windows OpenSSH (ssh.exe) only.
+-- Password auto-fill on Windows was tried two ways and both failed:
+--   * sshpass needs MSYS2 ssh, whose Cygwin PTY layer makes tty output crawl
+--     under WezTerm's ConPTY (스크롤/출력이 기어감).
+--   * plink has no charset flag → mangles UTF-8 as CP949, and sanitises
+--     control bytes (ESC → '?'), breaking tmux/nvim/powerline.
+-- So on Windows we authenticate with SSH KEYS: native ssh passes UTF-8/ANSI
+-- through untouched and stays fast. (Unix still supports optional sshpass
+-- password auth below — Linux ssh has no Cygwin PTY penalty.)
+
+-- PS-literal for a Lua string: single-quoted, with any embedded ' doubled.
+local function ps_single_quote(a)
   return "'" .. a:gsub("'", "''") .. "'"
 end
 
--- Build a PowerShell -Command string that emits OSC 2 (tab-title escape) to
--- the terminal and then invokes `program` with the remaining args.
--- Each arg is PS-quoted individually so shell-flavored bits inside the
--- remote command string (';', '||' 등)이 PS 파서로 새어들어가지 않음.
--- ESC/BEL via [char]27 / [char]7 so this works on Windows PowerShell 5.1
--- too (5.1 doesn't understand PS7's backtick-e / backtick-a escapes, nor
--- the '||'/'&&' pipeline operators).
-local function ps_launcher(title, argv)
-  local prog = argv[1]
-  local parts = {}
-  for i = 2, #argv do
-    parts[#parts + 1] = ps_quote_arg(argv[i])
+-- Build a PowerShell -Command string that:
+--   1) Emits OSC 2 (tab-title escape) so the tab is auto-labeled.
+--   2) Runs `prog` (native Windows OpenSSH `ssh`, supplied by the caller)
+--      with `argv` splatted through PS's `&` operator, which passes argv
+--      straight to the exe. This bypasses
+--      cmd.exe's fragile arg parsing — a prior `.cmd` shim
+--      (`~/bin/autossh.cmd`) truncated remote commands at `||` and split
+--      `Key=Value` args at the `=`.
+--   3) Optionally wraps the invocation in a retry loop (autossh-style).
+-- ESC/BEL via [char]27/[char]7 keeps this compatible with PS 5.1 (no
+-- backtick-e / backtick-a escapes, no ||/&& pipeline operators).
+local function ps_launcher_win(title, prog, argv, retry)
+  local args_parts = {}
+  for _, a in ipairs(argv) do
+    args_parts[#args_parts + 1] = ps_single_quote(a)
   end
-  local rest = table.concat(parts, " ")
-  return string.format(
-    '[Console]::Write(([char]27) + "]2;%s" + ([char]7)); & %s %s',
-    title, prog, rest
-  )
-end
+  local args_lit = "@(" .. table.concat(args_parts, ",") .. ")"
 
--- Prepend `prefix` argv onto `argv`, returning a new table (originals unchanged).
-local function argv_prepend(prefix, argv)
-  local out = {}
-  for _, v in ipairs(prefix) do out[#out + 1] = v end
-  for _, v in ipairs(argv)   do out[#out + 1] = v end
-  return out
+  local head =
+    '[Console]::Write(([char]27) + "]2;' .. title .. '" + ([char]7)); ' ..
+    '$prog = ' .. ps_single_quote(prog) .. '; ' ..
+    '$sshArgs = ' .. args_lit .. '; '
+
+  if retry then
+    return head ..
+      'while ($true) { & $prog @sshArgs; ' ..
+      'if ($LASTEXITCODE -eq 0) { break }; ' ..
+      'Write-Host ""; ' ..
+      'Write-Host ("[autossh] ssh exited " + $LASTEXITCODE + ", retrying in 1s... (Ctrl+C to stop)"); ' ..
+      'Start-Sleep -Seconds 1 }'
+  else
+    return head .. '& $prog @sshArgs'
+  end
 end
 
 -- Append per-server menu entries (SSH + BTOP) to `menu`.
 -- Each entry sets an initial tab title (server name-based) via OSC 2 so
 -- tabs are auto-labeled without needing the Ctrl+Shift+Alt+R rename.
 -- Windows uses powershell.exe as the wrapper (only way to reliably emit
--- the ESC byte inline). Unix uses printf.
--- When `server.password` is set, the SSHPASS env-var is exported to both
--- launcher entries. The SSH entry's autossh shim reads SSHPASS internally
--- so each retry iteration re-authenticates silently. The BTOP entry has
--- no shim, so we wrap its argv with `sshpass -e` here directly.
+-- the ESC byte inline, and PS's & operator preserves argv into exes).
+-- Unix uses printf + sh -c.
+-- When `server.password` is set, SSHPASS is exported so the PS launcher
+-- (Windows) or a manually-added sshpass wrapper (Unix) can authenticate.
 local function append_server_entries(menu, platform, servers)
   for _, s in ipairs(servers) do
     local key_prefix = home .. sep
-    local ssh_opts  = { remote_cmd = ssh_remote_cmd(s), autossh = s.autossh }
-    local btop_opts = { remote_cmd = "btop" }
-    local ssh_argv  = build_ssh_argv(s, key_prefix, ssh_opts)
-    local btop_argv = build_ssh_argv(s, key_prefix, btop_opts)
-    local has_pw    = s.password and s.password ~= ""
-    if has_pw then
-      btop_argv = argv_prepend({ "sshpass", "-e" }, btop_argv)
-    end
+    local has_pw     = s.password and s.password ~= ""
     local env = has_pw and { SSHPASS = s.password } or nil
     local ssh_title  = s.name
     local btop_title = "BTOP " .. s.name
+
     if platform == "windows" then
+      -- Windows: native OpenSSH ssh only (see the NOTE near the top). No
+      -- autossh binary / no -M 0; the retry loop lives in PS. Auth is via SSH
+      -- keys, so reconnects are silent. If a server has no key enrolled yet,
+      -- native ssh simply prompts for the password interactively.
+      local ssh_argv  = build_ssh_argv(s, key_prefix,
+        { remote_cmd = ssh_remote_cmd(s), keepalive = s.autossh })
+      local btop_argv = build_ssh_argv(s, key_prefix, { remote_cmd = "btop" })
+      -- Drop the leading "ssh" — ps_launcher_win supplies the program itself.
+      table.remove(ssh_argv,  1)
+      table.remove(btop_argv, 1)
       table.insert(menu, {
         label = "SSH " .. s.name,
         args  = { "powershell.exe", "-NoLogo", "-NoProfile", "-NoExit",
-                  "-Command", ps_launcher(ssh_title, ssh_argv) },
+                  "-Command", ps_launcher_win(ssh_title, "ssh", ssh_argv, s.autossh) },
         cwd   = s.cwd or home,
-        set_environment_variables = env,
       })
       table.insert(menu, {
         label = "BTOP on " .. s.name,
         args  = { "powershell.exe", "-NoLogo", "-NoProfile", "-NoExit",
-                  "-Command", ps_launcher(btop_title, btop_argv) },
+                  "-Command", ps_launcher_win(btop_title, "ssh", btop_argv, false) },
         cwd   = s.cwd or home,
-        set_environment_variables = env,
       })
     else
+      -- Unix: real autossh binary handles retry + keepalive.
+      local ssh_argv  = build_ssh_argv(s, key_prefix,
+        { remote_cmd = ssh_remote_cmd(s), autossh_bin = s.autossh, keepalive = s.autossh })
+      local btop_argv = build_ssh_argv(s, key_prefix, { remote_cmd = "btop" })
+      if has_pw then
+        -- Prepend sshpass -e to both argvs (drop leading "ssh"/"autossh" prog).
+        local function wrap(argv)
+          local out = { "sshpass", "-e" }
+          for i = 1, #argv do out[#out + 1] = argv[i] end
+          return out
+        end
+        ssh_argv  = wrap(ssh_argv)
+        btop_argv = wrap(btop_argv)
+      end
       local ssh_cmd  = table.concat(ssh_argv,  " ")
       local btop_cmd = table.concat(btop_argv, " ")
       local function prefix(t) return "printf '\\033]2;" .. t .. "\\007'; exec " end

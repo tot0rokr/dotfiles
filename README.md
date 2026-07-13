@@ -237,3 +237,56 @@ set -as terminal-features ',xterm-kitty:RGB' # kitty
 # 터미널 에뮬레이터 고유 기능 사용을 위해 escape sequences tmux가 가로채지 않도록 하는 기능
 set -g allow-passthrough on # kitty
 ```
+
+
+## WezTerm (Windows) — SSH 런처
+
+Windows 클라이언트의 WezTerm 설정은 두 파일로 나뉩니다.
+
+- `~/.wezterm.lua` — **이 머신 전용** 진입점. SSH 서버 레지스트리(호스트/IP)를 여기에만 적습니다. 내부 IP가 들어가므로 **레포에 커밋하지 않습니다.**
+- `~/.wezterm.common.lua` — **포터블**(dotfiles 추적). 키맵·외관·테마 토글과 SSH 런처 빌더가 들어 있습니다.
+
+`~/.wezterm.lua`의 `servers` 목록에 항목을 추가하면 런처(`Ctrl+Shift+Alt+L`)에 `SSH <name>` / `BTOP on <name>` 메뉴가 자동 생성됩니다.
+
+```lua
+local servers = {
+  { name = "Dev", host = "192.168.0.42", user = "you",
+    enter = "tmux attach || tmux new-session", autossh = true },
+}
+```
+
+| 필드 | 설명 |
+|------|------|
+| `name`    | 런처에 표시될 라벨 |
+| `host`    | IP·호스트명·`~/.ssh/config` 별칭 |
+| `user`    | (선택) SSH 사용자명 |
+| `key`     | (선택) 개인키 파일명(`$HOME` 기준). 생략 시 기본 키(`~/.ssh/id_ed25519`) 사용 |
+| `cwd`     | (선택) 런처 프로세스의 작업 디렉터리 |
+| `enter`   | (선택) 접속 시 실행할 원격 명령. 예: `tmux attach \|\| tmux new-session` |
+| `autossh` | (선택) `true`면 끊겨도 자동 재접속(PS 재시도 루프 + ServerAlive 키프얼라이브) |
+
+### Windows는 SSH 키 인증만 — 비밀번호 자동입력을 쓰지 않는 이유
+
+런처는 Windows에서 **네이티브 OpenSSH(`C:\Windows\System32\OpenSSH\ssh.exe`)만** 사용하고 인증은 **SSH 키**로 합니다. 비밀번호 자동입력을 두 방식으로 시도했으나 모두 실패했기 때문입니다.
+
+- **sshpass + MSYS2 ssh** — sshpass는 같은 MSYS2 런타임으로 빌드된 ssh의 프롬프트만 가로챌 수 있어 `C:\msys64\usr\bin\ssh.exe`를 써야 하는데, 이 Cygwin PTY 계층이 WezTerm의 ConPTY 위에서 tty 출력을 바이트 단위 저속 경로로 떨궈 **스크롤·출력이 기어갑니다.** (네트워크·GPU 문제가 아니라 로컬 PTY 변환 오버헤드 — 로컬 VM까지 동일하게 느려짐.)
+- **plink (PuTTY)** — charset을 지정하는 CLI 옵션이 없어 원격 UTF-8을 시스템 코드페이지(CP949)로 오독해 **한글 mojibake**가 나고, 기본 `-sanitise-stdout`이 제어문자(ESC)를 `?`로 뭉개 **tmux·nvim·powerline이 깨집니다.**
+
+네이티브 ssh는 바이트를 그대로 흘려보내 UTF-8·ANSI가 완벽하고 빠릅니다. (Unix 쪽은 Cygwin 페널티가 없어 `server.password` + `sshpass` 옵션이 그대로 유효합니다.)
+
+### 키 등록 (일회성, PowerShell)
+
+```powershell
+# 1) 키 생성 (무passphrase — 무인 재접속용)
+ssh-keygen -t ed25519 -f $env:USERPROFILE\.ssh\id_ed25519 -C "me@wezterm"
+
+# 2) 서버에 공개키 등록 — 비번 1회 입력
+Get-Content $env:USERPROFILE\.ssh\id_ed25519.pub | ssh you@192.168.0.42 "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 700 ~/.ssh && chmod 600 ~/.ssh/authorized_keys"
+
+# 3) 확인 — 비번 없이 hostname이 뜨면 성공
+ssh you@192.168.0.42 hostname
+```
+
+> **PowerShell 5.1 함정:** 원격 명령 문자열 안에 `"$VAR"` 처럼 따옴표+변수를 넣으면 PS가 ssh로 넘기며 따옴표를 뭉개(native 인자 파싱 버그), 원격 셸에서 단어 분할이 일어납니다. 위처럼 공개키는 **stdin으로만** 흘리고(`Get-Content | ssh … "cat >> …"`) 원격 명령에는 따옴표·`$`를 쓰지 마세요.
+
+등록 후 WezTerm을 재시작하고 런처로 접속하면 비번 없이 붙고 tty도 빠릅니다.
