@@ -1,7 +1,8 @@
 # ~/.bashrc.common - shared shell configuration (tracked in dotfiles)
 # Portable, machine-agnostic, and secret-free. Sourced by ~/.bashrc.
 # Machine-specific settings and secrets belong in ~/.bashrc (NOT tracked here).
-# Manual bootstrap: `bootstrap_user_tools` (no root) / `bootstrap_system_tools` (sudo apt).
+# Manual bootstrap: `bootstrap_user_tools` (no root) / `bootstrap_system_tools`
+# (sudo apt) / `bootstrap_agents` (Claude/Codex/OpenCode/Gemini harness).
 
 # Not detected as shell by filename (.common suffix); force the filetype so
 # editors syntax-highlight it. Covers both Vim and Neovim (modelines on by default).
@@ -118,6 +119,14 @@ if [ -f "$LOCAL_OPT_PATH/bell-bash/bell" ]; then
     export BELL_BASH_BACKENDS='bel,notify-send'
     __path_prepend "$LOCAL_OPT_PATH/bell-bash/bin"
     . "$LOCAL_OPT_PATH/bell-bash/bell"
+    # Skip fzf's interactive widgets from bell auto-triggers: Ctrl-R history
+    # (__fzf_history__), Ctrl-T file (fzf-file-widget), Alt-C cd (__fzf_cd__).
+    # TAB completion needs no entry — bell bails when COMP_LINE is set. Append
+    # via bell_skip (not a pre-defined array — pre-defining would replace bell's
+    # sensible defaults wholesale).
+    if declare -F bell_skip >/dev/null 2>&1; then
+        bell_skip add '__fzf_history__' 'fzf-file-widget' '__fzf_cd__' >/dev/null
+    fi
 fi
 
 # noti-bash: Discord/Slack webhook CLI, cloned by bootstrap_user_tools. Its
@@ -599,18 +608,23 @@ install_tmux_user() {
     echo "Installed: $LOCAL_BIN_PATH/tmux"
 }
 
-# bell-bash / noti-bash are cloned into $LOCAL_OPT_PATH and updated with
-# `git pull`. We do NOT run their bundled installers: the shell/tmux wiring is
-# owned by the tracked .bashrc.common / .tmux.common.conf, so these helpers only
+# Shared clone-or-update helper. bell-bash / noti-bash are cloned into
+# $LOCAL_OPT_PATH; the agents harness into ~/agents (see install_agents_user).
+# For bell/noti we do NOT run their bundled installers: the shell/tmux wiring is
+# owned by the tracked .bashrc.common / .tmux.common.conf, so those helpers only
 # clone (or update) the repo, link the Claude Code skill, and (for bell) merge
 # the Stop/Notification hooks into ~/.claude/settings.json.
 __clone_or_pull() {
-    local url="$1" dst="$2"
+    local url="$1" dst="$2" clone_flags
+    # $3 = extra `git clone` flags. Default to a shallow clone; pass "" for a
+    # full clone (repos you commit to, e.g. the agents harness, need history).
+    if [ $# -ge 3 ]; then clone_flags="$3"; else clone_flags="--depth 1"; fi
     if [ -d "$dst/.git" ]; then
         git -C "$dst" pull --ff-only || true
     else
         echo "Cloning $(basename "$dst") into $dst ..."
-        git clone --depth 1 "$url" "$dst" || return 1
+        # shellcheck disable=SC2086 -- word-split $clone_flags into git args
+        git clone $clone_flags "$url" "$dst" || return 1
     fi
 }
 
@@ -692,6 +706,7 @@ User-only notes:
 - Tools that genuinely need root are NOT installed by bootstrap_user_tools. Run `bootstrap_system_tools` (sudo apt) for: git, curl, wget, gcc/make (build-essential), openssh-server, python3-venv, ruby-full, universal-ctags, cscope, unzip, wezterm.
 - Some cargo installs may fail if system build tools are missing; run bootstrap_system_tools first if so.
 - To keep NOTI_WEBHOOK private, put it in ~/.config/noti/webhook with chmod 600 instead of hard-coding it in .bashrc.
+- The agents harness (shared Claude/Codex/OpenCode/Gemini config) is NOT installed here; run `bootstrap_agents` for it (ideally before this, so bell/noti skills land in the symlinked ~/.claude).
 NOTES
 }
 
@@ -750,6 +765,34 @@ bootstrap_user_tools() {
     install_noti_bash_user
 
     show_user_only_notes
+}
+
+# Install the agents harness (shared config/skills/memory/MCP for Claude Code,
+# Codex, OpenCode and Gemini). Its own command -- like bootstrap_user_tools,
+# not folded into it -- because it OWNS the home config dirs (~/.claude,
+# ~/.codex, ~/.config/opencode, ~/.gemini, ~/.agents) and should be explicit
+# opt-in. Clones to the canonical ~/agents path (install.py, doctor.sh and the
+# home symlinks all hard-code it) as a FULL clone -- you commit to it (shared
+# memory pool, config), so history must be intact. install.py backs up any
+# pre-existing real config dir to <path>.bak.<timestamp> before symlinking it
+# into ~/agents, is idempotent (a no-op once linked), and rolls back on error;
+# doctor.sh verifies the result.
+#
+# Order note: if you also use bell/noti, run bootstrap_agents BEFORE
+# bootstrap_user_tools so bell/noti link their skills into the already-symlinked
+# ~/.claude. If you did it the other way round, just re-run install_bell_bash_user
+# and install_noti_bash_user afterwards.
+bootstrap_agents() {
+    __require_cmd git || return 1
+    __require_cmd python3 || return 1
+    __clone_or_pull https://github.com/tot0rokr/agents.git "$HOME/agents" "" || return 1
+    echo "Installing agents harness symlinks (python3 scripts/install.py) ..."
+    python3 "$HOME/agents/scripts/install.py" || {
+        echo "agents install.py failed (see output above); skipping doctor." >&2
+        return 1
+    }
+    bash "$HOME/agents/scripts/doctor.sh" || \
+        echo "agents doctor.sh reported issues; review the output above." >&2
 }
 
 # Install the system/root packages that the user-local path cannot provide.
