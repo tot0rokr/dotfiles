@@ -1,0 +1,18 @@
+# Test the dotfiles bootstrap in a throwaway container.
+# Prefer `./run.sh` (handles tiers + --local mounting). Direct use:
+#   docker compose run --rm test                      # smoke, clone remote main
+#   RUN_USER_TOOLS=1 docker compose run --rm test      # full tier
+services:
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: dotfiles-bootstrap-test
+    platform: linux/amd64
+    environment:
+      # remote (clone DOTFILES_REPO@DOTFILES_REF) | local (mount at /mnt/dotfiles)
+      DOTFILES_SOURCE: ${DOTFILES_SOURCE:-remote}
+      DOTFILES_REF: ${DOTFILES_REF:-main}
+      DOTFILES_REPO: ${DOTFILES_REPO:-https://github.com/tot0rokr/dotfiles.git}
+      # 0 = smoke (install/system/agents); 1 = full (+ bootstrap_user_tools)
+      RUN_USER_TOOLS: ${RUN_USER_TOOLS:-0}

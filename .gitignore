@@ -27,6 +27,8 @@
 !README.md
 !install.sh
 !enter.sh
+!test/
+!test/**
 
 # Black lists
 .vim/temp
