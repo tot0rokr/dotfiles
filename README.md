@@ -1,5 +1,62 @@
 # Integrated Bash Eenvironment
 
+## Quick Start
+
+세 가지 사용 방식이 있다.
+
+### A. 홈에 영구 적용 (일반 데스크톱/서버)
+
+repo를 별도 위치에 두고 dotfiles를 `$HOME`으로 복사한다.
+
+```bash
+git clone https://github.com/tot0rokr/dotfiles ~/.dotfiles
+~/.dotfiles/install.sh      # dotfiles를 $HOME으로 복사 (install.sh/enter.sh/README은 제외)
+exec bash                    # 새 셸에서 적용
+```
+
+### B. 휴대용 HOME (공유 계정·임시 서버 — 계정 안 건드림)
+
+아무것도 복사하지 않고 `$HOME`(+`XDG_*`)만 이 체크아웃으로 돌린다. 되돌리기는 `rm -rf` 하나.
+
+```bash
+git clone https://github.com/tot0rokr/dotfiles ~/.myhome
+~/.myhome/enter.sh                 # 인터랙티브 진입 (exit로 원래 셸 복귀)
+~/.myhome/enter.sh tmux            # tmux로 바로 (전용 소켓)
+ssh host -t '~/.myhome/enter.sh'   # SSH 접속 즉시 내 환경
+```
+
+### 도구 설치 (bootstrap)
+
+설치 후 인터랙티브 셸에서 순서대로. 함수는 `.bashrc.common`이 정의한다.
+
+```bash
+bootstrap_system_tools   # sudo apt: build-essential/git/python3/ctags/wezterm... (root 필요, Ubuntu/Debian)
+bootstrap_user_tools     # ~/.local: nvim/fzf/rg/bat/eza/starship/lazygit/tmux/bell/noti... (root 불필요, cargo 빌드로 느림)
+bootstrap_agents         # ~/agents: Claude/Codex/OpenCode/Gemini 하네스 (~/.claude 등 심링크)
+```
+
+### 검증 (Docker)
+
+클린 컨테이너에서 clone→install→bootstrap 전 과정을 자동 실행·검증한다. exit 0이면 통과.
+
+```bash
+test/run.sh            # smoke (install/system/agents, 빠름)
+test/run.sh --full     # 전체 (+ bootstrap_user_tools, cargo 빌드까지)
+test/run.sh --local    # 로컬 워킹트리로 검증 (push 전)
+```
+
+### 업데이트
+
+```bash
+cd ~/.dotfiles && git pull && ./install.sh   # A 방식 (B 방식이면 git pull만)
+```
+
+### 머신 고유 설정 / 시크릿
+
+- 이 머신 전용 설정은 `~/.bashrc`·`~/.tmux.conf`의 "Machine-specific" 구역에 적고 **repo로 커밋하지 않는다**.
+- 셸 시크릿은 `~/.config/secrets.env`(chmod 600)에 두면 `.bashrc.common`이 자동 로드한다.
+- noti webhook은 `~/.config/noti/webhook`(chmod 600).
+
 ## Step
 
 ### Install fonts
