@@ -53,10 +53,15 @@ cd ~/.dotfiles && git pull
 ./install.sh               # 적용 (B 방식이면 git pull만으로 충분)
 ```
 
-`install.sh`는 진입점(`.bashrc`·`.tmux.conf`)의 `# Machine-specific settings below`
-마커 **아래(네 개인 설정·시크릿)는 그대로 보존**하고 위쪽 템플릿 + `~/.*.common`
-로드부만 갱신한다(변경 시 `<file>.bak.<ts>` 백업). 그 외 dotfile은 repo 버전으로
-덮으니 `--dry-run`으로 먼저 확인하는 걸 권장.
+`install.sh`는 머신 고유 파일을 덮어쓰지 않도록 보호한다.
+- `.bashrc`·`.tmux.conf` — `# Machine-specific settings below` 마커 **아래(네 개인
+  설정·시크릿)는 그대로 보존**하고 위쪽 템플릿 + `~/.*.common` 로드부만 갱신한다
+  (변경 시 `<file>.bak.<ts>` 백업).
+- `.wezterm.lua` — 파일 전체가 머신 전용 SSH 레지스트리라 **이미 있으면 안 덮고
+  그대로 둔다**(첫 설치 때만 스켈레톤 배치).
+
+그 외 dotfile(`.bashrc.common`·`.wezterm.common.lua`·`.fzf.bash`·`.gitconfig` 등)은
+repo가 소스라 repo 버전으로 덮으니 `--dry-run`으로 먼저 확인하는 걸 권장.
 
 ### 머신 고유 설정 / 시크릿
 

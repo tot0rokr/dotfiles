@@ -13,6 +13,11 @@ EXCLUDE=(.git .gitignore)
 ENTRYPOINTS=(.bashrc .tmux.conf)
 MARKER_RE='^# Machine-specific settings below'
 
+# Whole-file machine-specific entry points: the ENTIRE file is the user's
+# per-host config (no template/marker split — e.g. .wezterm.lua's SSH server
+# registry). Place it on first install, but never overwrite an existing one.
+KEEP_IF_EXISTS=(.wezterm.lua)
+
 DRY_RUN=0
 TS="$(date +%Y%m%d-%H%M%S)"
 
@@ -22,11 +27,14 @@ Usage: install.sh [--dry-run|-n] [--dest|-d DIR] [DIR] [--help|-h]
 
 Copy this repo's dotfiles into a home directory (default: $HOME).
 
-Entry-point files (.bashrc, .tmux.conf) are treated specially: their
-"# Machine-specific settings below" marker splits a shared template (above,
-refreshed from the repo) from your per-host settings (below, preserved as-is).
-A changed entry-point is backed up to <file>.bak.<ts> before its template part
-is refreshed. Every other dotfile is copied over (use --dry-run to preview).
+Machine-specific files are protected from being clobbered on update:
+  * .bashrc, .tmux.conf — their "# Machine-specific settings below" marker
+    splits a shared template (above, refreshed from the repo) from your per-host
+    settings (below, preserved as-is). A changed file is backed up to
+    <file>.bak.<ts> before the template part is refreshed.
+  * .wezterm.lua — the whole file is your per-host SSH registry, so it is placed
+    only on first install and never overwritten (KEEP).
+Every other dotfile is copied over (use --dry-run to preview).
 
   -d, --dest DIR  Install into DIR instead of $HOME. May also be given as a
                   bare positional argument. DIR is created if missing. Combine
@@ -81,6 +89,14 @@ is_excluded() {
 is_entrypoint() {
     local name="$1"
     for e in "${ENTRYPOINTS[@]}"; do
+        [[ "$name" == "$e" ]] && return 0
+    done
+    return 1
+}
+
+is_keep_if_exists() {
+    local name="$1"
+    for e in "${KEEP_IF_EXISTS[@]}"; do
         [[ "$name" == "$e" ]] && return 0
     done
     return 1
@@ -187,6 +203,19 @@ for path in "$SRC"/.*; do
             preview_entrypoint "$path" "$DEST/$name" "$name"
         else
             install_entrypoint "$path" "$DEST/$name" "$name"
+        fi
+    elif is_keep_if_exists "$name"; then
+        if [[ -e "$DEST/$name" ]]; then
+            if [[ "$DRY_RUN" -eq 1 ]]; then
+                printf '  KEEP      %s (machine-specific; would be left untouched)\n' "$name"
+            else
+                echo "  KEEP $name (machine-specific; left untouched)"
+            fi
+        elif [[ "$DRY_RUN" -eq 1 ]]; then
+            printf '  new       %s (first install)\n' "$name"
+        else
+            cp -f "$path" "$DEST/$name"
+            echo "  placed $name (first install)"
         fi
     elif [[ "$DRY_RUN" -eq 1 ]]; then
         preview_entry "$path" "$name"
