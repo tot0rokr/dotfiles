@@ -6,13 +6,27 @@ DEST="${HOME}"
 
 EXCLUDE=(.git .gitignore)
 
+# Entry-point files carry a per-host "Machine-specific settings below" section
+# the user edits and does NOT commit. On update we refresh only the part ABOVE
+# that marker (template + `source ~/.*.common`) and keep everything below it
+# (their settings + secrets) byte-for-byte. Every other dotfile is copied as-is.
+ENTRYPOINTS=(.bashrc .tmux.conf)
+MARKER_RE='^# Machine-specific settings below'
+
 DRY_RUN=0
+TS="$(date +%Y%m%d-%H%M%S)"
 
 usage() {
     cat <<'EOF'
 Usage: install.sh [--dry-run|-n] [--dest|-d DIR] [DIR] [--help|-h]
 
 Copy this repo's dotfiles into a home directory (default: $HOME).
+
+Entry-point files (.bashrc, .tmux.conf) are treated specially: their
+"# Machine-specific settings below" marker splits a shared template (above,
+refreshed from the repo) from your per-host settings (below, preserved as-is).
+A changed entry-point is backed up to <file>.bak.<ts> before its template part
+is refreshed. Every other dotfile is copied over (use --dry-run to preview).
 
   -d, --dest DIR  Install into DIR instead of $HOME. May also be given as a
                   bare positional argument. DIR is created if missing. Combine
@@ -64,6 +78,32 @@ is_excluded() {
     return 1
 }
 
+is_entrypoint() {
+    local name="$1"
+    for e in "${ENTRYPOINTS[@]}"; do
+        [[ "$name" == "$e" ]] && return 0
+    done
+    return 1
+}
+
+# Echo the content install would write for entry-point SRC given current DST.
+# Return codes: 0 = merge (repo part above the marker + DST part below it),
+# 2 = first install (echo whole SRC), 3 = DST exists but has no marker (caller
+# must leave it untouched — we won't clobber an unrecognized file).
+compute_entrypoint() {
+    local src="$1" dst="$2"
+    [[ -e "$dst" ]]                 || { cat "$src"; return 2; }
+    grep -qE "$MARKER_RE" "$src"    || { cat "$src"; return 2; }
+    grep -qE "$MARKER_RE" "$dst"    || return 3
+    sed "/$MARKER_RE/q"   "$src"    # repo lines through the marker (inclusive)
+    sed "1,/$MARKER_RE/d" "$dst"    # DST lines after its marker (user's section)
+}
+
+backup_file() {
+    cp -p "$1" "$1.bak.$TS"
+    echo "  backed up $1 -> $1.bak.$TS"
+}
+
 # Dry-run helper: compare one incoming repo file against its counterpart in DEST.
 # disp is the path relative to DEST (e.g. .config/nvim/init.vim).
 diff_file() {
@@ -95,6 +135,40 @@ preview_entry() {
     fi
 }
 
+# Real-run install for an entry-point file (marker-preserving).
+install_entrypoint() {
+    local src="$1" dst="$2" name="$3" content rc
+    content="$(compute_entrypoint "$src" "$dst")" && rc=0 || rc=$?
+    case $rc in
+        2) cp -f "$src" "$dst"; echo "  placed $name (first install)" ;;
+        3) echo "  SKIP $name — no machine-specific marker in $dst; left untouched (reconcile by hand)" ;;
+        0) if printf '%s\n' "$content" | cmp -s - "$dst"; then
+               echo "  $name already up to date"
+           else
+               backup_file "$dst"
+               printf '%s\n' "$content" > "$dst"
+               echo "  updated $name (template/common refreshed; your machine-specific section preserved)"
+           fi ;;
+    esac
+}
+
+# Dry-run preview for an entry-point file — mirrors install_entrypoint exactly.
+preview_entrypoint() {
+    local src="$1" dst="$2" name="$3" content rc
+    content="$(compute_entrypoint "$src" "$dst")" && rc=0 || rc=$?
+    case $rc in
+        2) printf '  new       %s (first install)\n' "$name" ;;
+        3) printf '  SKIP      %s (no marker in current file; would be left untouched)\n' "$name" ;;
+        0) if printf '%s\n' "$content" | cmp -s - "$dst"; then
+               : # identical: stay quiet
+           else
+               printf '  MERGE     %s (refresh above marker; your section below is preserved)\n' "$name"
+               diff -u --label "current  $dst" --label "after install $dst (merged)" \
+                   "$dst" <(printf '%s\n' "$content") | sed 's/^/    /' || true
+           fi ;;
+    esac
+}
+
 if [[ "$DRY_RUN" -eq 1 ]]; then
     echo "# dry run: previewing changes to $DEST"
 else
@@ -108,7 +182,13 @@ for path in "$SRC"/.*; do
     is_excluded "$name" && continue
 
     echo "==> $name"
-    if [[ "$DRY_RUN" -eq 1 ]]; then
+    if is_entrypoint "$name"; then
+        if [[ "$DRY_RUN" -eq 1 ]]; then
+            preview_entrypoint "$path" "$DEST/$name" "$name"
+        else
+            install_entrypoint "$path" "$DEST/$name" "$name"
+        fi
+    elif [[ "$DRY_RUN" -eq 1 ]]; then
         preview_entry "$path" "$name"
     else
         cp -rf "$path" "$DEST/"
