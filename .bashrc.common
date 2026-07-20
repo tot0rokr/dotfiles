@@ -706,7 +706,7 @@ User-only notes:
 - Tools that genuinely need root are NOT installed by bootstrap_user_tools. Run `bootstrap_system_tools` (sudo apt) for: git, curl, wget, gcc/make (build-essential), openssh-server, python3-venv, ruby-full, universal-ctags, cscope, unzip, wezterm.
 - Some cargo installs may fail if system build tools are missing; run bootstrap_system_tools first if so.
 - To keep NOTI_WEBHOOK private, put it in ~/.config/noti/webhook with chmod 600 instead of hard-coding it in .bashrc.
-- The agents harness (shared Claude/Codex/OpenCode/Gemini config) is NOT installed here; run `bootstrap_agents` for it (ideally before this, so bell/noti skills land in the symlinked ~/.claude).
+- The agents harness (shared Claude/Codex/OpenCode/Gemini config) is NOT installed here; run `bootstrap_agents` for it (ideally before this, so bell/noti skills land in the symlinked ~/.claude). `bootstrap_agents` also installs the Claude Code CLI into ~/.local/bin when `claude` is missing (user-local, no root).
 NOTES
 }
 
@@ -767,6 +767,25 @@ bootstrap_user_tools() {
     show_user_only_notes
 }
 
+# Install the Claude Code CLI into the user account -- no root. The official
+# installer downloads a native binary to ~/.claude/downloads, verifies its
+# checksum, then runs `claude install`, which drops a launcher at
+# ~/.local/bin/claude symlinked to ~/.local/share/claude/versions/<v> and wires
+# shell integration. Everything lands under $HOME (matches $LOCAL_BIN_PATH), so
+# no sudo. Skipped when `claude` is already on PATH so re-running is a no-op.
+install_claude_code_user() {
+    if command -v claude >/dev/null 2>&1; then
+        echo "claude already installed ($(command -v claude)); skipping."
+        return 0
+    fi
+    __require_cmd curl || return 1
+    echo "Installing Claude Code CLI (user-local, no root) ..."
+    curl -fsSL https://claude.ai/install.sh | bash || {
+        echo "Claude Code install failed (see output above)." >&2
+        return 1
+    }
+}
+
 # Install the agents harness (shared config/skills/memory/MCP for Claude Code,
 # Codex, OpenCode and Gemini). Its own command -- like bootstrap_user_tools,
 # not folded into it -- because it OWNS the home config dirs (~/.claude,
@@ -785,6 +804,9 @@ bootstrap_user_tools() {
 bootstrap_agents() {
     __require_cmd git || return 1
     __require_cmd python3 || return 1
+    # Make sure the Claude Code CLI itself exists before wiring its config;
+    # no-op if already installed.
+    install_claude_code_user || return 1
     __clone_or_pull https://github.com/tot0rokr/agents.git "$HOME/agents" "" || return 1
     echo "Installing agents harness symlinks (python3 scripts/install.py) ..."
     python3 "$HOME/agents/scripts/install.py" || {

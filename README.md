@@ -32,7 +32,7 @@ ssh host -t '~/.myhome/enter.sh'   # SSH 접속 즉시 내 환경
 ```bash
 bootstrap_system_tools   # sudo apt: build-essential/git/python3/ctags/wezterm... (root 필요, Ubuntu/Debian)
 bootstrap_user_tools     # ~/.local: nvim/fzf/rg/bat/eza/starship/lazygit/tmux/bell/noti... (root 불필요, cargo 빌드로 느림)
-bootstrap_agents         # ~/agents: Claude/Codex/OpenCode/Gemini 하네스 (~/.claude 등 심링크)
+bootstrap_agents         # ~/agents: Claude/Codex/OpenCode/Gemini 하네스 (~/.claude 등 심링크) + claude CLI 자동 설치(없을 때, ~/.local/bin)
 ```
 
 ### 검증 (Docker)
