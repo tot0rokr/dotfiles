@@ -533,4 +533,53 @@ wezterm.on('toggle-bg', function(window, pane)
   window:set_config_overrides(overrides)
 end)
 
+-- ================================================================
+-- 커맨드 팔레트에 "탭 빼기/넣기" 항목 추가 (Ctrl+Shift+Alt+P 로 팔레트 열고 검색)
+--   • 빼기 : 현재 pane 을 새 창으로 분리(detach)   → pane:move_to_new_window()
+--   • 넣기 : 현재 pane 을 다른 "열려있는" 창의 새 탭으로 이동
+-- 참고: WezTerm 은 '탭'이 아니라 'pane' 단위로 옮긴다. 한 탭이 여러 pane 으로
+--       split 돼 있으면 현재 활성 pane 하나만 이동한다(탭 통째 이동 API 는 없음).
+--       split 없는 일반 탭이면 곧 '탭 이동'과 동일.
+-- '넣기'는 기존 창으로 pane 을 넣는 Lua API 가 없어 `wezterm cli` 를 호출한다.
+--       (wezterm.exe 가 PATH 에 있어야 함 — 표준 설치면 자동 등록됨)
+-- 팔레트가 열릴 때마다 이 핸들러가 실행되므로, '넣기' 대상 창 목록은 그 순간의
+-- 열린 창들로 매번 새로 만들어진다.
+-- ================================================================
+wezterm.on('augment-command-palette', function(window, pane)
+  local commands = {
+    {
+      brief = '탭: 새 창으로 빼기 (detach)',
+      icon = 'md_open_in_new',
+      action = wezterm.action_callback(function(win, p)
+        p:move_to_new_window()
+      end),
+    },
+  }
+
+  -- '넣기': 현재 창을 제외한 다른 모든 창을 항목으로 동적 생성.
+  local cur_id  = window:mux_window():window_id()
+  local pane_id = pane:pane_id()
+  for _, w in ipairs(wezterm.mux.all_windows()) do
+    local wid = w:window_id()
+    if wid ~= cur_id then
+      -- 실행 중인 프로그램 제목이 가장 알아보기 쉬움. 없으면 창 제목으로 폴백.
+      local ap    = w:active_pane()
+      local title = (ap and ap:get_title()) or w:get_title() or ''
+      commands[#commands + 1] = {
+        brief = string.format('탭: 창 #%d 으로 넣기  (%s)', wid, title),
+        icon = 'md_arrow_right_bold',
+        action = wezterm.action_callback(function(win, p)
+          wezterm.background_child_process({
+            'wezterm', 'cli', 'move-pane-to-new-tab',
+            '--pane-id',  tostring(pane_id),
+            '--window-id', tostring(wid),
+          })
+        end),
+      }
+    end
+  end
+
+  return commands
+end)
+
 return M
