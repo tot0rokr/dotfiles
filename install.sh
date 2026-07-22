@@ -23,7 +23,7 @@ TS="$(date +%Y%m%d-%H%M%S)"
 
 usage() {
     cat <<'EOF'
-Usage: install.sh [--dry-run|-n] [--dest|-d DIR] [DIR] [--help|-h]
+Usage: install.sh [--dry-run|-n] [--dest|-d DIR] [--exclude|-x NAME]... [DIR] [--help|-h]
 
 Copy this repo's dotfiles into a home directory (default: $HOME).
 
@@ -44,6 +44,13 @@ Every other dotfile is copied over (use --dry-run to preview).
                   destination's current content that would be overwritten
                   (lost), '+' lines are the incoming repo version. New files
                   are listed too.
+  -x, --exclude NAME
+                  Skip the top-level entry NAME for this run (repeatable), on
+                  top of the always-excluded .git/.gitignore. NAME matches a
+                  top-level file or directory by exact name, e.g.
+                  `install.sh -x .vimrc -x .gitconfig`. For a one-off install
+                  that leaves those two untouched. To protect a file on EVERY
+                  run instead, add it to KEEP_IF_EXISTS in this script.
   -h, --help      Show this help and exit.
 EOF
 }
@@ -53,6 +60,8 @@ while [[ $# -gt 0 ]]; do
         -n|--dry-run) DRY_RUN=1 ;;
         -d|--dest)    shift; DEST="${1:?--dest requires a directory}" ;;
         --dest=*)     DEST="${1#*=}" ;;
+        -x|--exclude) shift; EXCLUDE+=("${1:?--exclude requires a name}") ;;
+        --exclude=*)  EXCLUDE+=("${1#*=}") ;;
         -h|--help)    usage; exit 0 ;;
         -*)           echo "unknown option: $1" >&2; usage >&2; exit 2 ;;
         *)            DEST="$1" ;;
@@ -189,6 +198,11 @@ if [[ "$DRY_RUN" -eq 1 ]]; then
     echo "# dry run: previewing changes to $DEST"
 else
     echo "# installing into $DEST"
+fi
+# EXCLUDE's first two entries are the always-on .git/.gitignore; anything past
+# them came from --exclude, so surface it to confirm what this run skips.
+if [[ ${#EXCLUDE[@]} -gt 2 ]]; then
+    echo "# excluding (this run): ${EXCLUDE[*]:2}"
 fi
 
 shopt -s dotglob nullglob
