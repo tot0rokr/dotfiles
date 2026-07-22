@@ -57,3 +57,6 @@ alias cd..='cd ../..'
 alias cd...='cd ../../..'
 alias cd....='cd ../../../..'
 alias cd.....='cd ../../../../..'
+
+alias tmux-shared-ro='tmux -S /var/tmux/shared attach -t work -r'
+alias tmux-shared='tmux -S /var/tmux/shared attach -t work'
