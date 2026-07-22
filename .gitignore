@@ -38,5 +38,9 @@
 .git-credentials
 .bash_history
 .python_history
+.cache/
+.local/opt/
+.local/src/
+.local/state/
 .tmux/plugins
 .tmux/.resurrect
