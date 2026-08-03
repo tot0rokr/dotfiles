@@ -696,6 +696,64 @@ install_noti_bash_user() {
     __link_skill "$repo/skills/noti" "$HOME/.claude/skills/noti"
 }
 
+# claude-account-switcher runs Claude Code across several accounts and rotates
+# to the next one when the active account nears its usage limit. Unlike
+# bell/noti we DO run its installer: it owns pieces we don't track here (the
+# ~/.claude-accounts store and the statusLine sensor that does the switching,
+# chained onto whatever statusLine is already configured).
+install_claude_switcher_user() {
+    __require_cmd git || return 1
+    local repo="$LOCAL_OPT_PATH/claude-account-switcher"
+    __clone_or_pull https://github.com/tot0rokr/claude-account-switcher.git "$repo" || return 1
+    # Adopt the logged-in account as the first slot, but only on a first install:
+    # with slots already stored this would duplicate whichever one is active.
+    local seed=""
+    if [ -f "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/.credentials.json" ] \
+       && ! grep -qE '^[^[:space:]#]' "${CLAUDE_AUTO_HOME:-$HOME/.claude-accounts}/config/accounts.list" 2>/dev/null; then
+        seed="--seed-current"
+    fi
+    # shellcheck disable=SC2086 -- $seed is either empty or a single flag
+    bash "$repo/install.sh" $seed || return 1
+    __route_claude_through_claude_auto
+}
+
+# Make `claude` launch through claude-auto so accounts rotate. A bare alias
+# would shadow a wrapper function (e.g. the claude-bsp plugin launcher), so when
+# one exists we rewrite only its `command claude …` line — every flag and any
+# surrounding subshell it sets up are preserved.
+__route_claude_through_claude_auto() {
+    local rc="$HOME/.bashrc"
+    [ -f "$rc" ] || return 0
+    grep -q 'claude-auto' "$rc" && return 0          # already routed
+    if grep -qE '^[[:space:]]*(function[[:space:]]+)?claude[[:space:]]*\(\)' "$rc"; then
+        command -v python3 >/dev/null 2>&1 || {
+            echo "Wrapper found in $rc but python3 is missing; point its 'command claude' line at claude-auto yourself."
+            return 0
+        }
+        cp -p "$rc" "$rc.pre-claude-auto.$(date +%Y%m%d-%H%M%S).bak"
+        python3 - "$rc" <<'PY'
+import re, sys
+p = sys.argv[1]; s = open(p).read()
+def repl(m):
+    ind, args = m.group(1), m.group(2)
+    return (f'{ind}if command -v claude-auto >/dev/null 2>&1; then\n'
+            f'{ind}    claude-auto{args}\n'
+            f'{ind}else\n'
+            f'{ind}    command claude{args}\n'
+            f'{ind}fi')
+new, n = re.subn(r'^(\s*)command claude(\s.*)$', repl, s, count=1, flags=re.M)
+if n:
+    open(p, 'w').write(new); print(f"Routed the claude wrapper in {p} through claude-auto")
+else:
+    print(f"Wrapper in {p} has no 'command claude' line; route it yourself.")
+PY
+        bash -n "$rc" || echo "$rc failed its syntax check — restore the .bak beside it." >&2
+    else
+        printf '\n# claude-account-switcher: rotate accounts on usage limits\ncommand -v claude-auto >/dev/null 2>&1 && alias claude="claude-auto"\n' >> "$rc"
+        echo "Added 'alias claude=claude-auto' to $rc"
+    fi
+}
+
 show_user_only_notes() {
     cat <<'NOTES'
 
@@ -703,6 +761,7 @@ User-only notes:
 - bootstrap_user_tools never runs sudo/apt/snap/dpkg and installs everything under ~/.local.
 - It now also installs clangd, btop, nnn, and tmux from prebuilt/static downloads (no root needed; x86_64 mainly, see per-tool guards).
 - It clones bell-bash and noti-bash into ~/.local/opt (the `noti` CLI and `bell`/`bell-send` come from these clones, not vendored copies), links their Claude Code skills, and merges bell's Stop/Notification toast hooks into ~/.claude/settings.json (idempotent jq merge; existing hooks preserved). The shell/tmux hooks are wired by the tracked .bashrc.common / .tmux.common.conf, not the repos' own installers. Update the tools with `git -C ~/.local/opt/<repo> pull`.
+- It installs claude-account-switcher into ~/.local/opt and runs its installer (this one owns state we don't track: the ~/.claude-accounts store and the statusLine sensor that switches accounts). Your `claude` wrapper is rewritten to launch through `claude-auto` (a .bak is kept); add accounts with `claude-auto login <name>` and check them with `claude-auto status`.
 - Tools that genuinely need root are NOT installed by bootstrap_user_tools. Run `bootstrap_system_tools` (sudo apt) for: git, curl, wget, gcc/make (build-essential), openssh-server, python3-venv, ruby-full, universal-ctags, cscope, unzip, wezterm.
 - Some cargo installs may fail if system build tools are missing; run bootstrap_system_tools first if so.
 - To keep NOTI_WEBHOOK private, put it in ~/.config/noti/webhook with chmod 600 instead of hard-coding it in .bashrc.
@@ -763,6 +822,7 @@ bootstrap_user_tools() {
 
     install_bell_bash_user
     install_noti_bash_user
+    install_claude_switcher_user
 
     show_user_only_notes
 }
