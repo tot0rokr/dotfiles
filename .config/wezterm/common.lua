@@ -190,10 +190,49 @@ local function append_server_entries(menu, platform, servers)
   end
 end
 
+-- Local (non-SSH) command registry — see M.apply's `commands` argument.
+-- Kept at module scope so the command-palette handler can reuse it.
+local local_commands = {}
+
+-- Build a SpawnCommand for one local command entry.
+--   name  : launcher label
+--   cmd   : shell command line (PowerShell on Windows, sh on Unix)
+--   cwd   : (선택) 실행 디렉터리. 없으면 $HOME
+--   title : (선택) 탭 제목. 없으면 name
+-- The shell stays open after `cmd` exits so errors/logs remain readable.
+local function build_command_spawn(c)
+  local title = c.title or c.name
+  if wezterm.target_triple:find("windows") then
+    return {
+      label = c.name,
+      args  = { "powershell.exe", "-NoLogo", "-NoProfile", "-NoExit", "-Command",
+                '[Console]::Write(([char]27) + "]2;' .. title .. '" + ([char]7)); ' .. c.cmd },
+      cwd   = c.cwd or home,
+    }
+  end
+  return {
+    label = c.name,
+    args  = { "sh", "-c",
+              "printf '\\033]2;" .. title .. "\\007'; " .. c.cmd ..
+              "; exec ${SHELL:-sh} -i" },
+    cwd   = c.cwd or home,
+  }
+end
+
+-- Append per-command entries to `menu` (launcher: Ctrl+Shift+Alt+L).
+local function append_command_entries(menu, commands)
+  for _, c in ipairs(commands) do
+    table.insert(menu, build_command_spawn(c))
+  end
+end
+
 -- Apply all shared configuration to `config`, building the launch menu from the
 -- caller-supplied `servers` registry (may be empty).
-function M.apply(config, servers)
+-- `commands` is an optional registry of local (non-SSH) commands; each entry
+-- gets a launcher item and a command-palette item (Ctrl+Shift+Alt+P).
+function M.apply(config, servers, commands)
   servers = servers or {}
+  local_commands = commands or {}
 
   -- default_prog + launch menu (platform-specific), then per-server entries.
   if wezterm.target_triple:find("windows") then
@@ -223,6 +262,10 @@ function M.apply(config, servers)
       { label = "bash (login)", args = { "/bin/bash", "-l" } },
     }
     append_server_entries(config.launch_menu, "linux", servers)
+  end
+
+  if config.launch_menu then
+    append_command_entries(config.launch_menu, local_commands)
   end
 
   config.canonicalize_pasted_newlines = "LineFeed"
@@ -578,6 +621,16 @@ wezterm.on('augment-command-palette', function(window, pane)
         end),
       }
     end
+  end
+
+  -- 로컬 명령 레지스트리(~/.wezterm.lua의 `commands`)를 팔레트에도 노출.
+  for _, c in ipairs(local_commands) do
+    local spawn = build_command_spawn(c)
+    commands[#commands + 1] = {
+      brief = '실행: ' .. c.name,
+      icon = 'md_play_box_outline',
+      action = wezterm.action.SpawnCommandInNewTab(spawn),
+    }
   end
 
   return commands

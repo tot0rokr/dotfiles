@@ -639,8 +639,8 @@ set -g allow-passthrough on # kitty
 
 WezTerm 설정은 두 파일로 나뉜다. 두 파일은 같은 디렉터리에 있어야 한다(`wezterm.config_dir` 기준으로 읽는다).
 
-- `wezterm.lua`: 이 머신 전용 진입점. SSH 서버 레지스트리(호스트, IP)를 여기에만 적는다. 내부 IP가 들어가므로 repo에 커밋하지 않는다.
-- `common.lua`: 공통(dotfiles 추적). 키맵, 외관, 테마 토글, SSH 런처 빌더가 들어 있다. 고치면 WezTerm이 자동으로 다시 읽는다.
+- `wezterm.lua`: 이 머신 전용 진입점. SSH 서버 레지스트리(호스트, IP)와 로컬 명령 레지스트리를 여기에만 적는다. 내부 IP가 들어가므로 repo에 커밋하지 않는다.
+- `common.lua`: 공통(dotfiles 추적). 키맵, 외관, 테마 토글, SSH와 로컬 명령 런처 빌더가 들어 있다. 고치면 WezTerm이 자동으로 다시 읽는다.
 
 배치:
 
@@ -665,6 +665,26 @@ local servers = {
 | `cwd`     | (선택) 런처 프로세스의 작업 디렉터리                                              |
 | `enter`   | (선택) 접속 시 실행할 원격 명령 (위 예 참고)                                      |
 | `autossh` | (선택) `true`면 끊겨도 자동 재접속 (PS 재시도 루프와 ServerAlive keepalive)       |
+
+#### 로컬 명령 레지스트리 (SSH 아님)
+
+`wezterm.lua`의 `commands` 목록에는 SSH가 아닌, 로컬에서 실행할 명령을 등록한다. 항목마다 런처(`Ctrl+Shift+Alt+L`)와 커맨드 팔레트(`Ctrl+Shift+Alt+P`, `실행: <name>`)에 메뉴가 하나씩 생긴다.
+
+```lua
+local commands = {
+  { name = "myapp (npm start)", cmd = "npm start",
+    cwd = [[C:\Users\you\myapp]], title = "myapp" },
+}
+```
+
+| 필드    | 설명                                                |
+| ------- | --------------------------------------------------- |
+| `name`  | 런처와 팔레트에 표시될 라벨                         |
+| `cmd`   | 실행할 명령줄. Windows는 PowerShell, Unix는 sh 문법 |
+| `cwd`   | (선택) 실행 디렉터리. 없으면 `$HOME`                |
+| `title` | (선택) 탭 제목. 없으면 `name`                       |
+
+명령이 끝나도 셸은 남는다(Windows `powershell -NoExit`, Unix `exec $SHELL -i`). 서버가 죽거나 빌드가 실패해도 로그를 그대로 읽을 수 있다.
 
 #### Windows는 SSH 키 인증만 쓰는 이유
 

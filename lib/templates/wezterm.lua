@@ -1,6 +1,7 @@
 -- ~/.config/wezterm/wezterm.lua - WezTerm entry point (account-local).
 -- Portable/shared config lives in common.lua next to this file (tracked in dotfiles).
--- This file holds only THIS machine's SSH server registry — fill it in per host.
+-- This file holds only THIS machine's registries (SSH servers + local commands)
+-- — fill them in per host.
 -- Do NOT commit real hosts/IPs back to the dotfiles repo; keep them machine-local
 -- (same idea as the local zones of ~/.bashrc).
 local wezterm = require 'wezterm'
@@ -60,10 +61,28 @@ local servers = {
   -- { name = "Box",     host = "10.0.0.5", user = "me", enter = "~/.dotfiles/enter.sh ~; tmux attach || tmux new-session", autossh = true },
 }
 
+-- ================================================================
+-- 로컬 명령 레지스트리 (이 머신 전용 — SSH가 아닌, 그냥 실행할 명령들)
+-- 여기에 추가한 항목은 런처(Ctrl+Shift+Alt+L)와 커맨드 팔레트
+-- (Ctrl+Shift+Alt+P, "실행: <name>")에 함께 등록됩니다.
+--   name  : 런처/팔레트에 표시될 라벨
+--   cmd   : 실행할 명령줄. Windows는 PowerShell, Unix는 sh 문법
+--   cwd   : (선택) 실행 디렉터리. 없으면 $HOME
+--   title : (선택) 탭 제목. 없으면 name
+-- 명령이 끝나도 셸은 남아 있어(Windows `-NoExit` / Unix `exec $SHELL -i`)
+-- 로그와 에러를 그대로 읽을 수 있습니다.
+-- ================================================================
+local commands = {
+  -- Examples:
+  -- { name = "myapp (npm start)", cmd = "npm start", cwd = [[C:\Users\you\myapp]], title = "myapp" },
+  -- { name = "dotfiles 업데이트",  cmd = "dotfiles update" },
+  -- { name = "로그 보기",          cmd = "tail -f /var/log/syslog", title = "syslog" },
+}
+
 -- 공용 설정 적용 (dotfiles-tracked). common 을 수정하면 자동 리로드되도록 감시목록에 추가.
 -- >>> dotfiles >>>
 wezterm.add_to_config_reload_watch_list(wezterm.config_dir .. "/common.lua")
-dofile(wezterm.config_dir .. "/common.lua").apply(config, servers)
+dofile(wezterm.config_dir .. "/common.lua").apply(config, servers, commands)
 -- <<< dotfiles <<<
 -- [local] overrides of common
 
