@@ -611,8 +611,11 @@ install_nnn_user() {
     echo "Installed: $LOCAL_BIN_PATH/nnn"
 }
 
+# Installs even when a system tmux exists: distro builds lag (Ubuntu 24.04's
+# 3.4 misparses nvim's DECRQSS query as sixel), and $LOCAL_BIN_PATH is first on
+# PATH. Skips when the user-local copy exists; pass --force to upgrade.
 install_tmux_user() {
-    if [ -x "$LOCAL_BIN_PATH/tmux" ] || command -v tmux >/dev/null 2>&1; then
+    if [ "${1:-}" != "--force" ] && [ -x "$LOCAL_BIN_PATH/tmux" ]; then
         return 0
     fi
 
@@ -631,18 +634,19 @@ install_tmux_user() {
     gz="$tmp/tmux.gz"
 
     echo "Installing static tmux ${tag} (community build) under $LOCAL_BIN_PATH ..."
-    curl -fL --retry 3 -o "$gz" \
-        "https://github.com/mjakob-gh/build-static-tmux/releases/download/${tag}/tmux.linux-${march}.stripped.gz" || {
+    if ! curl -fL --retry 3 -o "$gz" \
+            "https://github.com/mjakob-gh/build-static-tmux/releases/download/${tag}/tmux.linux-${march}.stripped.gz" \
+        || ! gzip -dc "$gz" > "$tmp/tmux" \
+        || ! chmod 755 "$tmp/tmux" \
+        || ! "$tmp/tmux" -V >/dev/null 2>&1; then
+        echo "tmux download/verify failed; existing install left untouched." >&2
         rm -rf "$tmp"
         return 1
-    }
-    gzip -dc "$gz" > "$tmp/tmux" || {
-        rm -rf "$tmp"
-        return 1
-    }
+    fi
     install -m 755 "$tmp/tmux" "$LOCAL_BIN_PATH/tmux"
     rm -rf "$tmp"
-    echo "Installed: $LOCAL_BIN_PATH/tmux"
+    echo "Installed: $LOCAL_BIN_PATH/tmux ($("$LOCAL_BIN_PATH/tmux" -V))"
+    echo "Running tmux servers keep the old binary; restart them (tmux kill-server) to switch."
 }
 
 # Shared clone-or-update helper. bell-bash / noti-bash are cloned into
