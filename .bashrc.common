@@ -613,23 +613,29 @@ install_nnn_user() {
 
 # Installs even when a system tmux exists: distro builds lag (Ubuntu 24.04's
 # 3.4 misparses nvim's DECRQSS query as sixel), and $LOCAL_BIN_PATH is first on
-# PATH. Skips when the user-local copy exists; pass --force to upgrade.
+# PATH. Pinned to a known-good release; bumping the tag upgrades on the next
+# run, and --force reinstalls even when the pinned version is present. v3.7b
+# ships no arm64 build, so arm64 pins the newest release that has one.
+TMUX_STATIC_TAG="${TMUX_STATIC_TAG:-v3.7b}"
+TMUX_STATIC_TAG_ARM64="${TMUX_STATIC_TAG_ARM64:-v3.6b}"
+
 install_tmux_user() {
-    if [ "${1:-}" != "--force" ] && [ -x "$LOCAL_BIN_PATH/tmux" ]; then
+    # Static, dependency-free tmux from the community build-static-tmux project.
+    local march tag tmp gz
+    case "$(uname -m)" in
+        x86_64|amd64) march="amd64"; tag="$TMUX_STATIC_TAG" ;;
+        aarch64|arm64) march="arm64"; tag="$TMUX_STATIC_TAG_ARM64" ;;
+        *) echo "Unsupported CPU architecture for static tmux: $(uname -m)" >&2; return 1 ;;
+    esac
+
+    if [ "${1:-}" != "--force" ] && [ -x "$LOCAL_BIN_PATH/tmux" ] \
+       && [ "$("$LOCAL_BIN_PATH/tmux" -V 2>/dev/null)" = "tmux ${tag#v}" ]; then
         return 0
     fi
 
     __require_cmd curl || return 1
     __require_cmd gzip || return 1
 
-    # Static, dependency-free tmux from the community build-static-tmux project.
-    local march tag tmp gz
-    case "$(uname -m)" in
-        x86_64|amd64) march="amd64" ;;
-        aarch64|arm64) march="arm64" ;;
-        *) echo "Unsupported CPU architecture for static tmux: $(uname -m)" >&2; return 1 ;;
-    esac
-    tag="$(curl -fsSL https://api.github.com/repos/mjakob-gh/build-static-tmux/releases/latest | grep -Po '"tag_name": *"\K[^"]+')" || return 1
     tmp="$(mktemp -d)" || return 1
     gz="$tmp/tmux.gz"
 
