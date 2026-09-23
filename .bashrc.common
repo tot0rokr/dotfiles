@@ -183,31 +183,47 @@ __gnu_arch() {
     esac
 }
 
+# Skips when the user-local nvim exists (re-running bootstrap_user_tools must
+# not silently upgrade it); pass --force to upgrade to the latest release. The
+# archive is unpacked next to the target first and swapped in only after it
+# extracted cleanly, so a failed download/extract never leaves you without nvim.
 install_neovim_user() {
+    local arch dest tmp archive
+    arch="$(__host_arch)" || return 1
+    dest="$LOCAL_OPT_PATH/nvim-linux-${arch}"
+
+    if [ "${1:-}" != "--force" ] && [ -x "$dest/bin/nvim" ]; then
+        return 0
+    fi
+
     __require_cmd curl || return 1
     __require_cmd tar || return 1
 
-    local arch tmp archive
-    arch="$(__host_arch)" || return 1
-    tmp="$(mktemp -d)" || return 1
+    mkdir -p "$LOCAL_OPT_PATH" "$LOCAL_BIN_PATH"
+    tmp="$(mktemp -d "$LOCAL_OPT_PATH/.nvim-install.XXXXXX")" || return 1
     archive="$tmp/nvim-linux-${arch}.tar.gz"
 
     echo "Installing Neovim under $LOCAL_OPT_PATH ..."
-    curl -fL --retry 3 -o "$archive" \
-        "https://github.com/neovim/neovim/releases/latest/download/nvim-linux-${arch}.tar.gz" || {
+    if ! curl -fL --retry 3 -o "$archive" \
+            "https://github.com/neovim/neovim/releases/latest/download/nvim-linux-${arch}.tar.gz" \
+        || ! tar -C "$tmp" -xzf "$archive" \
+        || [ ! -x "$tmp/nvim-linux-${arch}/bin/nvim" ]; then
+        echo "Neovim download/extract failed; existing install left untouched." >&2
+        rm -rf "$tmp"
+        return 1
+    fi
+
+    rm -rf "$dest.old"
+    [ -e "$dest" ] && mv "$dest" "$dest.old"
+    mv "$tmp/nvim-linux-${arch}" "$dest" || {
+        [ -e "$dest.old" ] && mv "$dest.old" "$dest"
         rm -rf "$tmp"
         return 1
     }
+    rm -rf "$dest.old" "$tmp"
 
-    rm -rf "$LOCAL_OPT_PATH/nvim-linux-${arch}"
-    tar -C "$LOCAL_OPT_PATH" -xzf "$archive" || {
-        rm -rf "$tmp"
-        return 1
-    }
-
-    ln -sfn "$LOCAL_OPT_PATH/nvim-linux-${arch}/bin/nvim" "$LOCAL_BIN_PATH/nvim"
-    rm -rf "$tmp"
-    echo "Installed: $LOCAL_BIN_PATH/nvim"
+    ln -sfn "$dest/bin/nvim" "$LOCAL_BIN_PATH/nvim"
+    echo "Installed: $LOCAL_BIN_PATH/nvim ($("$LOCAL_BIN_PATH/nvim" --version | head -1))"
 }
 
 install_vim_plug_user() {
