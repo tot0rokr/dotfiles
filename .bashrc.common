@@ -121,11 +121,13 @@ if [ -f "$LOCAL_OPT_PATH/bell-bash/bell" ]; then
     . "$LOCAL_OPT_PATH/bell-bash/bell"
     # Skip fzf's interactive widgets from bell auto-triggers: Ctrl-R history
     # (__fzf_history__), Ctrl-T file (fzf-file-widget), Alt-C cd (__fzf_cd__).
-    # TAB completion needs no entry — bell bails when COMP_LINE is set. Append
+    # Plain TAB completion needs no entry (bell bails when COMP_LINE is set), but
+    # fzf-tab-completion's `bind -x` widget (fzf_bash_completion) does: on an
+    # empty line READLINE_LINE is empty too, so bell would not skip it. Append
     # via bell_skip (not a pre-defined array — pre-defining would replace bell's
     # sensible defaults wholesale).
     if declare -F bell_skip >/dev/null 2>&1; then
-        bell_skip add '__fzf_history__' 'fzf-file-widget' '__fzf_cd__' >/dev/null
+        bell_skip add '__fzf_history__' 'fzf-file-widget' '__fzf_cd__' 'fzf_bash_completion' >/dev/null
     fi
 fi
 
@@ -459,6 +461,18 @@ install_fzf_user() {
         git clone --depth 1 https://github.com/junegunn/fzf.git "$HOME/.fzf" || return 1
         "$HOME/.fzf/install" --bin --key-bindings --completion --no-update-rc || return 1
     fi
+}
+
+# Separate from install_fzf_user: that one returns early when fzf is already on
+# PATH, which would skip this clone on hosts with a system fzf.
+install_fzf_tab_completion_user() {
+    [ -d "$HOME/.fzf-tab-completion" ] && return 0
+    if ! command -v git >/dev/null 2>&1; then
+        echo "git is unavailable. Skipping fzf-tab-completion."
+        return 0
+    fi
+    echo "Installing fzf-tab-completion under ~/.fzf-tab-completion ..."
+    git clone --depth 1 https://github.com/lincheney/fzf-tab-completion "$HOME/.fzf-tab-completion"
 }
 
 # pynvim goes into a dedicated venv: `pip install --user` is refused on
@@ -836,6 +850,7 @@ bootstrap_user_tools() {
     install_gdu_user
     install_up_user
     install_fzf_user
+    install_fzf_tab_completion_user
     install_pynvim_user
 
     install_clangd_user
@@ -958,6 +973,14 @@ if ! shopt -oq posix; then
 fi
 
 [ -f "$HOME/.fzf.bash" ] && . "$HOME/.fzf.bash"
+
+# fzf-tab-completion: TAB opens completion candidates in fzf. Must load after
+# bash-completion; overrides the plain `TAB:menu-complete` bind above, which
+# stays as the fallback when fzf or the clone is missing.
+if [ -f "$HOME/.fzf-tab-completion/bash/fzf-bash-completion.sh" ] && command -v fzf >/dev/null 2>&1; then
+    . "$HOME/.fzf-tab-completion/bash/fzf-bash-completion.sh"
+    bind -x '"\t": fzf_bash_completion'
+fi
 
 PROMPT_COMMAND="${PROMPT_COMMAND:+$PROMPT_COMMAND; }history -a; history -n"
 
