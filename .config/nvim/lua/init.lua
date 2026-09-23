@@ -173,18 +173,21 @@ pcall(function()
         },
     })
 
-    local heading_bgs = {
-        RenderMarkdownH1Bg = "#3d4a5e", -- blue
-        RenderMarkdownH2Bg = "#3a5550", -- teal
-        RenderMarkdownH3Bg = "#3f5238", -- green
-        RenderMarkdownH4Bg = "#574e35", -- yellow
-        RenderMarkdownH5Bg = "#5a4338", -- orange
-        RenderMarkdownH6Bg = "#503a48", -- mauve
+    -- one distinct hue per heading level: fg colors the heading text and
+    -- icon (RenderMarkdownH* links to @markup.heading.*), bg the heading band
+    local heading_colors = {
+        { fg = "#79c0ff", bg = "#1f3a5f" }, -- blue
+        { fg = "#56d4dd", bg = "#17474c" }, -- cyan
+        { fg = "#7ee787", bg = "#1d4428" }, -- green
+        { fg = "#e3b341", bg = "#4a3910" }, -- yellow
+        { fg = "#ffa657", bg = "#553117" }, -- orange
+        { fg = "#d2a8ff", bg = "#40265a" }, -- purple
     }
 
-    local function muted_md_highlights()
-        for grp, bg in pairs(heading_bgs) do
-            vim.api.nvim_set_hl(0, grp, { bg = bg })
+    local function md_highlights()
+        for level, c in ipairs(heading_colors) do
+            vim.api.nvim_set_hl(0, "@markup.heading." .. level .. ".markdown", { fg = c.fg, bold = true })
+            vim.api.nvim_set_hl(0, "RenderMarkdownH" .. level .. "Bg", { bg = c.bg })
         end
         vim.api.nvim_set_hl(0, "RenderMarkdownCode", { bg = "#2a2a2a" })
         vim.api.nvim_set_hl(0, "RenderMarkdownCodeInline", { bg = "#2a2a2a" })
@@ -192,9 +195,9 @@ pcall(function()
 
     -- defer so we apply after render-markdown's own ColorScheme handler
     vim.api.nvim_create_autocmd("ColorScheme", {
-        callback = function() vim.schedule(muted_md_highlights) end,
+        callback = function() vim.schedule(md_highlights) end,
     })
-    vim.schedule(muted_md_highlights)
+    vim.schedule(md_highlights)
 end)
 
 require("toggleterm").setup()
