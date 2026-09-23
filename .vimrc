@@ -244,6 +244,8 @@ autocmd FileType cpp setlocal ts=8 sts=8 sw=8 noexpandtab cc=+0
 autocmd FileType vim setlocal ts=4 sts=4 sw=4 expandtab cc=+0
 autocmd FileType python setlocal ts=4 sts=4 sw=4 expandtab tw=88 cc=+0
 autocmd FileType markdown setlocal ts=4 sts=4 sw=4 expandtab tw=100 cc=+0
+" render-markdown pipe_table.wrap needs 'wrap' on to wrap wide table cells
+autocmd FileType markdown setlocal wrap
 autocmd FileType html setlocal ts=4 sts=4 sw=4 expandtab tw=100 cc=+0
 
 " ------------------------------- Theme -----------------------------------

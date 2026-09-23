@@ -158,6 +158,8 @@ end
 -- in-buffer markdown rendering
 pcall(function()
     require("render-markdown").setup({
+        -- keep the cursor line rendered too (concealcursor is adjusted automatically)
+        anti_conceal = { enabled = false },
         heading = {
             width = "block",
             left_pad = 2,
