@@ -445,18 +445,25 @@ install_fzf_user() {
     fi
 }
 
+# pynvim goes into a dedicated venv: `pip install --user` is refused on
+# PEP 668 "externally managed" system Pythons (Ubuntu 24.04+). init.vim points
+# g:python3_host_prog at this venv's python.
 install_pynvim_user() {
+    local venv="$HOME/.local/share/nvim/venv"
     if ! command -v python3 >/dev/null 2>&1; then
         echo "python3 is unavailable. Skipping pynvim."
         return 0
     fi
 
-    if python3 -m pip --version >/dev/null 2>&1; then
-        echo "Installing pynvim with pip --user ..."
-        python3 -m pip install --user --upgrade pynvim
-    else
-        echo "python3-pip is unavailable. Skipping pynvim."
+    if [ ! -x "$venv/bin/python" ]; then
+        echo "Creating nvim python venv at $venv ..."
+        python3 -m venv "$venv" || {
+            echo "python3 -m venv failed (install python3-venv). Skipping pynvim." >&2
+            return 0
+        }
     fi
+    echo "Installing pynvim into $venv ..."
+    "$venv/bin/python" -m pip install --upgrade pynvim
 }
 
 install_clangd_user() {
