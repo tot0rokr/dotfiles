@@ -114,7 +114,8 @@ endif
 " Highlight
 if has('nvim')
     Plug 'HiPhish/rainbow-delimiters.nvim'
-    Plug 'nvim-treesitter/nvim-treesitter', {'branch': 'main'}
+    " parsers must match the plugin's queries, so rebuild them on every update
+    Plug 'nvim-treesitter/nvim-treesitter', {'branch': 'main', 'do': ':TSUpdate'}
 endif
 
 " docstring
