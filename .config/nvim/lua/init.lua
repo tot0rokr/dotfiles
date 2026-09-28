@@ -88,6 +88,14 @@ local ts_parsers = {
     "dockerfile", "diff", "git_config", "git_rebase", "gitcommit", "gitignore",
     "html", "htmldjango", "http", "kconfig", "nasm", "nginx", "ninja",
     "passwd", "pem", "rst", "tmux", "xml", "yaml", "json",
+    -- popular languages, mainly for fenced code blocks in markdown
+    "rust", "go", "gomod", "gosum", "gowork", "javascript", "typescript", "tsx",
+    "jsdoc", "java", "kotlin", "swift", "ruby", "php", "scala", "haskell",
+    "elixir", "erlang", "zig", "c_sharp", "objc", "cuda", "glsl", "sql",
+    "toml", "ini", "css", "scss", "graphql", "vue", "svelte", "hcl",
+    "terraform", "proto", "perl", "r", "julia", "nix", "powershell", "groovy",
+    "make", "just", "awk", "jq", "regex", "printf", "comment", "luadoc",
+    "luap", "latex",
 }
 
 -- nvim-treesitter (main branch) shells out to the `tree-sitter` CLI to build
