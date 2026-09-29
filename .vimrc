@@ -255,7 +255,8 @@ autocmd FileType vim setlocal ts=4 sts=4 sw=4 expandtab cc=+0
 autocmd FileType python setlocal ts=4 sts=4 sw=4 expandtab tw=88 cc=+0
 autocmd FileType markdown setlocal ts=4 sts=4 sw=4 expandtab tw=100 cc=+0
 " render-markdown pipe_table.wrap needs 'wrap' on to wrap wide table cells
-autocmd FileType markdown setlocal wrap
+" soft-wrap only: never hard-break lines at textwidth while typing
+autocmd FileType markdown setlocal wrap linebreak breakindent formatoptions-=t formatoptions-=c
 autocmd FileType html setlocal ts=4 sts=4 sw=4 expandtab tw=100 cc=+0
 
 " ------------------------------- Theme -----------------------------------
@@ -1257,8 +1258,10 @@ highlight GitGutterDelete guifg=#ff2222 ctermfg=196 ctermbg=52
 endif
 
 " --------------------------- scroll ----------------------------------------
-autocmd WinEnter * call AdjustScrolloff()
-autocmd WinResized * call AdjustScrolloff()
+" NOTE: WinEnter does NOT fire for the first window at startup, so the initial
+" window kept the default (small) scrolloff. VimEnter/BufWinEnter cover startup
+" and file-open; VimResized covers terminal resize.
+autocmd VimEnter,WinEnter,BufWinEnter,WinResized,VimResized * call AdjustScrolloff()
 
 " scrolloff를 창 높이의 10분의 1로 설정하는 함수
 function! AdjustScrolloff()
