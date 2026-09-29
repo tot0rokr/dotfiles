@@ -10,7 +10,7 @@ EXCLUDE=(.git .gitignore)
 # the user edits and does NOT commit. On update we refresh only the part ABOVE
 # that marker (template + `source ~/.*.common`) and keep everything below it
 # (their settings + secrets) byte-for-byte. Every other dotfile is copied as-is.
-ENTRYPOINTS=(.bashrc .tmux.conf)
+ENTRYPOINTS=(.bashrc .tmux.conf .gitconfig)
 MARKER_RE='^# Machine-specific settings below'
 
 # Whole-file machine-specific entry points: the ENTIRE file is the user's
@@ -28,7 +28,7 @@ Usage: install.sh [--dry-run|-n] [--dest|-d DIR] [--exclude|-x NAME]... [DIR] [-
 Copy this repo's dotfiles into a home directory (default: $HOME).
 
 Machine-specific files are protected from being clobbered on update:
-  * .bashrc, .tmux.conf — their "# Machine-specific settings below" marker
+  * .bashrc, .tmux.conf, .gitconfig — their "# Machine-specific settings below" marker
     splits a shared template (above, refreshed from the repo) from your per-host
     settings (below, preserved as-is). A changed file is backed up to
     <file>.bak.<ts> before the template part is refreshed.

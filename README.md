@@ -54,21 +54,21 @@ cd ~/.dotfiles && git pull
 ```
 
 `install.sh`는 머신 고유 파일을 덮어쓰지 않도록 보호한다.
-- `.bashrc`·`.tmux.conf` — `# Machine-specific settings below` 마커 **아래(네 개인
+- `.bashrc`·`.tmux.conf`·`.gitconfig` — `# Machine-specific settings below` 마커 **아래(네 개인
   설정·시크릿)는 그대로 보존**하고 위쪽 템플릿 + `~/.*.common` 로드부만 갱신한다
   (변경 시 `<file>.bak.<ts>` 백업).
 - `.wezterm.lua` — 파일 전체가 머신 전용 SSH 레지스트리라 **이미 있으면 안 덮고
   그대로 둔다**(첫 설치 때만 스켈레톤 배치).
 
-그 외 dotfile(`.bashrc.common`·`.wezterm.common.lua`·`.fzf.bash`·`.gitconfig` 등)은
+그 외 dotfile(`.bashrc.common`·`.wezterm.common.lua`·`.fzf.bash`·`.gitconfig.common` 등)은
 repo가 소스라 repo 버전으로 덮으니 `--dry-run`으로 먼저 확인하는 걸 권장.
 
 ### 머신 고유 설정 / 시크릿
 
-- 이 머신 전용 설정은 `~/.bashrc`·`~/.tmux.conf`의 "Machine-specific" 구역에 적고 **repo로 커밋하지 않는다**.
+- 이 머신 전용 설정은 `~/.bashrc`·`~/.tmux.conf`·`~/.gitconfig`의 "Machine-specific" 구역에 적고 **repo로 커밋하지 않는다**.
 - 셸 시크릿은 `~/.config/secrets.env`(chmod 600)에 두면 `.bashrc.common`이 자동 로드한다.
 - noti webhook은 `~/.config/noti/webhook`(chmod 600).
-- git의 머신 고유 설정(`[user]`·`[safe] directory`·호스트별 `[credential]` helper)은 `~/.gitconfig.local`에 둔다. `.gitconfig` 맨 끝에서 include하므로 repo 버전으로 덮어써도 보존되고, 파일이 없으면 무시된다.
+- git의 머신 고유 설정(`[user]`·`[safe] directory`·호스트별 `[credential]` helper)은 `~/.gitconfig` 마커 아래에 둔다. `git config --global`·`gh auth setup-git`도 이 파일에 쓰므로 도구가 추가한 값도 자연히 머신 고유부에 쌓인다.
 
 ## Step
 
@@ -90,15 +90,15 @@ sudo apt update \
 && bash
 ```
 
-### 셸 / tmux 설정 구조
+### 셸 / tmux / git 설정 구조
 
-이식 가능한 공통부와 머신 고유부를 분리한다. `.bashrc`와 `.tmux.conf`가 같은 패턴을 쓴다.
+이식 가능한 공통부와 머신 고유부를 분리한다. `.bashrc`·`.tmux.conf`·`.gitconfig`가 같은 패턴을 쓴다.
 
-- `.bashrc` / `.tmux.conf` — 진입점(추적됨). clone/install 시 `~/`로 배치되는 기본 템플릿이다. 각각 `~/.bashrc.common` / `~/.tmux.common.conf`를 불러온 뒤, 이 머신 전용 설정을 그 아래에 직접 적어 쓴다.
+- `.bashrc` / `.tmux.conf` / `.gitconfig` — 진입점(추적됨). clone/install 시 `~/`로 배치되는 기본 템플릿이다. 각각 `~/.bashrc.common` / `~/.tmux.common.conf` / `~/.gitconfig.common`을 불러온 뒤, 이 머신 전용 설정을 그 아래에 직접 적어 쓴다. git은 나중 값이 이기므로 아래에 적은 값이 공통부를 덮는다.
 - `.bashrc.common` — 이식 가능한 공통 셸 설정: history/PATH/prompt/git/completion, `bootstrap_user_tools`·`bootstrap_system_tools`·`bootstrap_agents` 등 설치 함수, starship/zoxide init. 시크릿 없음.
 - `.tmux.common.conf` — 이식 가능한 공통 tmux 설정: 플러그인(TPM)·키바인딩·status·테마·truecolor. bell-bash 같은 도구 연동은 `~/.tmux.conf`에 머신 고유로 둔다.
 
-진입점 파일(`~/.bashrc`·`~/.tmux.conf`)에 추가한 머신 고유 설정은 repo로 커밋하지 않는다(repo의 진입점은 기본 템플릿 상태 유지). 셸 시크릿은 `~/.config/secrets.env`(chmod 600)에 두면 `.bashrc.common`이 자동 로드한다.
+진입점 파일(`~/.bashrc`·`~/.tmux.conf`·`~/.gitconfig`)에 추가한 머신 고유 설정은 repo로 커밋하지 않는다(repo의 진입점은 기본 템플릿 상태 유지). 셸 시크릿은 `~/.config/secrets.env`(chmod 600)에 두면 `.bashrc.common`이 자동 로드한다.
 
 
 ### 휴대용 HOME 진입 (남의 계정 안 건드리기)

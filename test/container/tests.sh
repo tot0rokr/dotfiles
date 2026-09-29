@@ -21,6 +21,8 @@ group "install: dotfiles placed + bootstrap functions defined"
 # .bashrc sources .bashrc.common — the skel default does not.
 assert_grep "$HOME/.bashrc" 'bashrc\.common' '~/.bashrc is the repo copy (sources .bashrc.common)'
 assert_file "$HOME/.bashrc.common"
+assert_grep "$HOME/.gitconfig" 'gitconfig\.common' '~/.gitconfig is the repo entry point (includes .gitconfig.common)'
+assert_file "$HOME/.gitconfig.common"
 # shellcheck disable=SC1090,SC1091
 source "$HOME/.bashrc.common" 2>/dev/null || true
 assert_func bootstrap_system_tools
