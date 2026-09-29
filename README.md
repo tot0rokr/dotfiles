@@ -68,6 +68,7 @@ repo가 소스라 repo 버전으로 덮으니 `--dry-run`으로 먼저 확인하
 - 이 머신 전용 설정은 `~/.bashrc`·`~/.tmux.conf`의 "Machine-specific" 구역에 적고 **repo로 커밋하지 않는다**.
 - 셸 시크릿은 `~/.config/secrets.env`(chmod 600)에 두면 `.bashrc.common`이 자동 로드한다.
 - noti webhook은 `~/.config/noti/webhook`(chmod 600).
+- git의 머신 고유 설정(`[user]`·`[safe] directory`·호스트별 `[credential]` helper)은 `~/.gitconfig.local`에 둔다. `.gitconfig` 맨 끝에서 include하므로 repo 버전으로 덮어써도 보존되고, 파일이 없으면 무시된다.
 
 ## Step
 

@@ -49,3 +49,7 @@
 [merge]
     tool = nvim-conflicted
     ; conflictstyle = zdiff3
+; Keep last so per-host values ([user], [safe], credential helpers) override the above.
+; A missing file is silently ignored.
+[include]
+    path = ~/.gitconfig.local
