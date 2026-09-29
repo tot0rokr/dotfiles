@@ -129,7 +129,8 @@ Plug 'heavenshell/vim-pydocstring', { 'do': 'make install', 'for': 'python' }
 Plug 'tot0rokr/vim-quickui'
 
 " fzf
-Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
+" --bin: --all would regenerate the tracked ~/.fzf.bash and append to ~/.bashrc on every PlugUpdate
+Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --bin' }
 Plug 'junegunn/fzf.vim'
 if has('nvim')
     Plug 'ibhagwan/fzf-lua'
