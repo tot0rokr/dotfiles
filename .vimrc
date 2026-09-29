@@ -160,7 +160,7 @@ Plug 'dart-lang/dart-vim-plugin'
 " let g:lsc_auto_map = v:true
 
 " Scrolling
-Plug 'opalmay/vim-smoothie'
+Plug 'tot0rokr/vim-smoothie'
 
 " Code minimap
 Plug 'wfxr/minimap.vim', {'do': ':!cargo install --locked code-minimap'}
@@ -193,6 +193,14 @@ if has('nvim')
     Plug 'dhananjaylatkar/cscope_maps.nvim'
 endif
 
+
+" vim-smoothie: which keys get smooth-scroll animation.
+" MUST be set before plug#end() -- the plugin builds these mappings at load time
+" (the speed tuning further below is read at runtime, so it can stay there).
+let g:smoothie_remapped_commands =
+      \ ['<C-D>','<C-U>','<C-F>','<C-B>','<S-Down>','<PageDown>','<S-Up>','<PageUp>',
+      \  'z+','z^','zt','z<CR>','z.','zz','z-','zb',
+      \  'gg','G','{','}','H','M','L','n','N','*','#','g*','g#']
 
 " Initialize plugin system
 " - Automatically executes `filetype plugin indent on` and `syntax enable`.
