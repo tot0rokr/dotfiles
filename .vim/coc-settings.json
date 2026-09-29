@@ -3,7 +3,7 @@
     "workspace.rootPatterns": [".git", ".hg", ".projections.json", ".root"],
     "workspace.workspaceFolderCheckCwd": false,
 
-    "clangd.path": "clangd-12",
+    "clangd.path": "clangd",
 
     "suggest.noselect": true,
 
