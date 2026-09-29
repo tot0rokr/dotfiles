@@ -1133,7 +1133,8 @@ nnoremap <M-k> :bn<cr>
 
 " tab
 nnoremap <C-w>t :tabnew<cr>
-nnoremap <C-w>d :tabclose<cr>
+nnoremap <C-w>d :bp<bar>bd #<cr>
+nnoremap <C-w><C-d> :tabclose<cr>
 nnoremap <M-J> :tabp<cr>
 nnoremap <M-K> :tabn<cr>
 
