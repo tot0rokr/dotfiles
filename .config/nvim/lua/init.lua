@@ -164,10 +164,70 @@ if ok_ts and ensure_tree_sitter_cli() then
 end
 
 -- in-buffer markdown rendering
+-- RENDER_MD_DEV=<checkout> nvim loads a local render-markdown checkout instead of the plugged one
+if vim.env.RENDER_MD_DEV then
+    vim.opt.runtimepath:prepend(vim.env.RENDER_MD_DEV)
+end
 pcall(function()
+    -- code.border = "hide" hides the ``` fence lines with conceal_lines, but j/k
+    -- still stop on them (cursor becomes invisible); count them as part of the
+    -- next visible step instead. A hidden line has zero window text height.
+    local function visible_steps(dir, count)
+        local win = vim.api.nvim_get_current_win()
+        local last = vim.fn.line("$")
+        local lnum = vim.fn.line(".")
+        local steps, pending = 0, 0
+        while count > 0 do
+            local edge = dir > 0 and vim.fn.foldclosedend(lnum) or vim.fn.foldclosed(lnum)
+            if edge ~= -1 then
+                lnum = edge
+            end
+            lnum = lnum + dir
+            if lnum < 1 or lnum > last then
+                break
+            end
+            pending = pending + 1
+            local hidden = vim.fn.foldclosed(lnum) == -1
+                and vim.api.nvim_win_text_height(win, { start_row = lnum - 1, end_row = lnum - 1 }).all == 0
+            if not hidden then
+                steps = steps + pending
+                pending = 0
+                count = count - 1
+            end
+        end
+        return steps
+    end
+
+    local function skip_hidden(key, dir)
+        return function()
+            local steps = visible_steps(dir, vim.v.count1)
+            if steps > 0 then
+                vim.cmd("normal! " .. steps .. key)
+            end
+        end
+    end
+
+    -- buffer-local keymaps for every buffer render-markdown attaches to (its file_types);
+    -- checkouts with core/cursor.lua handle every motion via cursor.skip_hidden;
+    -- yank_code (<leader>yy, honors "x prefixes) exists only in checkouts that have it
+    local function attach_keymaps(ctx)
+        if not pcall(require, "render-markdown.core.cursor") then
+            vim.keymap.set({ "n", "x" }, "j", skip_hidden("j", 1), { buffer = ctx.buf })
+            vim.keymap.set({ "n", "x" }, "k", skip_hidden("k", -1), { buffer = ctx.buf })
+        end
+        if require("render-markdown.api").yank_code then
+            vim.keymap.set("n", "<leader>yy", function()
+                require("render-markdown").yank_code()
+            end, { buffer = ctx.buf, desc = "Yank code block under cursor" })
+        end
+    end
+
     require("render-markdown").setup({
         -- keep the cursor line rendered too (concealcursor is adjusted automatically)
         anti_conceal = { enabled = false },
+        -- not in a release yet (RENDER_MD_DEV checkout only); a release ignores it
+        cursor = { skip_hidden = true },
+        on = { attach = attach_keymaps },
         heading = {
             width = "block",
             left_pad = 2,
