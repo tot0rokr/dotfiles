@@ -160,7 +160,11 @@ Plug 'dart-lang/dart-vim-plugin'
 " let g:lsc_auto_map = v:true
 
 " Scrolling
-Plug 'tot0rokr/vim-smoothie'
+if has('nvim')
+    Plug 'tot0rokr/smoothie.nvim'
+else
+    Plug 'tot0rokr/vim-smoothie'
+endif
 
 " Code minimap
 Plug 'wfxr/minimap.vim', {'do': ':!cargo install --locked code-minimap'}
@@ -1272,7 +1276,8 @@ function! AdjustScrolloff()
 endfunction
 
 " Smooth Scrolling
-if s:check_installed_plugin('vim-smoothie')
+" Vim only: Neovim uses smoothie.nvim, whose max_filesize (lua/init.lua) does this.
+if !has('nvim') && s:check_installed_plugin('vim-smoothie')
 " 바이트 기준 임계값(예: 2MB)
 let g:largefile_threshold = 2 * 1024 * 1024
 
@@ -1296,13 +1301,8 @@ augroup LargeFileDetect
   autocmd BufEnter * call s:HandleLargeFileSmoothie()
 augroup END
 
-if has('nvim')
-    let g:smoothie_update_interval = 10
-    let g:smoothie_speed_exponentiation_factor = 0.90
-else
-    let g:smoothie_update_interval = 10
-    let g:smoothie_speed_exponentiation_factor = 0.99
-endif
+let g:smoothie_update_interval = 10
+let g:smoothie_speed_exponentiation_factor = 0.99
 endif
 
 " size(vertical) scroll

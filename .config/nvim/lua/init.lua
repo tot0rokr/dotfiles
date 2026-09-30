@@ -208,6 +208,17 @@ pcall(function()
     vim.schedule(md_highlights)
 end)
 
+-- smooth scrolling (smoothie.nvim); the key list is g:smoothie_remapped_commands in ~/.vimrc
+local ok_smoothie, smoothie = pcall(require, 'smoothie')
+if ok_smoothie then
+    smoothie.setup({
+        keys = vim.g.smoothie_remapped_commands,
+        quiet = true,
+        duration = 500,
+        max_filesize = 2 * 1024 * 1024,
+    })
+end
+
 require("toggleterm").setup()
 
 function _G.set_terminal_keymaps()
