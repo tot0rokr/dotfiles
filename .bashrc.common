@@ -349,6 +349,35 @@ install_lazygit_user() {
     rm -rf "$tmp"
 }
 
+install_gh_user() {
+    if [ -x "$LOCAL_BIN_PATH/gh" ] || command -v gh >/dev/null 2>&1; then
+        return 0
+    fi
+
+    __require_cmd curl || return 1
+    __require_cmd tar || return 1
+
+    local version arch tmp archive dir
+    version="$(curl -fsSL https://api.github.com/repos/cli/cli/releases/latest | grep -Po '"tag_name": *"v\K[^"]+')" || return 1
+    arch="$(__deb_arch)" || return 1
+    tmp="$(mktemp -d)" || return 1
+    archive="$tmp/gh.tar.gz"
+    dir="gh_${version}_linux_${arch}"
+
+    echo "Installing gh under $LOCAL_BIN_PATH ..."
+    curl -fL --retry 3 -o "$archive" \
+        "https://github.com/cli/cli/releases/download/v${version}/${dir}.tar.gz" || {
+        rm -rf "$tmp"
+        return 1
+    }
+    tar -C "$tmp" -xzf "$archive" "$dir/bin/gh" || {
+        rm -rf "$tmp"
+        return 1
+    }
+    install -m 755 "$tmp/$dir/bin/gh" "$LOCAL_BIN_PATH/gh"
+    rm -rf "$tmp"
+}
+
 install_lazydocker_user() {
     if [ -x "$LOCAL_BIN_PATH/lazydocker" ] || command -v lazydocker >/dev/null 2>&1; then
         return 0
@@ -859,6 +888,7 @@ bootstrap_user_tools() {
     install_starship_user
     install_jq_user
     install_lazygit_user
+    install_gh_user
     install_lazydocker_user
     install_delta_user
     install_gdu_user

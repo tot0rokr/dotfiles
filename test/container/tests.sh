@@ -65,7 +65,7 @@ if [ "$RUN_USER_TOOLS" = 1 ]; then
   # Make the freshly installed tools resolvable for `command -v`.
   export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$HOME/.fzf/bin:$PATH"
 
-  for c in nvim jq lazygit lazydocker delta gdu up fzf starship clangd btop nnn tmux; do assert_cmd "$c"; done
+  for c in nvim jq lazygit gh lazydocker delta gdu up fzf starship clangd btop nnn tmux; do assert_cmd "$c"; done
   for c in fd bat rg dust eza hyperfine difft tldr choose zoxide; do assert_cmd "$c"; done
   assert_cmd cargo
   assert_cmd rustc
