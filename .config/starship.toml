@@ -8,7 +8,7 @@ $username\
 $directory\
 [](bg:yellow fg:peach)\
 $git_branch\
-$git_status\
+${env_var.PROMPT_GIT_STATUS}\
 [](fg:yellow bg:green)\
 $c\
 $rust\
@@ -79,9 +79,18 @@ symbol = ""
 style = "bg:yellow"
 format = '[[ $symbol $branch ](fg:crust bg:yellow)]($style)'
 
+# Not in `format`: it walks the whole work tree, which is slow on NFS. The
+# shell runs `starship module git_status` in the background and the prompt
+# shows the last result via env_var.PROMPT_GIT_STATUS (see .bashrc.common),
+# so this format is plain text and the styling lives on the env_var module.
 [git_status]
+style = ""
+format = '($all_status$ahead_behind)'
+
+[env_var.PROMPT_GIT_STATUS]
+variable = "PROMPT_GIT_STATUS"
 style = "bg:yellow"
-format = '[[($all_status$ahead_behind )](fg:crust bg:yellow)]($style)'
+format = '[[($env_value )](fg:crust bg:yellow)]($style)'
 
 [nodejs]
 symbol = ""

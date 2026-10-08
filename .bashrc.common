@@ -1028,8 +1028,52 @@ fi
 
 PROMPT_COMMAND="${PROMPT_COMMAND:+$PROMPT_COMMAND; }history -a; history -n"
 
+# starship's git_status walks the whole work tree, 0.2-0.6s per prompt on the
+# NFS home. Run it in the background instead and show the last finished
+# result through env_var.PROMPT_GIT_STATUS (starship.toml), so the prompt
+# never waits for git; the status may lag one prompt behind.
+__prompt_git_cache="${TMPDIR:-/tmp}/$USER/prompt-git-status"
+
+__prompt_git_status() {
+    local root=$PWD cache pid
+    while [[ -n $root && ! -e $root/.git ]]; do root=${root%/*}; done
+    if [[ -z $root ]]; then
+        unset PROMPT_GIT_STATUS
+        return
+    fi
+    cache=$__prompt_git_cache/${root//\//%}
+
+    PROMPT_GIT_STATUS=
+    [[ -r $cache ]] && IFS= read -r PROMPT_GIT_STATUS <"$cache"
+    if [[ -n $PROMPT_GIT_STATUS ]]; then
+        export PROMPT_GIT_STATUS
+    else
+        unset PROMPT_GIT_STATUS
+    fi
+
+    # One refresh per repo at a time; a dead pid (killed shell) frees the slot.
+    if [[ -r $cache.pid ]] && read -r pid <"$cache.pid" && kill -0 "$pid" 2>/dev/null; then
+        return
+    fi
+    # Double fork keeps the job out of this shell's job table (no [1] Done).
+    ( {
+        # Fix the pid now: a redirect on an external command expands
+        # $BASHPID in the forked child.
+        local tmp=$cache.$BASHPID
+        mkdir -p "$__prompt_git_cache" || exit
+        echo "$BASHPID" >"$cache.pid"
+        # Unset STARSHIP_SHELL so `$` stays unescaped; the env_var module
+        # escapes the value when it renders the real prompt.
+        cd "$root" &&
+            STARSHIP_SHELL= starship module git_status >"$tmp" &&
+            command mv -f "$tmp" "$cache"
+        command rm -f "$tmp" "$cache.pid"
+    } </dev/null >/dev/null 2>&1 & )
+}
+
 if command -v starship >/dev/null 2>&1; then
     eval "$(starship init bash)"
+    starship_precmd_user_func=__prompt_git_status
 fi
 
 if command -v zoxide >/dev/null 2>&1; then
