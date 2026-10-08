@@ -208,6 +208,17 @@ pcall(function()
     vim.schedule(md_highlights)
 end)
 
+-- <leader>yy yanks the markdown code block under the cursor (honors "x prefixes);
+-- lua/md_yank.lua needs only the markdown parser, not render-markdown
+vim.api.nvim_create_autocmd("FileType", {
+    pattern = "markdown",
+    callback = function(args)
+        vim.keymap.set("n", "<leader>yy", function()
+            require("md_yank").code()
+        end, { buffer = args.buf, desc = "Yank code block under cursor" })
+    end,
+})
+
 -- smooth scrolling (smoothie.nvim); the key list is g:smoothie_remapped_commands in ~/.vimrc
 local ok_smoothie, smoothie = pcall(require, 'smoothie')
 if ok_smoothie then
