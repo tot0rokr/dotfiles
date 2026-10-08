@@ -2,7 +2,7 @@
 
 format = """
 [░▒▓](red)\
-$os\
+${env_var.PROMPT_OS}\
 $username\
 [](bg:peach fg:red)\
 $directory\
@@ -30,9 +30,18 @@ $character"""
 
 palette = 'catppuccin_mocha'
 
+# Not in `format`: picking the icon runs `lsb_release -a` (a shell script,
+# ~20ms) on every prompt. .bashrc.common resolves it once per host with
+# `starship module os`, caches it under /tmp, and the prompt shows it via
+# env_var.PROMPT_OS, so this format is plain and the style lives there.
 [os]
 disabled = false
+format = "$symbol"
+
+[env_var.PROMPT_OS]
+variable = "PROMPT_OS"
 style = "bg:red fg:crust"
+format = "[$env_value]($style)"
 
 [os.symbols]
 Windows = ""

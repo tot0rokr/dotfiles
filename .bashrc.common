@@ -1071,9 +1071,33 @@ __prompt_git_status() {
     } </dev/null >/dev/null 2>&1 & )
 }
 
+# starship's os module runs `lsb_release -a` (a shell script that forks ~7
+# processes, ~20ms) on every prompt just to pick an icon. Resolve it once per
+# host and config: cache the plain symbol under /tmp (local disk, so each host
+# of the shared NFS home gets its own) and show it through env_var.PROMPT_OS
+# (starship.toml). Editing starship.toml makes the cache stale.
+__prompt_os_init() {
+    local cfg=${STARSHIP_CONFIG:-$HOME/.config/starship.toml}
+    local cache=${TMPDIR:-/tmp}/$USER/prompt-os
+    if [[ ! -e $cache || $cfg -nt $cache ]]; then
+        mkdir -p "${cache%/*}" &&
+            STARSHIP_SHELL= starship module os >"$cache.$$" &&
+            command mv -f "$cache.$$" "$cache"
+        command rm -f "$cache.$$"
+    fi
+    PROMPT_OS=
+    [[ -r $cache ]] && IFS= read -r PROMPT_OS <"$cache"
+    if [[ -n $PROMPT_OS ]]; then
+        export PROMPT_OS
+    else
+        unset PROMPT_OS
+    fi
+}
+
 if command -v starship >/dev/null 2>&1; then
     eval "$(starship init bash)"
     starship_precmd_user_func=__prompt_git_status
+    __prompt_os_init
 fi
 
 if command -v zoxide >/dev/null 2>&1; then
