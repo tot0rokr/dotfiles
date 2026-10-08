@@ -208,7 +208,8 @@ pcall(function()
     vim.schedule(md_highlights)
 end)
 
--- <leader>yy yanks the markdown code block under the cursor (honors "x prefixes);
+-- <leader>yy yanks the markdown code block under the cursor (honors "x prefixes),
+-- <leader>Y yanks it to the clipboard ("+);
 -- lua/md_yank.lua needs only the markdown parser, not render-markdown
 vim.api.nvim_create_autocmd("FileType", {
     pattern = "markdown",
@@ -216,6 +217,9 @@ vim.api.nvim_create_autocmd("FileType", {
         vim.keymap.set("n", "<leader>yy", function()
             require("md_yank").code()
         end, { buffer = args.buf, desc = "Yank code block under cursor" })
+        vim.keymap.set("n", "<leader>Y", function()
+            require("md_yank").code("+")
+        end, { buffer = args.buf, desc = "Yank code block under cursor to clipboard" })
     end,
 })
 
