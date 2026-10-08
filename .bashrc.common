@@ -33,6 +33,31 @@ __path_prepend() {
     esac
 }
 
+# Drop repeated PATH entries, keeping the first one, which is the one command
+# lookup already hits, so no command resolves differently. Machine-local rc
+# lines (~/.bashrc, tool installers, vendor settings scripts) prepend without
+# checking, so PATH grows with every nested shell. Run from PROMPT_COMMAND, by
+# which time every startup file has made its changes; an unchanged PATH
+# returns at once.
+__path_dedupe() {
+    [[ $PATH == "${__path_dedupe_last-}" ]] && return
+    local rest=$PATH: dir
+    local -a keep=()
+    local -A seen=()
+    while [[ -n $rest ]]; do
+        dir=${rest%%:*}
+        rest=${rest#*:}
+        # Prefix the key: an empty entry (the current directory) is a valid
+        # PATH element but not a valid associative-array subscript.
+        [[ -n ${seen[x$dir]-} ]] && continue
+        seen[x$dir]=1
+        keep+=("$dir")
+    done
+    local IFS=:
+    [[ ${keep[*]} == "$PATH" ]] || PATH=${keep[*]}
+    __path_dedupe_last=$PATH
+}
+
 __path_prepend "$LOCAL_BIN_PATH"
 __path_prepend "$HOME/.cargo/bin"
 __path_prepend "$HOME/.fzf/bin"
@@ -1026,7 +1051,7 @@ if [ -f "$HOME/.fzf-tab-completion/bash/fzf-bash-completion.sh" ] && command -v 
     bind -x '"\t": fzf_bash_completion'
 fi
 
-PROMPT_COMMAND="${PROMPT_COMMAND:+$PROMPT_COMMAND; }history -a; history -n"
+PROMPT_COMMAND="${PROMPT_COMMAND:+$PROMPT_COMMAND; }history -a; history -n; __path_dedupe"
 
 # starship's git_status walks the whole work tree, 0.2-0.6s per prompt on the
 # NFS home. Run it in the background instead and show the last finished
