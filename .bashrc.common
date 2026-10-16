@@ -939,10 +939,12 @@ bootstrap_user_tools() {
     cargo_install_if_missing bat bat
     cargo_install_if_missing rg ripgrep
     cargo_install_if_missing dust du-dust
-    cargo_install_if_missing eza eza
+    # --locked: without the crate's own Cargo.lock, cargo picks newer deps that
+    # break eza's build, and no zip 5.x it can select for tealdeer
+    cargo_install_if_missing eza eza --locked
     cargo_install_if_missing hyperfine hyperfine
     cargo_install_if_missing difft difftastic --locked
-    cargo_install_if_missing tldr tealdeer
+    cargo_install_if_missing tldr tealdeer --locked
     cargo_install_if_missing choose choose
     cargo_install_if_missing zoxide zoxide --locked
 
