@@ -54,6 +54,7 @@ return {
 
     -- Scrolling
     "tot0rokr/smoothie.nvim",
+    "petertriho/nvim-scrollbar",
 
     -- Window Manager
     "MisanthropicBit/winmove.nvim",

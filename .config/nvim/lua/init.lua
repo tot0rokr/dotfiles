@@ -234,6 +234,13 @@ if ok_smoothie then
     })
 end
 
+-- scrollbar on the right edge, shown in every window all the time
+require("scrollbar").setup({
+    show = true,
+    show_in_active_only = false,
+    hide_if_all_visible = false,
+})
+
 require("toggleterm").setup()
 
 function _G.set_terminal_keymaps()

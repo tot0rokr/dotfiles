@@ -104,9 +104,6 @@ Plug 'dart-lang/dart-vim-plugin'
 " Plug 'natebosch/vim-lsc-dart'
 " let g:lsc_auto_map = v:true
 
-" Code minimap
-Plug 'wfxr/minimap.vim', {'do': ':!cargo install --locked code-minimap'}
-
 " Code context viewer
 " Plug 'wellle/context.vim'
 Plug 'tot0rokr/context.vim'

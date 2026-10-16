@@ -691,7 +691,7 @@ function! s:install_quickui_menus()
     call quickui#menu#install("&Files", [
                 \ ['&Paste', "set paste!"],
                 \ ['--',''],
-                \ ['S&croll bar', "MinimapToggle"],
+                \ ['S&croll bar', "ScrollbarToggle"],
                 \ ['&NERD Tree <F4>', "NERDTreeToggle"],
                 \ ['&Tag Bar', "TagbarToggle"],
                 \ ['&Render Markdown', "RenderMarkdown toggle"],
@@ -815,19 +815,6 @@ augroup MyQuickfixPreview
     au!
     au FileType qf noremap <silent><buffer> p :call quickui#tools#preview_quickfix()<cr>
 augroup END
-endif
-
-" --------------------------- minimap -------------------------------------------
-if PluginInstalled('minimap.vim')
-let g:minimap_auto_start = 0
-let g:minimap_auto_start_win_enter = 0
-let g:minimap_width = 15
-let g:minimap_exec_warning = 0
-let g:minimap_highlight_range = 1
-let g:minimap_highlight_search = 1
-let g:minimap_git_colors = 1
-command! Noh execute 'nohlsearch' | call minimap#vim#ClearColorSearch()
-cnoreabbrev noh Noh
 endif
 
 " --------------------------------- Key Mapping -------------------------------
