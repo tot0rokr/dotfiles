@@ -108,7 +108,7 @@ nnoremap <F5> :Buffers<cr>
 nnoremap <F7> :Rg<cr>
 nnoremap <S-F7> :RG<cr>
 nnoremap <F8> :History:<cr>
-nnoremap <F9> :Blines<cr>
+nnoremap <F9> :BLines<cr>
 nnoremap <S-F9> :Lines<cr>
 nnoremap <F10> :BCommits<cr>
 nnoremap <S-F10> :Commits<cr>
