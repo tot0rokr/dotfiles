@@ -31,7 +31,9 @@ Machine-specific files are protected from being clobbered on update:
   * .bashrc, .tmux.conf, .gitconfig — their "# Machine-specific settings below" marker
     splits a shared template (above, refreshed from the repo) from your per-host
     settings (below, preserved as-is). A changed file is backed up to
-    <file>.bak.<ts> before the template part is refreshed.
+    <file>.bak.<ts> before the template part is refreshed. A file without the
+    marker is left untouched, unless it is still the distro's stock copy from
+    /etc/skel (a fresh account's ~/.bashrc): that one is backed up and replaced.
   * .wezterm.lua — the whole file is your per-host SSH registry, so it is placed
     only on first install and never overwritten (KEEP).
 Every other dotfile is copied over (use --dry-run to preview).
@@ -114,11 +116,14 @@ is_keep_if_exists() {
 # Echo the content install would write for entry-point SRC given current DST.
 # Return codes: 0 = merge (repo part above the marker + DST part below it),
 # 2 = first install (echo whole SRC), 3 = DST exists but has no marker (caller
-# must leave it untouched — we won't clobber an unrecognized file).
+# must leave it untouched — we won't clobber an unrecognized file), 4 = DST is
+# still the distro's stock /etc/skel copy (holds nothing of the user's, so it
+# is replaced with the whole SRC after a backup).
 compute_entrypoint() {
-    local src="$1" dst="$2"
+    local src="$1" dst="$2" skel="/etc/skel/${2##*/}"
     [[ -e "$dst" ]]                 || { cat "$src"; return 2; }
     grep -qE "$MARKER_RE" "$src"    || { cat "$src"; return 2; }
+    [[ -f "$skel" ]] && cmp -s "$skel" "$dst" && { cat "$src"; return 4; }
     grep -qE "$MARKER_RE" "$dst"    || return 3
     sed "/$MARKER_RE/q"   "$src"    # repo lines through the marker (inclusive)
     sed "1,/$MARKER_RE/d" "$dst"    # DST lines after its marker (user's section)
@@ -167,6 +172,7 @@ install_entrypoint() {
     case $rc in
         2) cp -f "$src" "$dst"; echo "  placed $name (first install)" ;;
         3) echo "  SKIP $name — no machine-specific marker in $dst; left untouched (reconcile by hand)" ;;
+        4) backup_file "$dst"; cp -f "$src" "$dst"; echo "  placed $name (replaced the stock /etc/skel copy)" ;;
         0) if printf '%s\n' "$content" | cmp -s - "$dst"; then
                echo "  $name already up to date"
            else
@@ -184,6 +190,7 @@ preview_entrypoint() {
     case $rc in
         2) printf '  new       %s (first install)\n' "$name" ;;
         3) printf '  SKIP      %s (no marker in current file; would be left untouched)\n' "$name" ;;
+        4) printf '  REPLACE   %s (stock /etc/skel copy; would be backed up and replaced)\n' "$name" ;;
         0) if printf '%s\n' "$content" | cmp -s - "$dst"; then
                : # identical: stay quiet
            else
