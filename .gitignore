@@ -5,6 +5,8 @@
 # A directory line (ending in /) only lets git look inside that directory: `*`
 # still ignores every file in it, so each file needs its own line. Without the
 # directory line, git never looks inside and the file lines have no effect.
+# A new file stays ignored until it gets its own line, so nothing slips in via
+# `git add -A`.
 !.bash_aliases
 !.bash_logout
 !.bashrc
@@ -52,8 +54,6 @@
 !.noti.conf
 !.noti.preset
 !.profile
-!.ssh/
-!.ssh/config
 !.tmux/
 !.tmux/.tmux.theme.github.conf
 !.tmux/.tmux.theme.serene-custom.conf
@@ -76,16 +76,26 @@
 !test/**
 
 # Black lists
+# Listed even though `*` covers them, so they stay out while `*` is lifted
 .vim/temp
 .vim/undo
 .vim/obsession
 .vim/plugged
+# nvim's data dir: temp/undo/obsession, lazy.nvim plugins, the pynvim venv
+.local/share/nvim/
 .git-credentials
 .bash_history
 .python_history
 .cache/
+.local/bin/
 .local/opt/
 .local/src/
 .local/state/
+# gh extensions (gh-dash binary)
+.local/share/gh/
+.config/btop/themes/
 .tmux/plugins
 .tmux/.resurrect
+*.bak[.-]*
+# keys, known_hosts and config are all per host
+.ssh/
