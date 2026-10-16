@@ -57,6 +57,9 @@ function M.setup()
 
     require("lazy").setup({
         spec = { shared_specs, { import = "plugins" } },
+        -- a spec with `dev = true` loads ~/<plugin name> when that checkout
+        -- exists on this host, and the git clone otherwise
+        dev = { path = "~", fallback = true },
         performance = {
             rtp = {
                 -- lazy.nvim resets 'runtimepath'; keep ~/.vim and the fzf

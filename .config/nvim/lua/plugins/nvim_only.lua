@@ -35,8 +35,9 @@ return {
         end,
     },
 
-    -- MarkDown
-    "MeanderingProgrammer/render-markdown.nvim",
+    -- MarkDown. dev: the fork checkout at ~/render-markdown.nvim when this host
+    -- has one (plugin_manager.lua), upstream otherwise
+    { "MeanderingProgrammer/render-markdown.nvim", dev = true },
 
     -- indent guide
     "lukas-reineke/indent-blankline.nvim",
