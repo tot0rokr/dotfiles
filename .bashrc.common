@@ -426,6 +426,23 @@ install_gh_user() {
     rm -rf "$tmp"
 }
 
+# gh-dash (`git pr`) is a gh extension, so gh keeps it under its own data dir.
+# The full URL pins github.com when gh's default host is an enterprise one, and
+# GH_TOKEN is dropped because a token for another host gets 401 on the release
+# lookup; the repo is public, so no auth is needed.
+install_gh_dash_user() {
+    local gh
+    gh="$(command -v gh || echo "$LOCAL_BIN_PATH/gh")"
+    if [ ! -x "$gh" ]; then
+        echo "gh is unavailable. Skipping gh-dash."
+        return 0
+    fi
+    "$gh" extension list 2>/dev/null | grep -q '^gh dash[[:space:]]' && return 0
+
+    echo "Installing gh-dash as a gh extension ..."
+    env -u GH_TOKEN "$gh" extension install https://github.com/dlvhdr/gh-dash
+}
+
 install_lazydocker_user() {
     if [ -x "$LOCAL_BIN_PATH/lazydocker" ] || command -v lazydocker >/dev/null 2>&1; then
         return 0
@@ -889,6 +906,7 @@ User-only notes:
 - It now also installs clangd, btop, nnn, and tmux from prebuilt/static downloads (no root needed; x86_64 mainly, see per-tool guards).
 - It clones bell-bash and noti-bash into ~/.local/opt (the `noti` CLI and `bell`/`bell-send` come from these clones, not vendored copies), links their Claude Code skills, and merges bell's Stop/Notification toast hooks into ~/.claude/settings.json (idempotent jq merge; existing hooks preserved). The shell/tmux hooks are wired by the tracked .bashrc.common / .tmux.common.conf, not the repos' own installers. Update the tools with `git -C ~/.local/opt/<repo> pull`.
 - It installs claude-account-switcher into ~/.local/opt and runs its installer (this one owns state we don't track: the ~/.claude-accounts store and the statusLine sensor that switches accounts). Your `claude` wrapper is rewritten to launch through `claude-auto` (a .bak is kept); add accounts with `claude-auto login <name>` and check them with `claude-auto status`.
+- It installs gh-dash (`git pr`) as a gh extension. Upgrade it with `env -u GH_TOKEN gh extension upgrade dash`; a GH_TOKEN meant for another host makes the upgrade fail.
 - Tools that genuinely need root are NOT installed by bootstrap_user_tools. Run `bootstrap_system_tools` (sudo apt) for: git, curl, wget, gcc/make (build-essential), openssh-server, python3-venv, ruby-full, universal-ctags, cscope, unzip, wezterm.
 - Some cargo installs may fail if system build tools are missing; run bootstrap_system_tools first if so.
 - To keep NOTI_WEBHOOK private, put it in ~/.config/noti/webhook with chmod 600 instead of hard-coding it in .bashrc.
@@ -936,6 +954,7 @@ bootstrap_user_tools() {
     install_jq_user
     install_lazygit_user
     install_gh_user
+    install_gh_dash_user
     install_lazydocker_user
     install_delta_user
     install_gdu_user

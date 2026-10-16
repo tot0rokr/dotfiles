@@ -1,0 +1,16 @@
+# gh-dash merges this over its built-in defaults, so only overrides live here.
+
+keybindings:
+  prs:
+    # replaces the built-in C checkout (Space still checks out). tmux opens a
+    # missing -c dir in $HOME, where Octo would pick the wrong host, hence the -d guard
+    - key: C
+      name: review in Octo
+      command: >
+        [ -d {{.RepoPath}} ] &&
+        tmux new-window -n "pr{{.PrNumber}}" -c {{.RepoPath}}
+        'nvim -c "Octo pr edit {{.PrNumber}} {{.RepoName}}"'
+
+repoPaths:
+  # owner/repo -> ~/repo, with no org names in this public repo
+  ":owner/:repo": ~/:repo

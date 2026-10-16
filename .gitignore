@@ -12,6 +12,8 @@
 !.config/
 !.config/btop/
 !.config/btop/btop.conf
+!.config/gh-dash/
+!.config/gh-dash/config.yml
 !.config/kanata/
 !.config/kanata/tenkeyless.key
 !.config/kime/
