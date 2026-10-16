@@ -70,4 +70,8 @@ return {
 
     -- Git change signs (Vim uses vim-gitgutter, ~/.vimrc)
     "lewis6991/gitsigns.nvim",
+
+    -- GitHub PR review / issues (Octo); talks to GitHub through the gh CLI
+    "nvim-lua/plenary.nvim",
+    "pwntester/octo.nvim",
 }

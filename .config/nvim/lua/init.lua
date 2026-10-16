@@ -373,3 +373,28 @@ require("gitsigns").setup({
 
 -- git changes on the scrollbar
 require("scrollbar.handlers.gitsigns").setup()
+
+
+-- octo (GitHub PRs / reviews through gh)
+
+-- Octo adds github.com-only GraphQL fields while github_hostname is "", which a
+-- GHES host rejects, so take the host from the repo nvim starts in
+local function git_remote_host()
+    for _, name in ipairs({ "upstream", "origin" }) do
+        local url = vim.fn.systemlist({ "git", "remote", "get-url", name })[1]
+        if vim.v.shell_error == 0 and url then
+            return url:gsub("^%w+://", ""):gsub("^[^@/]*@", ""):match("^[^:/]+")
+        end
+    end
+end
+
+local ok_octo, octo = pcall(require, "octo")
+if ok_octo then
+    local host = git_remote_host()
+    octo.setup({
+        picker = "fzf-lua",
+        enable_builtin = true,
+        github_hostname = (host and host ~= "github.com") and host or "",
+    })
+    vim.treesitter.language.register("markdown", "octo")
+end
