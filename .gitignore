@@ -2,18 +2,34 @@
 *
 
 # White lists
+# A directory line (ending in /) only lets git look inside that directory: `*`
+# still ignores every file in it, so each file needs its own line. Without the
+# directory line, git never looks inside and the file lines have no effect.
 !.bash_aliases
 !.bash_logout
 !.bashrc
 !.bashrc.common
 !.config/
+!.config/btop/
+!.config/btop/btop.conf
+!.config/kanata/
+!.config/kanata/tenkeyless.key
+!.config/kime/
+!.config/kime/config.yaml
+!.config/kime/layouts/
+!.config/kime/layouts/sebeolsik-3-90-custom.yaml
+!.config/lazygit/
+!.config/lazygit/config.yml
 !.config/nvim/
+!.config/nvim/coc-settings.json
+!.config/nvim/init.vim
 !.config/nvim/lua/
+!.config/nvim/lua/init.lua
+!.config/nvim/lua/md_yank.lua
 !.config/nvim/lua/plugin_manager.lua
 !.config/nvim/lua/plugins/
 !.config/nvim/lua/plugins/nvim_only.lua
-!.config/kanata/
-!.config/kime/
+!.config/starship.toml
 !.fzf-git.sh
 !.fzf.bash
 !.git-completion.bash
@@ -22,13 +38,32 @@
 !.gitconfig.common
 !.gitignore
 !.inputrc
+!.local/
+!.local/share/
+!.local/share/fonts/
+!.local/share/fonts/D2CodingLigatureNerdFont-Bold.ttf
+!.local/share/fonts/D2CodingLigatureNerdFont-Regular.ttf
+!.local/share/fonts/D2CodingLigatureNerdFontMono-Bold.ttf
+!.local/share/fonts/D2CodingLigatureNerdFontMono-Regular.ttf
+!.local/share/fonts/D2CodingLigatureNerdFontPropo-Bold.ttf
+!.local/share/fonts/D2CodingLigatureNerdFontPropo-Regular.ttf
+!.noti.conf
+!.noti.preset
 !.profile
+!.ssh/
+!.ssh/config
 !.tmux/
+!.tmux/.tmux.theme.github.conf
+!.tmux/.tmux.theme.serene-custom.conf
+!.tmux/.tmux.theme.serene.conf
+!.tmux/.tmux.theme.wombat.conf
 !.tmux.conf
 !.tmux.common.conf
 !.vim/
+!.vim/coc-settings.json
 !.vim/common.vim
 !.vim/plugins.vim
+!.vim/python_fold.vim
 !.vimrc
 !.wezterm.lua
 !.wezterm.common.lua
