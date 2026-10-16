@@ -433,7 +433,7 @@ function! ShowDocumentation()
 endfunction
 
 " Highlight the symbol and its references when holding the cursor
-if exists('*CocActionAsync')
+if PluginInstalled('coc.nvim')
     autocmd CursorHold * silent call CocActionAsync('highlight')
 endif
 
