@@ -36,11 +36,11 @@ __path_prepend() {
 # Drop repeated PATH entries, keeping the first one, which is the one command
 # lookup already hits, so no command resolves differently. Machine-local rc
 # lines (~/.bashrc, tool installers, vendor settings scripts) prepend without
-# checking, so PATH grows with every nested shell. Run from PROMPT_COMMAND, by
-# which time every startup file has made its changes; an unchanged PATH
-# returns at once.
+# checking, so PATH grows with every nested shell. Runs once, from the first
+# prompt, by which time every startup file has made its changes. It then
+# turns itself into a no-op rather than leaving PROMPT_COMMAND: starship and
+# bell-bash move that string into their own variables.
 __path_dedupe() {
-    [[ $PATH == "${__path_dedupe_last-}" ]] && return
     local rest=$PATH: dir
     local -a keep=()
     local -A seen=()
@@ -55,7 +55,7 @@ __path_dedupe() {
     done
     local IFS=:
     [[ ${keep[*]} == "$PATH" ]] || PATH=${keep[*]}
-    __path_dedupe_last=$PATH
+    __path_dedupe() { :; }
 }
 
 # Move ~/.fzf/bin to the front, ahead of a host fzf (apt, Homebrew): the shell
