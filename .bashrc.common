@@ -58,9 +58,24 @@ __path_dedupe() {
     __path_dedupe_last=$PATH
 }
 
+# Move ~/.fzf/bin to the front, ahead of a host fzf (apt, Homebrew): the shell
+# bindings in ~/.fzf/shell and the Vim plugin in ~/.fzf expect the binary from
+# the same checkout. Unlike __path_prepend, this also moves an entry already on
+# PATH further back, e.g. one a parent shell got from ~/.fzf.bash appending it.
+__path_fzf_first() {
+    local dir="$HOME/.fzf/bin" rest=":$PATH:"
+    [ -d "$dir" ] || return 0
+    while [[ $rest == *":$dir:"* ]]; do
+        rest=${rest/":$dir:"/:}
+    done
+    rest=${rest#:}
+    rest=${rest%:}
+    PATH="$dir${rest:+:$rest}"
+}
+
 __path_prepend "$LOCAL_BIN_PATH"
 __path_prepend "$HOME/.cargo/bin"
-__path_prepend "$HOME/.fzf/bin"
+__path_fzf_first
 __path_prepend "$HOME/.lmstudio/bin"
 export PATH
 
@@ -508,25 +523,24 @@ install_up_user() {
     chmod 755 "$LOCAL_BIN_PATH/up"
 }
 
+# Clone ~/.fzf even when the host has its own fzf: Vim and Neovim load the fzf
+# Vim plugin from ~/.fzf (no plugin manager installs it), and __path_fzf_first
+# puts its binary ahead of the host one.
 install_fzf_user() {
-    if command -v fzf >/dev/null 2>&1; then
-        return 0
-    fi
+    [ -d "$HOME/.fzf" ] && return 0
 
     if ! command -v git >/dev/null 2>&1; then
         echo "git is unavailable. Skipping fzf."
         return 0
     fi
 
-    if [ ! -d "$HOME/.fzf" ]; then
-        echo "Installing fzf under ~/.fzf ..."
-        git clone --depth 1 https://github.com/junegunn/fzf.git "$HOME/.fzf" || return 1
-        "$HOME/.fzf/install" --bin --key-bindings --completion --no-update-rc || return 1
-    fi
+    echo "Installing fzf under ~/.fzf ..."
+    git clone --depth 1 https://github.com/junegunn/fzf.git "$HOME/.fzf" || return 1
+    "$HOME/.fzf/install" --bin --key-bindings --completion --no-update-rc || return 1
 }
 
-# Separate from install_fzf_user: that one returns early when fzf is already on
-# PATH, which would skip this clone on hosts with a system fzf.
+# Separate from install_fzf_user: that one returns early once ~/.fzf exists,
+# which would skip this clone on hosts that already have it.
 install_fzf_tab_completion_user() {
     [ -d "$HOME/.fzf-tab-completion" ] && return 0
     if ! command -v git >/dev/null 2>&1; then
