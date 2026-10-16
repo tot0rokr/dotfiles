@@ -14,6 +14,8 @@
 !.config/
 !.config/btop/
 !.config/btop/btop.conf
+!.config/fd/
+!.config/fd/ignore
 !.config/gh-dash/
 !.config/gh-dash/config.yml
 !.config/kanata/

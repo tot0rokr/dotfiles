@@ -1,0 +1,17 @@
+# fd's global ignore file (gitignore syntax). Unlike .gitignore, fd applies it
+# outside git repos too, so it also covers searches from ~. The fzf widgets in
+# ~/.fzf.bash list files through fd, so they skip these as well. A search
+# rooted inside one of these directories still lists its contents.
+
+# Caches and package stores
+.cache/
+.npm/
+.rustup/
+.cargo/registry/
+node_modules/
+__pycache__/
+.venv/
+
+# Build output
+build/
+BUILD/
