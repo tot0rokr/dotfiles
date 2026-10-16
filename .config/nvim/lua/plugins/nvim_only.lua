@@ -55,6 +55,7 @@ return {
     -- Scrolling
     "tot0rokr/smoothie.nvim",
     "petertriho/nvim-scrollbar",
+    "kevinhwang91/nvim-hlslens",
 
     -- Window Manager
     "MisanthropicBit/winmove.nvim",

@@ -234,12 +234,37 @@ if ok_smoothie then
     })
 end
 
--- scrollbar on the right edge, shown in every window all the time
+-- search lens (nvim-hlslens): [index/total] next to the matches. Set up before
+-- the scrollbar, whose search marks come from it; start() does nothing until
+-- setup() has enabled it.
+require("hlslens").setup()
+
+-- scrollbar on the right edge, shown in every window all the time, with the
+-- search matches from hlslens. Marks take their highlight's foreground, and
+-- the theme's Search has only a background (unset reads as black), so color
+-- the search marks with that background, like the matches in the buffer.
+local search_bg = vim.api.nvim_get_hl(0, { name = "Search", link = false }).bg
 require("scrollbar").setup({
     show = true,
     show_in_active_only = false,
     hide_if_all_visible = false,
+    handlers = { search = true },
+    marks = {
+        Search = { color = search_bg and string.format("#%06x", search_bg) or nil },
+    },
 })
+
+-- smoothie owns n N * # g* g#: keep its scroll, then start the lens (and the
+-- scrollbar search marks). Scheduled: when smoothie doesn't animate it feeds
+-- the key, so the jump happens after this callback returns.
+if ok_smoothie then
+    for _, key in ipairs({ "n", "N", "*", "#", "g*", "g#" }) do
+        vim.keymap.set("n", key, function()
+            smoothie._map(key)
+            vim.schedule(function() require("hlslens").start() end)
+        end, { desc = "smoothie scroll + hlslens" })
+    end
+end
 
 require("toggleterm").setup()
 
