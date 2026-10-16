@@ -253,20 +253,28 @@ install_neovim_user() {
     echo "Installed: $LOCAL_BIN_PATH/nvim ($("$LOCAL_BIN_PATH/nvim" --version | head -1))"
 }
 
+# Vim uses vim-plug (~/.vimrc); Neovim uses lazy.nvim (lua/plugin_manager.lua),
+# which clones itself on first start.
 install_vim_plug_user() {
     __require_cmd curl || return 1
 
     local plug_path
-    plug_path="$HOME/.local/share/nvim/site/autoload/plug.vim"
+    plug_path="$HOME/.vim/autoload/plug.vim"
 
     if [ ! -f "$plug_path" ]; then
-        echo "Installing vim-plug under ~/.local/share/nvim ..."
+        echo "Installing vim-plug under ~/.vim ..."
         curl -fLo "$plug_path" --create-dirs \
             https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim || return 1
     fi
 
+    # type -P / command: skip the vim -> nvim alias in .bash_aliases
+    if type -P vim >/dev/null 2>&1; then
+        # --sync: otherwise +qall races the async install and Vim never exits
+        command vim +'silent! PlugInstall --sync' +qall || true
+    fi
+
     if command -v nvim >/dev/null 2>&1; then
-        nvim +'silent! PlugInstall' +qall || true
+        nvim --headless '+Lazy! sync' +qa || true
     fi
 }
 

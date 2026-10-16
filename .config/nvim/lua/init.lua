@@ -223,7 +223,7 @@ vim.api.nvim_create_autocmd("FileType", {
     end,
 })
 
--- smooth scrolling (smoothie.nvim); the key list is g:smoothie_remapped_commands in ~/.vimrc
+-- smooth scrolling (smoothie.nvim); the key list is g:smoothie_remapped_commands in ~/.vim/plugins.vim
 local ok_smoothie, smoothie = pcall(require, 'smoothie')
 if ok_smoothie then
     smoothie.setup({
@@ -270,3 +270,21 @@ require('cscope_maps').setup({
         tree_hl = true, -- toggle tree highlighting
     }
 })
+
+
+-- coc: <c-space> triggers completion (Vim maps it as <c-@> in ~/.vimrc)
+vim.keymap.set("i", "<c-space>", "coc#refresh()", { silent = true, expr = true })
+
+
+-- fzf-lua (Vim maps the same keys to fzf.vim commands in ~/.vimrc)
+vim.keymap.set("n", "<c-p>", ":FzfLua files<cr>", { remap = true })
+vim.keymap.set("n", "<M-p>", ":FzfLua git_files<cr>", { remap = true })
+vim.keymap.set("n", "<F5>", ":FzfLua buffers<cr>")
+vim.keymap.set("n", "<F6>", ":FzfLua zoxide<cr>")
+vim.keymap.set("n", "<F7>", ":FzfLua grep_project<cr>")
+vim.keymap.set("n", "<S-F7>", ":FzfLua live_grep<cr>")
+vim.keymap.set("n", "<F8>", ":FzfLua command_history<cr>")
+vim.keymap.set("n", "<F9>", ":FzfLua blines<cr>")
+vim.keymap.set("n", "<S-F9>", ":FzfLua lines<cr>")
+vim.keymap.set("n", "<F10>", ":FzfLua git_bcommits<cr>")
+vim.keymap.set("n", "<S-F10>", ":FzfLua git_commits<cr>")

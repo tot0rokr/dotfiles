@@ -6,7 +6,12 @@
 !.bash_logout
 !.bashrc
 !.bashrc.common
+!.config/
 !.config/nvim/
+!.config/nvim/lua/
+!.config/nvim/lua/plugin_manager.lua
+!.config/nvim/lua/plugins/
+!.config/nvim/lua/plugins/nvim_only.lua
 !.config/kanata/
 !.config/kime/
 !.fzf-git.sh
@@ -22,6 +27,8 @@
 !.tmux.conf
 !.tmux.common.conf
 !.vim/
+!.vim/common.vim
+!.vim/plugins.vim
 !.vimrc
 !.wezterm.lua
 !.wezterm.common.lua
