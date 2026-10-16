@@ -22,6 +22,8 @@ if exists('#User#PluginsReady')
     doautocmd <nomodeline> User PluginsReady
 endif
 
-let $MYVIMRC = expand('~/.vimrc')
+" $MYVIMRC is the shared settings in both editors; $INITVIM is this editor's
+" entry file (~/.vimrc in Vim).
+let $MYVIMRC = expand('~/.vim/common.vim')
 let $INITVIM = expand('~/.config/nvim/init.vim')
 let $INITLUA = expand('~/.config/nvim/lua/init.lua')

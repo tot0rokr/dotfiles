@@ -151,3 +151,8 @@ endif
 if exists('#User#PluginsReady')
     doautocmd <nomodeline> User PluginsReady
 endif
+
+" $MYVIMRC is the shared settings in both editors; $INITVIM is this editor's
+" entry file (~/.config/nvim/init.vim in Neovim).
+let $MYVIMRC = expand('~/.vim/common.vim')
+let $INITVIM = expand('~/.vimrc')
