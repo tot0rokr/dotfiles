@@ -365,8 +365,13 @@ endfunction
 autocmd User PluginsReady call s:define_airline_sections()
 endif
 
-if PluginInstalled('tmuxline.vim')
+" Otherwise airline runs :Tmuxline on every start, which rewrites the running
+" tmux server's status line (tmuxline calls `tmux source` without checking
+" $TMUX, so even a test editor reaches the default server). Set outside the
+" PluginInstalled() check: airline only needs :Tmuxline to exist.
 let g:airline#extensions#tmuxline#enabled = 0
+
+if PluginInstalled('tmuxline.vim')
 let g:tmuxline_preset = {
         \'a'    : '#S',
         \'b'    : '#W',
