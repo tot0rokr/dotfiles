@@ -81,6 +81,8 @@
 .vim/undo
 .vim/obsession
 .vim/plugged
+# plug.vim, which install_vim_plug_user (.bashrc.common) downloads
+.vim/autoload
 # nvim's data dir: temp/undo/obsession, lazy.nvim plugins, the pynvim venv
 .local/share/nvim/
 .git-credentials
