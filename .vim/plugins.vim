@@ -38,8 +38,7 @@ Plug 'easymotion/vim-easymotion'
 " argument movable
 Plug 'peterrincker/vim-argumentative'
 
-" git
-Plug 'airblade/vim-gitgutter'
+" git (change signs: vim-gitgutter in ~/.vimrc, gitsigns.nvim in Neovim)
 Plug 'tpope/vim-fugitive'
 " git conlict. required tpope/vim-fugitive
 Plug 'christoomey/vim-conflicted'

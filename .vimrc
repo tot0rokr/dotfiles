@@ -29,6 +29,9 @@ Plug 'Shougo/deol.nvim'
 " Scrolling
 Plug 'tot0rokr/vim-smoothie'
 
+" Git change signs
+Plug 'airblade/vim-gitgutter'
+
 " Initialize plugin system
 " - Automatically executes `filetype plugin indent on` and `syntax enable`.
 call plug#end()
@@ -51,6 +54,20 @@ autocmd VimEnter,Colorscheme * :hi IndentGuidesEven ctermbg=237 guibg=#3a3a3a
 let g:indent_guides_guide_size = 1
 let g:indent_guides_start_level = 2
 let g:indent_guides_default_mapping = 0
+endif
+
+" ------------------------------- git signs ----------------------------------
+" Neovim uses gitsigns.nvim (lua/init.lua) with the same ]c [c \hs \hu \hp keys
+if PluginInstalled('vim-gitgutter')
+" Set before gitgutter loads, so its own (default) colors don't apply, and
+" again after a :colorscheme clears them
+function! s:gitgutter_highlights()
+    highlight GitGutterAdd    guifg=#009900 ctermfg=82 ctermbg=22
+    highlight GitGutterChange guifg=#bbbb00 ctermfg=220 ctermbg=130
+    highlight GitGutterDelete guifg=#ff2222 ctermfg=196 ctermbg=52
+endfunction
+call s:gitgutter_highlights()
+autocmd ColorScheme * call s:gitgutter_highlights()
 endif
 
 " -------------------------- coc ----------------------------------------------

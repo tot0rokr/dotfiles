@@ -67,4 +67,7 @@ return {
 
     -- nvim cscope
     "dhananjaylatkar/cscope_maps.nvim",
+
+    -- Git change signs (Vim uses vim-gitgutter, ~/.vimrc)
+    "lewis6991/gitsigns.nvim",
 }

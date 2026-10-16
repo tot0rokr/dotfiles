@@ -82,12 +82,6 @@ function! s:highlight_overrides()
     highlight DiffChange    ctermbg=54 guibg=#5f0087
     highlight DiffDelete    ctermbg=88 guibg=#870000
     highlight DiffText      ctermbg=237 guibg=#3a3a3a
-
-    if PluginInstalled('vim-gitgutter')
-        highlight GitGutterAdd    guifg=#009900 ctermfg=82 ctermbg=22
-        highlight GitGutterChange guifg=#bbbb00 ctermfg=220 ctermbg=130
-        highlight GitGutterDelete guifg=#ff2222 ctermfg=196 ctermbg=52
-    endif
 endfunction
 call s:highlight_overrides()
 autocmd ColorScheme * call s:highlight_overrides()

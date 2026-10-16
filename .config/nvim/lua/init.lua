@@ -320,3 +320,56 @@ vim.keymap.set("n", "<F9>", ":FzfLua blines<cr>")
 vim.keymap.set("n", "<S-F9>", ":FzfLua lines<cr>")
 vim.keymap.set("n", "<F10>", ":FzfLua git_bcommits<cr>")
 vim.keymap.set("n", "<S-F10>", ":FzfLua git_commits<cr>")
+
+
+-- git change signs (gitsigns). ]c [c \hs \hu \hp are the same keys vim-gitgutter
+-- has in Vim; the rest are gitsigns only.
+require("gitsigns").setup({
+    on_attach = function(bufnr)
+        local gitsigns = require("gitsigns")
+
+        local function map(mode, lhs, rhs, desc)
+            vim.keymap.set(mode, lhs, rhs, { buffer = bufnr, desc = desc })
+        end
+
+        local function selected_lines()
+            return { vim.fn.line("."), vim.fn.line("v") }
+        end
+
+        -- in diff mode ]c [c keep their diff meaning
+        map("n", "]c", function()
+            if vim.wo.diff then
+                vim.cmd.normal({ "]c", bang = true })
+            else
+                gitsigns.nav_hunk("next")
+            end
+        end, "next hunk")
+        map("n", "[c", function()
+            if vim.wo.diff then
+                vim.cmd.normal({ "[c", bang = true })
+            else
+                gitsigns.nav_hunk("prev")
+            end
+        end, "previous hunk")
+
+        map("n", "<leader>hs", gitsigns.stage_hunk, "stage hunk (again to unstage)")
+        map("n", "<leader>hu", gitsigns.reset_hunk, "undo hunk")
+        map("n", "<leader>hp", gitsigns.preview_hunk, "preview hunk")
+        map("v", "<leader>hs", function() gitsigns.stage_hunk(selected_lines()) end, "stage lines")
+        map("v", "<leader>hu", function() gitsigns.reset_hunk(selected_lines()) end, "undo lines")
+        map("n", "<leader>hS", gitsigns.stage_buffer, "stage buffer")
+        map("n", "<leader>hU", gitsigns.reset_buffer, "undo buffer")
+        map("n", "<leader>hi", gitsigns.preview_hunk_inline, "preview hunk inline")
+        map("n", "<leader>hb", function() gitsigns.blame_line({ full = true }) end, "blame line")
+        map("n", "<leader>hd", gitsigns.diffthis, "diff against index")
+        map("n", "<leader>hD", function() gitsigns.diffthis("~") end, "diff against last commit")
+        map("n", "<leader>hq", gitsigns.setqflist, "buffer hunks to quickfix")
+        map("n", "<leader>hQ", function() gitsigns.setqflist("all") end, "repo hunks to quickfix")
+        map("n", "<leader>tb", gitsigns.toggle_current_line_blame, "toggle line blame")
+        map("n", "<leader>tw", gitsigns.toggle_word_diff, "toggle word diff")
+        map({ "o", "x" }, "ih", gitsigns.select_hunk, "hunk text object")
+    end,
+})
+
+-- git changes on the scrollbar
+require("scrollbar.handlers.gitsigns").setup()
