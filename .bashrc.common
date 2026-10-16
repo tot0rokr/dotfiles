@@ -930,8 +930,9 @@ bootstrap_user_tools() {
     }
 
     install_neovim_user
-    install_vim_plug_user
     install_nvm_user
+    # after nvm: markdown-preview's plugin build runs npx
+    install_vim_plug_user
     install_rustup_user
 
     cargo_install_if_missing fd fd-find
