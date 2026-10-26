@@ -1,0 +1,5 @@
+[include]
+    path = ~/.gitconfig.common
+[user]
+    name = Nomarker Tester
+    email = nomarker@example.invalid

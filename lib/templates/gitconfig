@@ -1,9 +1,5 @@
-# ~/.gitconfig - entry point. Shared config lives in ~/.gitconfig.common.
-# Add this host's own git settings below ([user], [safe], credential helpers).
-# `git config --global` also writes here, so tool-added entries stay per-host.
+# >>> dotfiles >>>
 [include]
-    path = ~/.gitconfig.common
-
-# ============================================================
-# Machine-specific settings below (edit per host)
-# ============================================================
+    path = common
+# <<< dotfiles <<<
+# [local] [user], [safe], credential — `git config --global` writes here too

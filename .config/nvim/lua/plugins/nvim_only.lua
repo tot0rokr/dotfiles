@@ -1,5 +1,5 @@
 -- Plugins that run only in Neovim; plugins Vim can use too go in
--- ~/.vim/plugins.vim. Their setup() calls are in lua/init.lua.
+-- ~/.config/vim/plugins.vim. Their setup() calls are in lua/init.lua.
 return {
     -- theme (schema)
     {
@@ -69,7 +69,7 @@ return {
     -- nvim cscope
     "dhananjaylatkar/cscope_maps.nvim",
 
-    -- Git change signs (Vim uses vim-gitgutter, ~/.vimrc)
+    -- Git change signs (Vim uses vim-gitgutter, ~/.config/vim/vimrc)
     "lewis6991/gitsigns.nvim",
 
     -- GitHub PR review / issues (Octo); talks to GitHub through the gh CLI

@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# Stand-in for mv (tests install it as mv, first on PATH): a move whose source
+# ends in $T_MV_FAIL fails, as on a full disk; any other runs the real mv.
+if [ -n "${T_MV_FAIL:-}" ] && [ $# -ge 2 ]; then
+    case ${*: -2:1} in
+        *"$T_MV_FAIL")
+            printf 'injected mv failure: %s\n' "${*: -2:1}" >&2
+            exit 1
+            ;;
+    esac
+fi
+exec /usr/bin/mv "$@"

@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Stand-in for claude and claude-auto (tests copy it under either name):
+# appends `argv0=<name>` and then each argument on its own line to
+# $FAKE_CLAUDE_LOG. With FAKE_CLAUDE_SLEEP set it then sleeps that long, as a
+# long-running session for the live-migration test.
+{
+    printf 'argv0=%s\n' "${0##*/}"
+    printf '%s\n' "$@"
+} >>"${FAKE_CLAUDE_LOG:-/dev/null}"
+[ -z "${FAKE_CLAUDE_SLEEP:-}" ] || exec sleep "$FAKE_CLAUDE_SLEEP"

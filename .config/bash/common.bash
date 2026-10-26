@@ -1,16 +1,26 @@
-# ~/.bashrc.common - shared shell configuration (tracked in dotfiles)
-# Portable, machine-agnostic, and secret-free. Sourced by ~/.bashrc.
-# Machine-specific settings and secrets belong in ~/.bashrc (NOT tracked here).
-# Manual bootstrap: `bootstrap_user_tools` (no root) / `bootstrap_system_tools`
-# (sudo apt) / `bootstrap_agents` (Claude/Codex/OpenCode/Gemini harness).
+# ~/.config/bash/common.bash - shared interactive shell configuration (tracked in dotfiles)
+# Portable, machine-agnostic, and secret-free. Sourced by the managed block of
+# ~/.bashrc, after env.bash. Machine-specific settings belong in the local zones
+# of ~/.bashrc, secrets in ~/.config/secrets.env (NOT tracked here).
+# Tool install: `dotfiles bootstrap user` (no root) / `system` (sudo apt) /
+# `agents` (Claude/Codex/OpenCode/Gemini harness); the bootstrap_* functions
+# below wrap it.
 
-# Not detected as shell by filename (.common suffix); force the filetype so
-# editors syntax-highlight it. Covers both Vim and Neovim (modelines on by default).
-# vim: set filetype=sh :
+# Absolute, because the bootstrap wrappers below may run from any directory.
+__dotfiles_bash_dir=${BASH_SOURCE[0]%/*}
+[ "$__dotfiles_bash_dir" = "${BASH_SOURCE[0]}" ] && __dotfiles_bash_dir=.
+case $__dotfiles_bash_dir in
+    /*) ;;
+    *) __dotfiles_bash_dir=$PWD/$__dotfiles_bash_dir ;;
+esac
 
-# History settings.
+# History settings. HISTFILE comes first: assigning HISTFILESIZE truncates
+# whichever file HISTFILE names at that moment. bash silently stops saving
+# history when the file's directory is missing.
 HISTCONTROL=ignoreboth:erasedups
 shopt -s histappend
+HISTFILE=${XDG_STATE_HOME:-$HOME/.local/state}/bash/history
+[ -d "${HISTFILE%/*}" ] || mkdir -p "${HISTFILE%/*}"
 HISTSIZE=10000
 HISTFILESIZE=100000
 
@@ -21,7 +31,7 @@ shopt -s checkwinsize
 export LOCAL_BIN_PATH="$HOME/.local/bin"
 export LOCAL_OPT_PATH="$HOME/.local/opt"
 export LOCAL_SRC_PATH="$HOME/.local/src"
-export LOCAL_STATE_PATH="$HOME/.local/state"
+export LOCAL_STATE_PATH="${XDG_STATE_HOME:-$HOME/.local/state}"
 mkdir -p "$LOCAL_BIN_PATH" "$LOCAL_OPT_PATH" "$LOCAL_SRC_PATH" "$LOCAL_STATE_PATH"
 
 __path_prepend() {
@@ -58,12 +68,13 @@ __path_dedupe() {
     __path_dedupe() { :; }
 }
 
-# Move ~/.fzf/bin to the front, ahead of a host fzf (apt, Homebrew): the shell
-# bindings in ~/.fzf/shell and the Vim plugin in ~/.fzf expect the binary from
-# the same checkout. Unlike __path_prepend, this also moves an entry already on
-# PATH further back, e.g. one a parent shell got from ~/.fzf.bash appending it.
+# Move ~/.local/opt/fzf/bin to the front, ahead of a host fzf (apt, Homebrew):
+# the shell bindings in ~/.local/opt/fzf/shell and the Vim plugin in
+# ~/.local/opt/fzf expect the binary from the same checkout. Unlike
+# __path_prepend, this also moves an entry already on PATH further back, e.g.
+# one a parent shell got from ~/.config/fzf/fzf.bash appending it.
 __path_fzf_first() {
-    local dir="$HOME/.fzf/bin" rest=":$PATH:"
+    local dir="$HOME/.local/opt/fzf/bin" rest=":$PATH:"
     [ -d "$dir" ] || return 0
     while [[ $rest == *":$dir:"* ]]; do
         rest=${rest/":$dir:"/:}
@@ -73,8 +84,6 @@ __path_fzf_first() {
     PATH="$dir${rest:+:$rest}"
 }
 
-__path_prepend "$LOCAL_BIN_PATH"
-__path_prepend "$HOME/.cargo/bin"
 __path_fzf_first
 __path_prepend "$HOME/.lmstudio/bin"
 export PATH
@@ -100,10 +109,8 @@ if [ -n "${force_color_prompt:-}" ]; then
     fi
 fi
 
-# Git prompt support from user-local files only.
-if [ -f "$HOME/.git-prompt.sh" ]; then
-    . "$HOME/.git-prompt.sh"
-fi
+# Git prompt support from the copy next to this file.
+. "$__dotfiles_bash_dir/git-prompt.sh"
 
 if [ "$color_prompt" = yes ]; then
     PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
@@ -118,9 +125,7 @@ else
     fi
 fi
 
-if [ -f "$HOME/.git-completion.bash" ]; then
-    . "$HOME/.git-completion.bash"
-fi
+. "$__dotfiles_bash_dir/git-completion.bash"
 
 unset color_prompt force_color_prompt
 
@@ -144,927 +149,66 @@ alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo
 bind 'TAB:menu-complete'
 bind '"\e[Z":menu-complete-backward'
 
-# User-local NVM and Rust environments.
-export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
-[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-[ -s "$NVM_DIR/bash_completion" ] && . "$NVM_DIR/bash_completion"
-[ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"
+# Claude Code plugin dirs and settings files, passed as --plugin-dir/--settings
+# by the claude() wrapper below. Values set before this file runs are kept, and
+# appends skip duplicates, so re-sourcing ~/.bashrc does not repeat arguments.
+declare -p CLAUDE_PLUGIN_DIRS >/dev/null 2>&1 || CLAUDE_PLUGIN_DIRS=()
+declare -p CLAUDE_SETTINGS_FILES >/dev/null 2>&1 || CLAUDE_SETTINGS_FILES=()
 
-# bell-bash: long-running command notifications (installed by
-# bootstrap_user_tools into $LOCAL_OPT_PATH). Wired here rather than by the
-# repo's own installer so the tracked dotfiles stay the single owner of the
-# shell env; the guard makes it a no-op on hosts where it isn't installed.
-# Override BELL_BASH_BACKENDS per host in ~/.bashrc (e.g. add ',webhook').
-if [ -f "$LOCAL_OPT_PATH/bell-bash/bell" ]; then
-    export BELL_BASH_BACKENDS='bel,notify-send'
-    __path_prepend "$LOCAL_OPT_PATH/bell-bash/bin"
-    . "$LOCAL_OPT_PATH/bell-bash/bell"
-    # Skip fzf's interactive widgets from bell auto-triggers: Ctrl-R history
-    # (__fzf_history__), Ctrl-T file (fzf-file-widget), Alt-C cd (__fzf_cd__).
-    # Plain TAB completion needs no entry (bell bails when COMP_LINE is set), but
-    # fzf-tab-completion's `bind -x` widget (fzf_bash_completion) does: on an
-    # empty line READLINE_LINE is empty too, so bell would not skip it. Append
-    # via bell_skip (not a pre-defined array — pre-defining would replace bell's
-    # sensible defaults wholesale).
-    if declare -F bell_skip >/dev/null 2>&1; then
-        bell_skip add '__fzf_history__' 'fzf-file-widget' '__fzf_cd__' 'fzf_bash_completion' >/dev/null
-    fi
+__claude_arg_add() {
+    local -n __claude_arr=$1
+    local v
+    for v in "${__claude_arr[@]}"; do
+        [ "$v" = "$2" ] && return 0
+    done
+    __claude_arr+=("$2")
+}
+
+# noti-bash: Discord/Slack webhook CLI, cloned by `dotfiles bootstrap user`. Its
+# executable comes from the clone (no longer vendored in this repo); put its
+# bin on PATH here, and the clone in front of Claude as a plugin (its skill).
+# Both no-op when the clone isn't present.
+__path_prepend "$LOCAL_OPT_PATH/noti-bash/bin"
+if [ -d "$LOCAL_OPT_PATH/noti-bash" ]; then
+    __claude_arg_add CLAUDE_PLUGIN_DIRS "$LOCAL_OPT_PATH/noti-bash"
 fi
 
-# noti-bash: Discord/Slack webhook CLI, cloned by bootstrap_user_tools. Its
-# executable comes from the clone (no longer vendored in this repo); put its
-# bin on PATH here. __path_prepend no-ops when the clone isn't present.
-__path_prepend "$LOCAL_OPT_PATH/noti-bash/bin"
+# Run claude with the plugin dirs and settings files above, through claude-auto
+# (the account switcher) when it is installed. A claude() defined later in
+# ~/.bashrc replaces this one; an `alias claude=...` would bypass it and drop
+# those arguments.
+function claude() {
+    local d args=()
+    for d in "${CLAUDE_PLUGIN_DIRS[@]}"; do args+=(--plugin-dir); args+=("$d"); done
+    for d in "${CLAUDE_SETTINGS_FILES[@]}"; do args+=(--settings); args+=("$d"); done
+    if command -v claude-auto >/dev/null 2>&1; then
+        claude-auto "${args[@]}" "$@"
+    else
+        command claude "${args[@]}" "$@"
+    fi
+}
 
 # Optional secret loading. Keep the actual webhook outside .bashrc.
-if [ -r "$HOME/.config/noti/webhook" ]; then
-    export NOTI_WEBHOOK="$(sed -n '1p' "$HOME/.config/noti/webhook")"
+if [ -r "${XDG_CONFIG_HOME:-$HOME/.config}/noti/webhook" ]; then
+    export NOTI_WEBHOOK="$(sed -n '1p' "${XDG_CONFIG_HOME:-$HOME/.config}/noti/webhook")"
 fi
 
 # Load user secrets (tokens, API keys). File must be chmod 600.
-if [ -r "$HOME/.config/secrets.env" ]; then
-    . "$HOME/.config/secrets.env"
+if [ -r "${XDG_CONFIG_HOME:-$HOME/.config}/secrets.env" ]; then
+    . "${XDG_CONFIG_HOME:-$HOME/.config}/secrets.env"
 fi
 
-__require_cmd() {
-    if ! command -v "$1" >/dev/null 2>&1; then
-        echo "Missing required command: $1"
-        return 1
-    fi
-}
-
-__host_arch() {
-    case "$(uname -m)" in
-        x86_64|amd64) echo "x86_64" ;;
-        aarch64|arm64) echo "arm64" ;;
-        *) echo "Unsupported CPU architecture: $(uname -m)" >&2; return 1 ;;
-    esac
-}
-
-__github_arch() {
-    case "$(uname -m)" in
-        x86_64|amd64) echo "x86_64" ;;
-        aarch64|arm64) echo "arm64" ;;
-        *) echo "Unsupported CPU architecture: $(uname -m)" >&2; return 1 ;;
-    esac
-}
-
-__deb_arch() {
-    case "$(uname -m)" in
-        x86_64|amd64) echo "amd64" ;;
-        aarch64|arm64) echo "arm64" ;;
-        *) echo "Unsupported CPU architecture: $(uname -m)" >&2; return 1 ;;
-    esac
-}
-
-__gnu_arch() {
-    case "$(uname -m)" in
-        x86_64|amd64) echo "x86_64-unknown-linux-gnu" ;;
-        aarch64|arm64) echo "aarch64-unknown-linux-gnu" ;;
-        *) echo "Unsupported CPU architecture: $(uname -m)" >&2; return 1 ;;
-    esac
-}
-
-# Skips when the user-local nvim exists (re-running bootstrap_user_tools must
-# not silently upgrade it); pass --force to upgrade to the latest release. The
-# archive is unpacked next to the target first and swapped in only after it
-# extracted cleanly, so a failed download/extract never leaves you without nvim.
-install_neovim_user() {
-    local arch dest tmp archive
-    arch="$(__host_arch)" || return 1
-    dest="$LOCAL_OPT_PATH/nvim-linux-${arch}"
-
-    if [ "${1:-}" != "--force" ] && [ -x "$dest/bin/nvim" ]; then
-        return 0
-    fi
-
-    __require_cmd curl || return 1
-    __require_cmd tar || return 1
-
-    mkdir -p "$LOCAL_OPT_PATH" "$LOCAL_BIN_PATH"
-    tmp="$(mktemp -d "$LOCAL_OPT_PATH/.nvim-install.XXXXXX")" || return 1
-    archive="$tmp/nvim-linux-${arch}.tar.gz"
-
-    echo "Installing Neovim under $LOCAL_OPT_PATH ..."
-    if ! curl -fL --retry 3 -o "$archive" \
-            "https://github.com/neovim/neovim/releases/latest/download/nvim-linux-${arch}.tar.gz" \
-        || ! tar -C "$tmp" -xzf "$archive" \
-        || [ ! -x "$tmp/nvim-linux-${arch}/bin/nvim" ]; then
-        echo "Neovim download/extract failed; existing install left untouched." >&2
-        rm -rf "$tmp"
-        return 1
-    fi
-
-    rm -rf "$dest.old"
-    [ -e "$dest" ] && mv "$dest" "$dest.old"
-    mv "$tmp/nvim-linux-${arch}" "$dest" || {
-        [ -e "$dest.old" ] && mv "$dest.old" "$dest"
-        rm -rf "$tmp"
-        return 1
-    }
-    rm -rf "$dest.old" "$tmp"
-
-    ln -sfn "$dest/bin/nvim" "$LOCAL_BIN_PATH/nvim"
-    echo "Installed: $LOCAL_BIN_PATH/nvim ($("$LOCAL_BIN_PATH/nvim" --version | head -1))"
-}
-
-# Vim uses vim-plug (~/.vimrc); Neovim uses lazy.nvim (lua/plugin_manager.lua),
-# which clones itself on first start.
-install_vim_plug_user() {
-    __require_cmd curl || return 1
-
-    local plug_path
-    plug_path="$HOME/.vim/autoload/plug.vim"
-
-    if [ ! -f "$plug_path" ]; then
-        echo "Installing vim-plug under ~/.vim ..."
-        curl -fLo "$plug_path" --create-dirs \
-            https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim || return 1
-    fi
-
-    # type -P / command: skip the vim -> nvim alias in .bash_aliases
-    if type -P vim >/dev/null 2>&1; then
-        # --sync: otherwise +qall races the async install and Vim never exits
-        command vim +'silent! PlugInstall --sync' +qall || true
-    fi
-
-    if command -v nvim >/dev/null 2>&1; then
-        nvim --headless '+Lazy! sync' +qa || true
-    fi
-}
-
-install_nvm_user() {
-    __require_cmd curl || return 1
-
-    export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
-    if [ ! -s "$NVM_DIR/nvm.sh" ]; then
-        echo "Installing nvm under $NVM_DIR ..."
-        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash || return 1
-    fi
-
-    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-
-    if command -v nvm >/dev/null 2>&1; then
-        nvm install --lts
-        nvm alias default 'lts/*'
-    else
-        echo "nvm was not loaded. Open a new shell and try again."
-        return 1
-    fi
-}
-
-install_rustup_user() {
-    if command -v cargo >/dev/null 2>&1; then
-        return 0
-    fi
-
-    __require_cmd curl || return 1
-    echo "Installing rustup under ~/.cargo and ~/.rustup ..."
-    curl https://sh.rustup.rs -sSf | sh -s -- -y || return 1
-    [ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"
-}
-
-cargo_install_if_missing() {
-    local bin crate
-    bin="$1"
-    crate="$2"
-    shift 2
-
-    if command -v "$bin" >/dev/null 2>&1; then
-        return 0
-    fi
-
-    install_rustup_user || return 1
-    if ! command -v cargo >/dev/null 2>&1; then
-        echo "cargo is unavailable. Skipping $crate."
-        return 1
-    fi
-
-    echo "Installing $crate with cargo ..."
-    cargo install "$@" "$crate"
-}
-
-install_starship_user() {
-    if command -v starship >/dev/null 2>&1; then
-        return 0
-    fi
-
-    __require_cmd curl || return 1
-    echo "Installing starship under $LOCAL_BIN_PATH ..."
-    curl -sS https://starship.rs/install.sh | sh -s -- -y -b "$LOCAL_BIN_PATH"
-}
-
-install_jq_user() {
-    if [ -x "$LOCAL_BIN_PATH/jq" ] || command -v jq >/dev/null 2>&1; then
-        return 0
-    fi
-
-    __require_cmd curl || return 1
-    local arch
-    arch="$(__deb_arch)" || return 1
-
-    echo "Installing jq under $LOCAL_BIN_PATH ..."
-    curl -fL --retry 3 -o "$LOCAL_BIN_PATH/jq" \
-        "https://github.com/jqlang/jq/releases/latest/download/jq-linux-${arch}" || return 1
-    chmod 755 "$LOCAL_BIN_PATH/jq"
-}
-
-install_lazygit_user() {
-    if [ -x "$LOCAL_BIN_PATH/lazygit" ] || command -v lazygit >/dev/null 2>&1; then
-        return 0
-    fi
-
-    __require_cmd curl || return 1
-    __require_cmd tar || return 1
-
-    local version arch tmp archive
-    version="$(curl -fsSL https://api.github.com/repos/jesseduffield/lazygit/releases/latest | grep -Po '"tag_name": *"v\K[^"]+')" || return 1
-    arch="$(__github_arch)" || return 1
-    tmp="$(mktemp -d)" || return 1
-    archive="$tmp/lazygit.tar.gz"
-
-    echo "Installing lazygit under $LOCAL_BIN_PATH ..."
-    curl -fL --retry 3 -o "$archive" \
-        "https://github.com/jesseduffield/lazygit/releases/download/v${version}/lazygit_${version}_linux_${arch}.tar.gz" || {
-        rm -rf "$tmp"
-        return 1
-    }
-    tar -C "$tmp" -xzf "$archive" lazygit || {
-        rm -rf "$tmp"
-        return 1
-    }
-    install -m 755 "$tmp/lazygit" "$LOCAL_BIN_PATH/lazygit"
-    rm -rf "$tmp"
-}
-
-install_gh_user() {
-    if [ -x "$LOCAL_BIN_PATH/gh" ] || command -v gh >/dev/null 2>&1; then
-        return 0
-    fi
-
-    __require_cmd curl || return 1
-    __require_cmd tar || return 1
-
-    local version arch tmp archive dir
-    version="$(curl -fsSL https://api.github.com/repos/cli/cli/releases/latest | grep -Po '"tag_name": *"v\K[^"]+')" || return 1
-    arch="$(__deb_arch)" || return 1
-    tmp="$(mktemp -d)" || return 1
-    archive="$tmp/gh.tar.gz"
-    dir="gh_${version}_linux_${arch}"
-
-    echo "Installing gh under $LOCAL_BIN_PATH ..."
-    curl -fL --retry 3 -o "$archive" \
-        "https://github.com/cli/cli/releases/download/v${version}/${dir}.tar.gz" || {
-        rm -rf "$tmp"
-        return 1
-    }
-    tar -C "$tmp" -xzf "$archive" "$dir/bin/gh" || {
-        rm -rf "$tmp"
-        return 1
-    }
-    install -m 755 "$tmp/$dir/bin/gh" "$LOCAL_BIN_PATH/gh"
-    rm -rf "$tmp"
-}
-
-# gh-dash (`git pr`) is a gh extension, so gh keeps it under its own data dir.
-# The full URL pins github.com when gh's default host is an enterprise one, and
-# GH_TOKEN is dropped because a token for another host gets 401 on the release
-# lookup; the repo is public, so no auth is needed.
-install_gh_dash_user() {
-    local gh
-    gh="$(command -v gh || echo "$LOCAL_BIN_PATH/gh")"
-    if [ ! -x "$gh" ]; then
-        echo "gh is unavailable. Skipping gh-dash."
-        return 0
-    fi
-    "$gh" extension list 2>/dev/null | grep -q '^gh dash[[:space:]]' && return 0
-
-    echo "Installing gh-dash as a gh extension ..."
-    env -u GH_TOKEN "$gh" extension install https://github.com/dlvhdr/gh-dash
-}
-
-install_lazydocker_user() {
-    if [ -x "$LOCAL_BIN_PATH/lazydocker" ] || command -v lazydocker >/dev/null 2>&1; then
-        return 0
-    fi
-
-    __require_cmd curl || return 1
-    __require_cmd tar || return 1
-
-    local version arch tmp archive
-    version="$(curl -fsSL https://api.github.com/repos/jesseduffield/lazydocker/releases/latest | grep -Po '"tag_name": *"v\K[^"]+')" || return 1
-    arch="$(__github_arch)" || return 1
-    tmp="$(mktemp -d)" || return 1
-    archive="$tmp/lazydocker.tar.gz"
-
-    echo "Installing lazydocker under $LOCAL_BIN_PATH ..."
-    curl -fL --retry 3 -o "$archive" \
-        "https://github.com/jesseduffield/lazydocker/releases/download/v${version}/lazydocker_${version}_Linux_${arch}.tar.gz" || {
-        rm -rf "$tmp"
-        return 1
-    }
-    tar -C "$tmp" -xzf "$archive" lazydocker || {
-        rm -rf "$tmp"
-        return 1
-    }
-    install -m 755 "$tmp/lazydocker" "$LOCAL_BIN_PATH/lazydocker"
-    rm -rf "$tmp"
-}
-
-install_delta_user() {
-    if [ -x "$LOCAL_BIN_PATH/delta" ] || command -v delta >/dev/null 2>&1; then
-        return 0
-    fi
-
-    __require_cmd curl || return 1
-    __require_cmd tar || return 1
-
-    local version arch tmp archive dir
-    version="$(curl -fsSL https://api.github.com/repos/dandavison/delta/releases/latest | grep -Po '"tag_name": *"\K[^"]+')" || return 1
-    arch="$(__gnu_arch)" || return 1
-    tmp="$(mktemp -d)" || return 1
-    archive="$tmp/delta.tar.gz"
-    dir="delta-${version}-${arch}"
-
-    echo "Installing delta under $LOCAL_BIN_PATH ..."
-    curl -fL --retry 3 -o "$archive" \
-        "https://github.com/dandavison/delta/releases/download/${version}/${dir}.tar.gz" || {
-        rm -rf "$tmp"
-        return 1
-    }
-    tar -C "$tmp" -xzf "$archive" || {
-        rm -rf "$tmp"
-        return 1
-    }
-    install -m 755 "$tmp/$dir/delta" "$LOCAL_BIN_PATH/delta"
-    rm -rf "$tmp"
-}
-
-install_gdu_user() {
-    if [ -x "$LOCAL_BIN_PATH/gdu" ] || command -v gdu >/dev/null 2>&1; then
-        return 0
-    fi
-
-    __require_cmd curl || return 1
-    __require_cmd tar || return 1
-
-    local arch tmp archive bin
-    arch="$(__deb_arch)" || return 1
-    tmp="$(mktemp -d)" || return 1
-    archive="$tmp/gdu.tgz"
-    bin="gdu_linux_${arch}"
-
-    echo "Installing gdu under $LOCAL_BIN_PATH ..."
-    curl -fL --retry 3 -o "$archive" \
-        "https://github.com/dundee/gdu/releases/latest/download/gdu_linux_${arch}.tgz" || {
-        rm -rf "$tmp"
-        return 1
-    }
-    tar -C "$tmp" -xzf "$archive" || {
-        rm -rf "$tmp"
-        return 1
-    }
-    install -m 755 "$tmp/$bin" "$LOCAL_BIN_PATH/gdu"
-    rm -rf "$tmp"
-}
-
-install_up_user() {
-    if [ -x "$LOCAL_BIN_PATH/up" ] || command -v up >/dev/null 2>&1; then
-        return 0
-    fi
-
-    __require_cmd curl || return 1
-    echo "Installing up under $LOCAL_BIN_PATH ..."
-    curl -fL --retry 3 -o "$LOCAL_BIN_PATH/up" \
-        https://github.com/akavel/up/releases/latest/download/up || return 1
-    chmod 755 "$LOCAL_BIN_PATH/up"
-}
-
-# Clone ~/.fzf even when the host has its own fzf: Vim and Neovim load the fzf
-# Vim plugin from ~/.fzf (no plugin manager installs it), and __path_fzf_first
-# puts its binary ahead of the host one.
-install_fzf_user() {
-    [ -d "$HOME/.fzf" ] && return 0
-
-    if ! command -v git >/dev/null 2>&1; then
-        echo "git is unavailable. Skipping fzf."
-        return 0
-    fi
-
-    echo "Installing fzf under ~/.fzf ..."
-    git clone --depth 1 https://github.com/junegunn/fzf.git "$HOME/.fzf" || return 1
-    "$HOME/.fzf/install" --bin --key-bindings --completion --no-update-rc || return 1
-}
-
-# Separate from install_fzf_user: that one returns early once ~/.fzf exists,
-# which would skip this clone on hosts that already have it.
-install_fzf_tab_completion_user() {
-    [ -d "$HOME/.fzf-tab-completion" ] && return 0
-    if ! command -v git >/dev/null 2>&1; then
-        echo "git is unavailable. Skipping fzf-tab-completion."
-        return 0
-    fi
-    echo "Installing fzf-tab-completion under ~/.fzf-tab-completion ..."
-    git clone --depth 1 https://github.com/lincheney/fzf-tab-completion "$HOME/.fzf-tab-completion"
-}
-
-# pynvim goes into a dedicated venv: `pip install --user` is refused on
-# PEP 668 "externally managed" system Pythons (Ubuntu 24.04+). init.vim points
-# g:python3_host_prog at this venv's python.
-install_pynvim_user() {
-    local venv="$HOME/.local/share/nvim/venv"
-    if ! command -v python3 >/dev/null 2>&1; then
-        echo "python3 is unavailable. Skipping pynvim."
-        return 0
-    fi
-
-    if [ ! -x "$venv/bin/python" ]; then
-        echo "Creating nvim python venv at $venv ..."
-        python3 -m venv "$venv" || {
-            echo "python3 -m venv failed (install python3-venv). Skipping pynvim." >&2
-            return 0
-        }
-    fi
-    echo "Installing pynvim into $venv ..."
-    "$venv/bin/python" -m pip install --upgrade pynvim
-}
-
-install_clangd_user() {
-    if [ -x "$LOCAL_BIN_PATH/clangd" ] || command -v clangd >/dev/null 2>&1; then
-        return 0
-    fi
-
-    __require_cmd curl || return 1
-    __require_cmd unzip || return 1
-
-    case "$(uname -m)" in
-        x86_64|amd64) ;;
-        *) echo "clangd prebuilt is x86_64-only. Skipping clangd on $(uname -m)."; return 0 ;;
-    esac
-
-    local version tmp archive dir
-    version="$(curl -fsSL https://api.github.com/repos/clangd/clangd/releases/latest | grep -Po '"tag_name": *"\K[^"]+')" || return 1
-    tmp="$(mktemp -d)" || return 1
-    archive="$tmp/clangd.zip"
-    dir="clangd_${version}"
-
-    echo "Installing clangd ${version} under $LOCAL_OPT_PATH ..."
-    curl -fL --retry 3 -o "$archive" \
-        "https://github.com/clangd/clangd/releases/download/${version}/clangd-linux-${version}.zip" || {
-        rm -rf "$tmp"
-        return 1
-    }
-    rm -rf "$LOCAL_OPT_PATH/$dir"
-    unzip -q "$archive" -d "$LOCAL_OPT_PATH" || {
-        rm -rf "$tmp"
-        return 1
-    }
-    ln -sfn "$LOCAL_OPT_PATH/$dir/bin/clangd" "$LOCAL_BIN_PATH/clangd"
-    rm -rf "$tmp"
-    echo "Installed: $LOCAL_BIN_PATH/clangd"
-}
-
-install_btop_user() {
-    if [ -x "$LOCAL_BIN_PATH/btop" ] || command -v btop >/dev/null 2>&1; then
-        return 0
-    fi
-
-    __require_cmd curl || return 1
-    __require_cmd tar || return 1
-
-    local march tmp archive
-    case "$(uname -m)" in
-        x86_64|amd64) march="x86_64" ;;
-        aarch64|arm64) march="aarch64" ;;
-        *) echo "Unsupported CPU architecture for btop: $(uname -m)" >&2; return 1 ;;
-    esac
-    tmp="$(mktemp -d)" || return 1
-    archive="$tmp/btop.tar.gz"
-
-    echo "Installing btop under $LOCAL_OPT_PATH ..."
-    curl -fL --retry 3 -o "$archive" \
-        "https://github.com/aristocratos/btop/releases/latest/download/btop-${march}-unknown-linux-musl.tar.gz" || {
-        rm -rf "$tmp"
-        return 1
-    }
-    rm -rf "$LOCAL_OPT_PATH/btop"
-    tar -C "$LOCAL_OPT_PATH" -xzf "$archive" || {
-        rm -rf "$tmp"
-        return 1
-    }
-    ln -sfn "$LOCAL_OPT_PATH/btop/bin/btop" "$LOCAL_BIN_PATH/btop"
-    if [ -d "$LOCAL_OPT_PATH/btop/themes" ]; then
-        mkdir -p "$HOME/.config/btop/themes"
-        cp -rf "$LOCAL_OPT_PATH/btop/themes/." "$HOME/.config/btop/themes/" 2>/dev/null || true
-    fi
-    rm -rf "$tmp"
-    echo "Installed: $LOCAL_BIN_PATH/btop"
-}
-
-install_nnn_user() {
-    if [ -x "$LOCAL_BIN_PATH/nnn" ] || command -v nnn >/dev/null 2>&1; then
-        return 0
-    fi
-
-    __require_cmd curl || return 1
-    __require_cmd tar || return 1
-
-    case "$(uname -m)" in
-        x86_64|amd64) ;;
-        *) echo "nnn static build is x86_64-only. Skipping nnn on $(uname -m)."; return 0 ;;
-    esac
-
-    local tag version tmp archive bin
-    tag="$(curl -fsSL https://api.github.com/repos/jarun/nnn/releases/latest | grep -Po '"tag_name": *"\K[^"]+')" || return 1
-    version="${tag#v}"
-    tmp="$(mktemp -d)" || return 1
-    archive="$tmp/nnn.tar.gz"
-
-    echo "Installing nnn ${version} under $LOCAL_BIN_PATH ..."
-    curl -fL --retry 3 -o "$archive" \
-        "https://github.com/jarun/nnn/releases/download/${tag}/nnn-static-${version}.x86_64.tar.gz" || {
-        rm -rf "$tmp"
-        return 1
-    }
-    tar -C "$tmp" -xzf "$archive" || {
-        rm -rf "$tmp"
-        return 1
-    }
-    bin=""
-    for f in "$tmp"/nnn*; do
-        [ -f "$f" ] && bin="$f" && break
-    done
-    if [ -z "$bin" ]; then
-        echo "Could not find nnn binary in archive." >&2
-        rm -rf "$tmp"
-        return 1
-    fi
-    install -m 755 "$bin" "$LOCAL_BIN_PATH/nnn"
-    rm -rf "$tmp"
-    echo "Installed: $LOCAL_BIN_PATH/nnn"
-}
-
-# Installs even when a system tmux exists: distro builds lag (Ubuntu 24.04's
-# 3.4 misparses nvim's DECRQSS query as sixel). The binary lives alone in
-# $LOCAL_OPT_PATH/tmux/bin so ~/.bashrc can put just that dir on PATH before its
-# interactive guard (ssh 'tmux attach' runs non-interactively); $LOCAL_BIN_PATH
-# gets a symlink for interactive shells. Pinned to a known-good release; bumping the tag upgrades on the next
-# run, and --force reinstalls even when the pinned version is present. v3.7b
-# ships no arm64 build, so arm64 pins the newest release that has one.
-TMUX_STATIC_TAG="${TMUX_STATIC_TAG:-v3.7b}"
-TMUX_STATIC_TAG_ARM64="${TMUX_STATIC_TAG_ARM64:-v3.6b}"
-
-install_tmux_user() {
-    # Static, dependency-free tmux from the community build-static-tmux project.
-    local march tag tmp gz dest="$LOCAL_OPT_PATH/tmux/bin"
-    case "$(uname -m)" in
-        x86_64|amd64) march="amd64"; tag="$TMUX_STATIC_TAG" ;;
-        aarch64|arm64) march="arm64"; tag="$TMUX_STATIC_TAG_ARM64" ;;
-        *) echo "Unsupported CPU architecture for static tmux: $(uname -m)" >&2; return 1 ;;
-    esac
-
-    if [ "${1:-}" != "--force" ] && [ -x "$dest/tmux" ] \
-       && [ "$("$dest/tmux" -V 2>/dev/null)" = "tmux ${tag#v}" ]; then
-        return 0
-    fi
-
-    __require_cmd curl || return 1
-    __require_cmd gzip || return 1
-
-    tmp="$(mktemp -d)" || return 1
-    gz="$tmp/tmux.gz"
-
-    echo "Installing static tmux ${tag} (community build) under $dest ..."
-    if ! curl -fL --retry 3 -o "$gz" \
-            "https://github.com/mjakob-gh/build-static-tmux/releases/download/${tag}/tmux.linux-${march}.stripped.gz" \
-        || ! gzip -dc "$gz" > "$tmp/tmux" \
-        || ! chmod 755 "$tmp/tmux" \
-        || ! "$tmp/tmux" -V >/dev/null 2>&1; then
-        echo "tmux download/verify failed; existing install left untouched." >&2
-        rm -rf "$tmp"
-        return 1
-    fi
-    mkdir -p "$dest" "$LOCAL_BIN_PATH"
-    install -m 755 "$tmp/tmux" "$dest/tmux"
-    ln -sfn "$dest/tmux" "$LOCAL_BIN_PATH/tmux"
-    rm -rf "$tmp"
-    echo "Installed: $dest/tmux ($("$dest/tmux" -V))"
-    echo "Running tmux servers keep the old binary; restart them (tmux kill-server) to switch."
-}
-
-# Shared clone-or-update helper. bell-bash / noti-bash are cloned into
-# $LOCAL_OPT_PATH; the agents harness into ~/agents (see install_agents_user).
-# For bell/noti we do NOT run their bundled installers: the shell/tmux wiring is
-# owned by the tracked .bashrc.common / .tmux.common.conf, so those helpers only
-# clone (or update) the repo, link the Claude Code skill, and (for bell) merge
-# the Stop/Notification hooks into ~/.claude/settings.json.
-__clone_or_pull() {
-    local url="$1" dst="$2" clone_flags
-    # $3 = extra `git clone` flags. Default to a shallow clone; pass "" for a
-    # full clone (repos you commit to, e.g. the agents harness, need history).
-    if [ $# -ge 3 ]; then clone_flags="$3"; else clone_flags="--depth 1"; fi
-    if [ -d "$dst/.git" ]; then
-        git -C "$dst" pull --ff-only || true
-    else
-        echo "Cloning $(basename "$dst") into $dst ..."
-        # shellcheck disable=SC2086 -- word-split $clone_flags into git args
-        git clone $clone_flags "$url" "$dst" || return 1
-    fi
-}
-
-# Point ~/.claude/skills/<name> at the clone. Only replace a symlink or an
-# absent entry; if a real directory is already there (e.g. a copy owned by
-# another repo) leave it untouched rather than clobbering it.
-__link_skill() {
-    local src="$1" link="$2"
-    [ -d "$(dirname "$link")" ] || return 0
-    if [ -L "$link" ] || [ ! -e "$link" ]; then
-        ln -sfn "$src" "$link"
-    else
-        echo "Leaving existing skill dir in place (not a symlink): $link"
-    fi
-}
-
-# Register bell-bash's default Stop/Notification toast hooks in
-# ~/.claude/settings.json via an idempotent jq merge: any existing hooks are
-# preserved, and re-running replaces (never duplicates) our bell-send entries.
-# bell-send is referenced by absolute path because Claude runs hooks in a
-# non-interactive shell, where ~/.bashrc's interactive guard skips the PATH
-# that would otherwise expose it.
-__install_bell_claude_hook() {
-    [ -d "$HOME/.claude" ] || return 0
-    if ! command -v jq >/dev/null 2>&1; then
-        echo "jq not found; skipping bell Claude Code hook (skill still works)."
-        return 0
-    fi
-    local settings="$HOME/.claude/settings.json"
-    local bin="$HOME/.local/opt/bell-bash/bin/bell-send"
-    local stop="$bin --backends=bel,notify-send 'claude done' >/dev/null 2>&1"
-    local notif="$bin --backends=bel,notify-send 'claude needs input' >/dev/null 2>&1"
-    [ -f "$settings" ] || echo '{}' > "$settings"
-
-    local tmp
-    tmp="$(mktemp)" || return 1
-    if jq --arg stop "$stop" --arg notif "$notif" '
-        def upsert($evt; $cmd):
-            .hooks[$evt] = (((.hooks[$evt] // [])
-                | map(select((.hooks // []) | any(.command | test("bell-send")) | not)))
-                + [{hooks: [{type: "command", command: $cmd, async: true}]}]);
-        (.hooks //= {}) | upsert("Stop"; $stop) | upsert("Notification"; $notif)
-    ' "$settings" > "$tmp"; then
-        mv "$tmp" "$settings"
-        echo "Registered bell Stop/Notification hooks in $settings"
-    else
-        rm -f "$tmp"
-        echo "Could not update $settings (invalid JSON?); left it unchanged." >&2
-        return 1
-    fi
-}
-
-install_bell_bash_user() {
-    __require_cmd git || return 1
-    local repo="$LOCAL_OPT_PATH/bell-bash"
-    __clone_or_pull https://github.com/tot0rokr/bell-bash.git "$repo" || return 1
-    # Interactive shell hook + tmux block live in the tracked dotfiles; link the
-    # skill and register the Claude Code Stop/Notification toast hooks.
-    __link_skill "$repo/skills/bell" "$HOME/.claude/skills/bell"
-    __install_bell_claude_hook
-}
-
-install_noti_bash_user() {
-    __require_cmd git || return 1
-    local repo="$LOCAL_OPT_PATH/noti-bash"
-    __clone_or_pull https://github.com/tot0rokr/noti-bash.git "$repo" || return 1
-    # The clone provides both the `noti` CLI (its bin/ is added to PATH in the
-    # noti-bash block near the top of this file) and the Claude Code skill.
-    __link_skill "$repo/skills/noti" "$HOME/.claude/skills/noti"
-}
-
-# claude-account-switcher runs Claude Code across several accounts and rotates
-# to the next one when the active account nears its usage limit. Unlike
-# bell/noti we DO run its installer: it owns pieces we don't track here (the
-# ~/.claude-accounts store and the statusLine sensor that does the switching,
-# chained onto whatever statusLine is already configured).
-install_claude_switcher_user() {
-    __require_cmd git || return 1
-    local repo="$LOCAL_OPT_PATH/claude-account-switcher"
-    __clone_or_pull https://github.com/tot0rokr/claude-account-switcher.git "$repo" || return 1
-    # Adopt the logged-in account as the first slot, but only on a first install:
-    # with slots already stored this would duplicate whichever one is active.
-    local seed=""
-    if [ -f "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/.credentials.json" ] \
-       && ! grep -qE '^[^[:space:]#]' "${CLAUDE_AUTO_HOME:-$HOME/.claude-accounts}/config/accounts.list" 2>/dev/null; then
-        seed="--seed-current"
-    fi
-    # shellcheck disable=SC2086 -- $seed is either empty or a single flag
-    bash "$repo/install.sh" $seed || return 1
-    __route_claude_through_claude_auto
-}
-
-# Make `claude` launch through claude-auto so accounts rotate. A bare alias
-# would shadow a wrapper function (e.g. the claude-bsp plugin launcher), so when
-# one exists we rewrite only its `command claude …` line — every flag and any
-# surrounding subshell it sets up are preserved.
-__route_claude_through_claude_auto() {
-    local rc="$HOME/.bashrc"
-    [ -f "$rc" ] || return 0
-    grep -q 'claude-auto' "$rc" && return 0          # already routed
-    if grep -qE '^[[:space:]]*(function[[:space:]]+)?claude[[:space:]]*\(\)' "$rc"; then
-        command -v python3 >/dev/null 2>&1 || {
-            echo "Wrapper found in $rc but python3 is missing; point its 'command claude' line at claude-auto yourself."
-            return 0
-        }
-        cp -p "$rc" "$rc.pre-claude-auto.$(date +%Y%m%d-%H%M%S).bak"
-        python3 - "$rc" <<'PY'
-import re, sys
-p = sys.argv[1]; s = open(p).read()
-def repl(m):
-    ind, args = m.group(1), m.group(2)
-    return (f'{ind}if command -v claude-auto >/dev/null 2>&1; then\n'
-            f'{ind}    claude-auto{args}\n'
-            f'{ind}else\n'
-            f'{ind}    command claude{args}\n'
-            f'{ind}fi')
-new, n = re.subn(r'^(\s*)command claude(\s.*)$', repl, s, count=1, flags=re.M)
-if n:
-    open(p, 'w').write(new); print(f"Routed the claude wrapper in {p} through claude-auto")
-else:
-    print(f"Wrapper in {p} has no 'command claude' line; route it yourself.")
-PY
-        bash -n "$rc" || echo "$rc failed its syntax check — restore the .bak beside it." >&2
-    else
-        printf '\n# claude-account-switcher: rotate accounts on usage limits\ncommand -v claude-auto >/dev/null 2>&1 && alias claude="claude-auto"\n' >> "$rc"
-        echo "Added 'alias claude=claude-auto' to $rc"
-    fi
-}
-
-show_user_only_notes() {
-    cat <<'NOTES'
-
-User-only notes:
-- bootstrap_user_tools never runs sudo/apt/snap/dpkg and installs everything under ~/.local.
-- It now also installs clangd, btop, nnn, and tmux from prebuilt/static downloads (no root needed; x86_64 mainly, see per-tool guards).
-- It clones bell-bash and noti-bash into ~/.local/opt (the `noti` CLI and `bell`/`bell-send` come from these clones, not vendored copies), links their Claude Code skills, and merges bell's Stop/Notification toast hooks into ~/.claude/settings.json (idempotent jq merge; existing hooks preserved). The shell/tmux hooks are wired by the tracked .bashrc.common / .tmux.common.conf, not the repos' own installers. Update the tools with `git -C ~/.local/opt/<repo> pull`.
-- It installs claude-account-switcher into ~/.local/opt and runs its installer (this one owns state we don't track: the ~/.claude-accounts store and the statusLine sensor that switches accounts). Your `claude` wrapper is rewritten to launch through `claude-auto` (a .bak is kept); add accounts with `claude-auto login <name>` and check them with `claude-auto status`.
-- It installs gh-dash (`git pr`) as a gh extension. Upgrade it with `env -u GH_TOKEN gh extension upgrade dash`; a GH_TOKEN meant for another host makes the upgrade fail.
-- Tools that genuinely need root are NOT installed by bootstrap_user_tools. Run `bootstrap_system_tools` (sudo apt) for: git, curl, wget, gcc/make (build-essential), openssh-server, python3-venv, ruby-full, universal-ctags, cscope, unzip, wezterm.
-- Some cargo installs may fail if system build tools are missing; run bootstrap_system_tools first if so.
-- To keep NOTI_WEBHOOK private, put it in ~/.config/noti/webhook with chmod 600 instead of hard-coding it in .bashrc.
-- The agents harness (shared Claude/Codex/OpenCode/Gemini config) is NOT installed here; run `bootstrap_agents` for it (ideally before this, so bell/noti skills land in the symlinked ~/.claude). `bootstrap_agents` also installs the Claude Code CLI into ~/.local/bin when `claude` is missing (user-local, no root).
-NOTES
-}
-
-bootstrap_user_tools() {
-    mkdir -p "$LOCAL_BIN_PATH" "$LOCAL_OPT_PATH" "$LOCAL_SRC_PATH" "$LOCAL_STATE_PATH"
-
-    if [ -r /etc/os-release ]; then
-        . /etc/os-release
-        if [ "${ID:-}" != "ubuntu" ]; then
-            echo "This bootstrap was tuned for Ubuntu, but it will continue with user-local installs only."
-        fi
-    fi
-
-    __require_cmd curl || {
-        echo "Install curl first or download the tools manually. No sudo command was run."
-        return 1
-    }
-
-    install_neovim_user
-    install_nvm_user
-    # after nvm: markdown-preview's plugin build runs npx
-    install_vim_plug_user
-    install_rustup_user
-
-    cargo_install_if_missing fd fd-find
-    cargo_install_if_missing bat bat
-    cargo_install_if_missing rg ripgrep
-    cargo_install_if_missing dust du-dust
-    # --locked: without the crate's own Cargo.lock, cargo picks newer deps that
-    # break eza's build, and no zip 5.x it can select for tealdeer
-    cargo_install_if_missing eza eza --locked
-    cargo_install_if_missing hyperfine hyperfine
-    cargo_install_if_missing difft difftastic --locked
-    cargo_install_if_missing tldr tealdeer --locked
-    cargo_install_if_missing choose choose
-    cargo_install_if_missing zoxide zoxide --locked
-
-    if command -v tldr >/dev/null 2>&1; then
-        tldr --seed-config || true
-        tldr -u || true
-    fi
-
-    install_starship_user
-    install_jq_user
-    install_lazygit_user
-    install_gh_user
-    install_gh_dash_user
-    install_lazydocker_user
-    install_delta_user
-    install_gdu_user
-    install_up_user
-    install_fzf_user
-    install_fzf_tab_completion_user
-    install_pynvim_user
-
-    install_clangd_user
-    install_btop_user
-    install_nnn_user
-    install_tmux_user
-
-    install_bell_bash_user
-    install_noti_bash_user
-    install_claude_switcher_user
-
-    show_user_only_notes
-}
-
-# Install the Claude Code CLI into the user account -- no root. The official
-# installer downloads a native binary to ~/.claude/downloads, verifies its
-# checksum, then runs `claude install`, which drops a launcher at
-# ~/.local/bin/claude symlinked to ~/.local/share/claude/versions/<v> and wires
-# shell integration. Everything lands under $HOME (matches $LOCAL_BIN_PATH), so
-# no sudo. Skipped when `claude` is already on PATH so re-running is a no-op.
-install_claude_code_user() {
-    if command -v claude >/dev/null 2>&1; then
-        echo "claude already installed ($(command -v claude)); skipping."
-        return 0
-    fi
-    __require_cmd curl || return 1
-    echo "Installing Claude Code CLI (user-local, no root) ..."
-    curl -fsSL https://claude.ai/install.sh | bash || {
-        echo "Claude Code install failed (see output above)." >&2
-        return 1
-    }
-}
-
-# Install the agents harness (shared config/skills/memory/MCP for Claude Code,
-# Codex, OpenCode and Gemini). Its own command -- like bootstrap_user_tools,
-# not folded into it -- because it OWNS the home config dirs (~/.claude,
-# ~/.codex, ~/.config/opencode, ~/.gemini, ~/.agents) and should be explicit
-# opt-in. Clones to the canonical ~/agents path (install.py, doctor.sh and the
-# home symlinks all hard-code it) as a FULL clone -- you commit to it (shared
-# memory pool, config), so history must be intact. install.py backs up any
-# pre-existing real config dir to <path>.bak.<timestamp> before symlinking it
-# into ~/agents, is idempotent (a no-op once linked), and rolls back on error;
-# doctor.sh verifies the result.
-#
-# Order note: if you also use bell/noti, run bootstrap_agents BEFORE
-# bootstrap_user_tools so bell/noti link their skills into the already-symlinked
-# ~/.claude. If you did it the other way round, just re-run install_bell_bash_user
-# and install_noti_bash_user afterwards.
-bootstrap_agents() {
-    __require_cmd git || return 1
-    __require_cmd python3 || return 1
-    # Make sure the Claude Code CLI itself exists before wiring its config;
-    # no-op if already installed.
-    install_claude_code_user || return 1
-    __clone_or_pull https://github.com/tot0rokr/agents.git "$HOME/agents" "" || return 1
-    echo "Installing agents harness symlinks (python3 scripts/install.py) ..."
-    python3 "$HOME/agents/scripts/install.py" || {
-        echo "agents install.py failed (see output above); skipping doctor." >&2
-        return 1
-    }
-    bash "$HOME/agents/scripts/doctor.sh" || \
-        echo "agents doctor.sh reported issues; review the output above." >&2
-}
-
-# Install the system/root packages that the user-local path cannot provide.
-# This is the ONLY function here that uses sudo/apt. It is never auto-run;
-# call it manually on a Debian/Ubuntu host when you have sudo.
-bootstrap_system_tools() {
-    if ! command -v sudo >/dev/null 2>&1; then
-        echo "sudo is required for bootstrap_system_tools. Aborting." >&2
-        return 1
-    fi
-    if ! command -v apt-get >/dev/null 2>&1; then
-        echo "bootstrap_system_tools currently supports Debian/Ubuntu (apt) only." >&2
-        return 1
-    fi
-
-    echo "Installing system packages with sudo apt-get ..."
-    sudo apt-get update || return 1
-    sudo apt-get install -y \
-        ca-certificates gnupg \
-        git curl wget \
-        build-essential gcc make \
-        openssh-server \
-        python3 python3-venv python3-pip \
-        ruby-full \
-        universal-ctags cscope \
-        unzip || return 1
-
-    # wezterm is not in the default repos; add the official fury repo first.
-    if ! command -v wezterm >/dev/null 2>&1; then
-        echo "Adding WezTerm apt repository ..."
-        curl -fsSL https://apt.fury.io/wez/gpg.key | sudo gpg --yes --dearmor -o /usr/share/keyrings/wezterm-fury.gpg || return 1
-        echo 'deb [signed-by=/usr/share/keyrings/wezterm-fury.gpg] https://apt.fury.io/wez/ * *' | sudo tee /etc/apt/sources.list.d/wezterm.list >/dev/null
-        sudo chmod 644 /usr/share/keyrings/wezterm-fury.gpg
-        sudo apt-get update || return 1
-        sudo apt-get install -y wezterm || return 1
-    fi
-
-    echo "System packages installed."
-}
+# The installers live in the dotfiles CLI; these keep the old function names.
+# The repo's own CLI comes first, so a portable checkout uses its copy: `..`
+# resolves physically, through the ~/.config/bash link, into the repo.
+if [ -x "$__dotfiles_bash_dir/../../bin/dotfiles" ]; then
+    __dotfiles_bin=$__dotfiles_bash_dir/../../bin/dotfiles
+else
+    __dotfiles_bin=dotfiles
+fi
+bootstrap_system_tools() { "$__dotfiles_bin" bootstrap system "$@"; }
+bootstrap_user_tools() { "$__dotfiles_bin" bootstrap user "$@"; }
+bootstrap_agents() { "$__dotfiles_bin" bootstrap agents "$@"; }
 
 # Safe X11 DISPLAY setup for SSH, even inside tmux.
 if [[ -n "${SSH_CONNECTION:-}" ]]; then
@@ -1072,12 +216,11 @@ if [[ -n "${SSH_CONNECTION:-}" ]]; then
 fi
 
 # User aliases.
-if [ -f "$HOME/.bash_aliases" ]; then
-    . "$HOME/.bash_aliases"
-fi
+. "$__dotfiles_bash_dir/aliases.bash"
 
-# Programmable completion from existing system files only.
-if ! shopt -oq posix; then
+# Programmable completion from existing system files only, loaded once: a
+# re-sourced ~/.bashrc or the distro /etc/bash.bashrc may have loaded it.
+if [ -z "${BASH_COMPLETION_VERSINFO:-}" ] && ! shopt -oq posix; then
     if [ -f /usr/share/bash-completion/bash_completion ]; then
         . /usr/share/bash-completion/bash_completion
     elif [ -f /etc/bash_completion ]; then
@@ -1085,17 +228,30 @@ if ! shopt -oq posix; then
     fi
 fi
 
-[ -f "$HOME/.fzf.bash" ] && . "$HOME/.fzf.bash"
+. "$__dotfiles_bash_dir/../fzf/fzf.bash"
 
 # fzf-tab-completion: TAB opens completion candidates in fzf. Must load after
 # bash-completion; overrides the plain `TAB:menu-complete` bind above, which
 # stays as the fallback when fzf or the clone is missing.
-if [ -f "$HOME/.fzf-tab-completion/bash/fzf-bash-completion.sh" ] && command -v fzf >/dev/null 2>&1; then
-    . "$HOME/.fzf-tab-completion/bash/fzf-bash-completion.sh"
+if [ -f "$HOME/.local/opt/fzf-tab-completion/bash/fzf-bash-completion.sh" ] && command -v fzf >/dev/null 2>&1; then
+    . "$HOME/.local/opt/fzf-tab-completion/bash/fzf-bash-completion.sh"
     bind -x '"\t": fzf_bash_completion'
 fi
 
-PROMPT_COMMAND="${PROMPT_COMMAND:+$PROMPT_COMMAND; }history -a; history -n; __path_dedupe"
+# The prompt hooks below are installed once per shell, so re-sourcing
+# ~/.bashrc leaves them as they are. starship and bell-bash move PROMPT_COMMAND
+# into their own variables, where neither a second append nor their own
+# duplicate checks would find the first copy, and the two would then call each
+# other at the next prompt until bash crashes.
+__prompt_has_hook() {
+    case "${PROMPT_COMMAND[*]-};${STARSHIP_PROMPT_COMMAND-};${__bell_bash_prev_pc-}" in
+        *"$1"*) return 0 ;;
+    esac
+    return 1
+}
+
+__prompt_has_hook 'history -a; history -n' ||
+    PROMPT_COMMAND="${PROMPT_COMMAND:+$PROMPT_COMMAND; }history -a; history -n; __path_dedupe"
 
 # starship's git_status walks the whole work tree, 0.2-0.6s per prompt on the
 # NFS home. Run it in the background instead and show the last finished
@@ -1133,7 +289,7 @@ __prompt_git_status() {
         echo "$BASHPID" >"$cache.pid"
         # Unset STARSHIP_SHELL so `$` stays unescaped; the env_var module
         # escapes the value when it renders the real prompt.
-        cd "$root" &&
+        builtin cd "$root" &&
             STARSHIP_SHELL= starship module git_status >"$tmp" &&
             command mv -f "$tmp" "$cache"
         command rm -f "$tmp" "$cache.pid"
@@ -1146,7 +302,7 @@ __prompt_git_status() {
 # of the shared NFS home gets its own) and show it through env_var.PROMPT_OS
 # (starship.toml). Editing starship.toml makes the cache stale.
 __prompt_os_init() {
-    local cfg=${STARSHIP_CONFIG:-$HOME/.config/starship.toml}
+    local cfg=${STARSHIP_CONFIG:-${XDG_CONFIG_HOME:-$HOME/.config}/starship.toml}
     local cache=${TMPDIR:-/tmp}/$USER/prompt-os
     if [[ ! -e $cache || $cfg -nt $cache ]]; then
         mkdir -p "${cache%/*}" &&
@@ -1164,20 +320,80 @@ __prompt_os_init() {
 }
 
 if command -v starship >/dev/null 2>&1; then
-    eval "$(starship init bash)"
+    declare -F starship_precmd >/dev/null || eval "$(starship init bash)"
     starship_precmd_user_func=__prompt_git_status
     __prompt_os_init
 fi
 
 if command -v zoxide >/dev/null 2>&1; then
     export _ZO_ECHO=1
-    eval "$(zoxide init bash)"
+    declare -F __zoxide_hook >/dev/null || eval "$(zoxide init bash)"
 fi
 
 # >>> modern grep/find (rg/fd) >>>
 # Translate common grep/find invocations to rg/fd; fall back to the real tool
 # for anything unrecognized. Interactive-only (the file self-guards on $-).
 # Per-call bypass: `command grep ...` / `command find ...`.
-[ -f "$HOME/.config/shell/modern-grep-find.bash" ] && source "$HOME/.config/shell/modern-grep-find.bash"
+[ -f "${XDG_CONFIG_HOME:-$HOME/.config}/shell/modern-grep-find.bash" ] && source "${XDG_CONFIG_HOME:-$HOME/.config}/shell/modern-grep-find.bash"
 # <<< modern grep/find <<<
 
+# fnm: node version switching. env.bash puts the default version on PATH for
+# every shell; `fnm env` puts this shell's own version dir in front of it.
+# Its `cd` alias is dropped: zoxide's `z` and pushd/popd change directory
+# through the builtin and never reach it. A prompt hook switches on any PWD
+# change instead, before starship renders the prompt; the first prompt also
+# covers the directory the shell started in. Kept after the starship block,
+# whose precmd hook it extends.
+if command -v fnm >/dev/null 2>&1; then
+    eval "$(fnm env --use-on-cd --shell bash)"
+    unalias cd 2>/dev/null
+    __fnm_last_pwd=
+    __fnm_pwd_hook() {
+        local status=$?
+        if [ "$PWD" != "$__fnm_last_pwd" ]; then
+            __fnm_last_pwd=$PWD
+            __fnm_use_if_file_found
+        fi
+        return $status
+    }
+    if declare -F starship_precmd >/dev/null 2>&1; then
+        __dotfiles_precmd() {
+            __fnm_pwd_hook
+            __prompt_git_status
+        }
+        starship_precmd_user_func=__dotfiles_precmd
+    elif ! __prompt_has_hook __fnm_pwd_hook; then
+        PROMPT_COMMAND="${PROMPT_COMMAND:+$PROMPT_COMMAND; }__fnm_pwd_hook"
+    fi
+fi
+
+# bell-bash: long-running command notifications (cloned by `dotfiles bootstrap
+# user` into $LOCAL_OPT_PATH). Wired here rather than by the clone's own
+# installer so the tracked dotfiles stay the single owner of the shell env; the
+# guard makes it a no-op on hosts where it isn't installed. Override
+# BELL_BASH_BACKENDS per host in the interactive local zone of ~/.bashrc
+# (e.g. add ',webhook').
+# Kept last: without bash-preexec, bell wraps the PROMPT_COMMAND it finds and
+# times the first command that runs after its own hook. A prompt hook
+# installed after bell (starship, zoxide, fnm) would be that command.
+if [ -f "$LOCAL_OPT_PATH/bell-bash/bell" ]; then
+    export BELL_BASH_BACKENDS='bel,notify-send'
+    __path_prepend "$LOCAL_OPT_PATH/bell-bash/bin"
+    declare -F __bell_bash_prompt_command >/dev/null || . "$LOCAL_OPT_PATH/bell-bash/bell"
+    # Skip fzf's interactive widgets from bell auto-triggers: Ctrl-R history
+    # (__fzf_history__), Ctrl-T file (fzf-file-widget), Alt-C cd (__fzf_cd__).
+    # Plain TAB completion needs no entry (bell bails when COMP_LINE is set), but
+    # fzf-tab-completion's `bind -x` widget (fzf_bash_completion) does: on an
+    # empty line READLINE_LINE is empty too, so bell would not skip it. Append
+    # via bell_skip (not a pre-defined array — pre-defining would replace bell's
+    # sensible defaults wholesale).
+    if declare -F bell_skip >/dev/null 2>&1; then
+        bell_skip add '__fzf_history__' 'fzf-file-widget' '__fzf_cd__' 'fzf_bash_completion' >/dev/null
+    fi
+    # The clone is also a Claude Code plugin (its skill); its settings file
+    # carries the Stop/Notification toast hooks.
+    __claude_arg_add CLAUDE_PLUGIN_DIRS "$LOCAL_OPT_PATH/bell-bash"
+    if [ -f "$LOCAL_OPT_PATH/bell-bash/claude-settings.json" ]; then
+        __claude_arg_add CLAUDE_SETTINGS_FILES "$LOCAL_OPT_PATH/bell-bash/claude-settings.json"
+    fi
+fi

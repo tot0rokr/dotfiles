@@ -2,14 +2,14 @@
 " Language: vim-script
 " Author:   Junho Lee (TOT0Ro)
 "
-" ~/.vimrc (Vim) and ~/.config/nvim/init.vim (Neovim) source this file after
-" setting g:local_data_dir and g:plugin_dirs (each declared plugin's install
-" directory), but before Neovim's plugins load, so the variables plugins read
-" at load time are set in both editors. Code that calls plugin functions runs
-" on User PluginsReady, which each entry point fires once the plugins are on
-" 'runtimepath'.
+" ~/.config/vim/vimrc (Vim) and ~/.config/nvim/init.vim (Neovim) source this
+" file after setting g:local_data_dir (the editor's state directory) and
+" g:plugin_dirs (each declared plugin's install directory), but before
+" Neovim's plugins load, so the variables plugins read at load time are set in
+" both editors. Code that calls plugin functions runs on User PluginsReady,
+" which each entry point fires once the plugins are on 'runtimepath'.
 
-let g:vimdir = $HOME .. '/.vim'
+let g:vimdir = expand('<sfile>:p:h')
 
 function! PluginInstalled(name)
     return isdirectory(get(g:plugin_dirs, a:name, ''))
@@ -282,7 +282,9 @@ au VimLeave * call ObsessionLeave()
 function! s:restore_session()
     if !get(g:, 'obsession_status')
         let g:obsession_status = 2
-        if (!argc() && !empty(findfile(g:obsession_file)) && empty(findfile(g:obsession_swap)))
+        " -S loads its own session with argc() still 0
+        if (!argc() && index(v:argv, '-S') < 0
+                    \ && !empty(findfile(g:obsession_file)) && empty(findfile(g:obsession_swap)))
             call writefile(readfile(g:obsession_file), g:obsession_swap)
             let g:obsession_status = 1
             execute 'silent source ' .. g:obsession_swap
@@ -411,8 +413,8 @@ function! CheckBackspace() abort
     return !col || getline('.')[col - 1]  =~# '\s'
 endfunction
 
-" Use <c-space> to trigger completion: mapped in ~/.vimrc and lua/init.lua,
-" since Vim receives it as <c-@>
+" Use <c-space> to trigger completion: mapped in ~/.config/vim/vimrc and
+" lua/init.lua, since Vim receives it as <c-@>
 
 " GoTo code navigation
 nmap <silent> gd <Plug>(coc-definition)
@@ -568,12 +570,12 @@ autocmd BufEnter * exec "set tags=./tags,tags," .. findfile("tags", ".;")
 " autocmd BufEnter * exec "set tags=./tags,tags,"
 " autocmd BufEnter * exec "set tags+=../../tags,~/Project/tags," .. findfile("tags", ".;")
 
-" cscope: Vim's :cscope setup is in ~/.vimrc; Neovim dropped :cscope and uses
-" cscope_maps.nvim (lua/init.lua)
+" cscope: Vim's :cscope setup is in ~/.config/vim/vimrc; Neovim dropped :cscope
+" and uses cscope_maps.nvim (lua/init.lua)
 
 
 " -------------------------- fzf(command-line fuzzy finder --------------------
-let fzfdir = $HOME .. '/.fzf'
+let fzfdir = $HOME .. '/.local/opt/fzf'
 if !empty(fzfdir) && isdirectory(fzfdir)
 exec 'set rtp+=' .. fzfdir
 
@@ -614,7 +616,8 @@ let g:fzf_colors =
 " - History files will be stored in the specified directory
 " - When set, CTRL-N and CTRL-P will be bound to 'next-history' and
 "   'previous-history' instead of 'down' and 'up'.
-let g:fzf_history_dir = '~/.local/share/fzf-history'
+let g:fzf_history_dir =
+            \ (empty($XDG_DATA_HOME) ? $HOME .. '/.local/share' : $XDG_DATA_HOME) .. '/fzf-history'
 
 nmap <Plug>SearchGitFile
             \ :call fzf#run({'source': 'git ls-files', 'sink': 'e', 'left': '40%'})<CR>
@@ -625,7 +628,7 @@ command! -bang -complete=dir -nargs=? LS
     \ call fzf#run(fzf#wrap('ls', {'source': 'ls', 'dir': <q-args>}))
     " \ call fzf#run(fzf#wrap('ls', {'source': 'ls', 'dir': <q-args>}, <bang>0))
 
-" Finder keys: fzf.vim commands in ~/.vimrc, fzf-lua in lua/init.lua
+" Finder keys: fzf.vim commands in ~/.config/vim/vimrc, fzf-lua in lua/init.lua
 
 endif
 
@@ -987,7 +990,8 @@ function! AdjustScrolloff()
   execute 'setlocal scrolloff=' . float2nr(l:scrolloff_value)
 endfunction
 
-" Smooth Scrolling: vim-smoothie tuning in ~/.vimrc, smoothie.nvim in lua/init.lua
+" Smooth Scrolling: vim-smoothie tuning in ~/.config/vim/vimrc, smoothie.nvim
+" in lua/init.lua
 
 " size(vertical) scroll
 nnoremap <M-h> 5zh

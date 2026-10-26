@@ -1,0 +1,79 @@
+#!/usr/bin/env bash
+# dotfiles - install, update and inspect this dotfiles checkout.
+#
+# Reached through ~/.local/bin/dotfiles (a relative link), so the real path is
+# resolved first; REPO is the physical checkout.
+set -u -o pipefail
+
+__self=$(readlink -f -- "${BASH_SOURCE[0]}") || exit 1
+REPO=$(cd -P -- "${__self%/*}/.." && pwd -P) || exit 1
+LIB=$REPO/lib/dotfiles
+unset __self
+
+# shellcheck source=lib/dotfiles/core.bash
+. "$LIB/core.bash" || exit 1
+
+__usage() {
+    cat <<'EOF'
+Usage: dotfiles <command> [options]      (dotfiles <command> --help for more)
+
+  install [--yes] [--replace-all | --keep-all] [--dry-run]
+        Link the repo's config into ~/.config, create the account-local entry
+        files when missing and keep their managed blocks current.
+  update [--yes] [--replace-all | --keep-all]
+        Fetch, review the incoming commits, fast-forward, then relink.
+  status
+        Report links, entry files, kept files and leftovers. Writes nothing.
+  uninstall
+        Remove the managed blocks and the links install made; nothing else.
+  uninstall-legacy [options]
+        Preview, then migrate an old copy-installed layout to this one.
+  bootstrap system | user | agents [options]
+        Install system packages, user-local tools, or the agents harness.
+  migrate <step> [options]
+        Move a live legacy account step by step (repo, tools, nvim-save,
+        nvim-state, nvim-restore, history, cleanup, all).
+
+Without a terminal, a command that would ask exits 3 instead, unless --yes
+(and, for link conflicts, --replace-all or --keep-all) is given.
+
+Exit codes: 0 ok, 1 error, 2 usage, 3 a decision or consent is needed and
+there is no terminal (nothing changed), 4 old layout detected, 5 refused by
+a safety check.
+EOF
+}
+
+cmd=${1-}
+[ $# -eq 0 ] || shift
+case $cmd in
+    install) mods=(links blocks history install); fn=__cmd_install ;;
+    update) mods=(update); fn=__cmd_update ;;
+    status) mods=(links blocks status); fn=__cmd_status ;;
+    uninstall) mods=(links blocks uninstall); fn=__cmd_uninstall ;;
+    uninstall-legacy) mods=(links blocks history install migrate legacy); fn=__cmd_uninstall_legacy ;;
+    bootstrap) mods=(bootstrap); fn=__bootstrap_main ;;
+    migrate) mods=(links blocks history install bootstrap migrate legacy); fn=__cmd_migrate ;;
+    _portable-entries) mods=(blocks install); fn=__cmd_portable_entries ;;
+    -h|--help|help)
+        __usage
+        exit 0
+        ;;
+    '')
+        __usage >&2
+        exit 2
+        ;;
+    *)
+        __err "unknown command '$cmd'"
+        __usage >&2
+        exit 2
+        ;;
+esac
+
+# Sourced at top level so the modules' declarations stay global.
+for __mod in "${mods[@]}"; do
+    # shellcheck source=/dev/null
+    . "$LIB/$__mod.bash" || __die "cannot load $LIB/$__mod.bash"
+done
+unset __mod
+declare -F "$fn" >/dev/null || __die "$LIB is incomplete: $fn is not defined"
+"$fn" "$@"

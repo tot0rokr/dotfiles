@@ -1,12 +1,14 @@
 -- Neovim's plugins, managed by lazy.nvim: the list shared with Vim
--- (~/.vim/plugins.vim, written for vim-plug) plus the Neovim-only specs in
--- lua/plugins/.
+-- (~/.config/vim/plugins.vim, written for vim-plug) plus the Neovim-only specs
+-- in lua/plugins/.
 local M = {}
 
 local root = vim.fn.stdpath("data") .. "/lazy"
+local vimdir = vim.fs.joinpath(vim.fs.dirname(vim.fn.stdpath("config")), "vim")
+local shared_list = vimdir .. "/plugins.vim"
 local shared_specs = {}
 
--- The vim-plug options ~/.vim/plugins.vim may use, and their lazy.nvim keys
+-- The vim-plug options plugins.vim may use, and their lazy.nvim keys
 local lazy_keys = {
     on = "cmd",
     ["for"] = "ft",
@@ -18,20 +20,20 @@ local function add_shared(repo, opts)
     local spec = { repo }
     for key, value in pairs(opts or {}) do
         if not lazy_keys[key] then
-            error(string.format("~/.vim/plugins.vim: Plug '%s' uses unsupported option '%s'", repo, key))
+            error(string.format("%s: Plug '%s' uses unsupported option '%s'", shared_list, repo, key))
         end
         spec[lazy_keys[key]] = value
     end
     table.insert(shared_specs, spec)
 end
 
--- Read ~/.vim/plugins.vim through a :Plug that only records each spec, and
--- set g:plugin_dirs for PluginInstalled() in ~/.vim/common.vim.
+-- Read plugins.vim through a :Plug that only records each spec, and set
+-- g:plugin_dirs for PluginInstalled() in common.vim (both in the vim config dir).
 function M.read_shared_list()
     vim.api.nvim_create_user_command("Plug", function(cmd)
         add_shared(unpack(vim.fn.eval("[" .. cmd.args .. "]")))
     end, { nargs = "+", bar = true })
-    vim.cmd.source("~/.vim/plugins.vim")
+    vim.cmd.source(shared_list)
     vim.api.nvim_del_user_command("Plug")
 
     local dirs = {}
@@ -62,12 +64,13 @@ function M.setup()
         dev = { path = "~", fallback = true },
         performance = {
             rtp = {
-                -- lazy.nvim resets 'runtimepath'; keep ~/.vim and the fzf
-                -- checkout install_fzf_user (.bashrc.common) keeps in ~/.fzf
+                -- lazy.nvim resets 'runtimepath'; keep the vim config dir and
+                -- the fzf checkout `dotfiles bootstrap user` keeps in
+                -- ~/.local/opt/fzf
                 paths = {
-                    vim.fn.expand("~/.vim"),
-                    vim.fn.expand("~/.fzf"),
-                    vim.fn.expand("~/.vim/after"),
+                    vimdir,
+                    vim.fn.expand("~/.local/opt/fzf"),
+                    vimdir .. "/after",
                 },
             },
         },

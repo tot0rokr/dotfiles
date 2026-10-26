@@ -1,16 +1,26 @@
 # fd's global ignore file (gitignore syntax). Unlike .gitignore, fd applies it
 # outside git repos too, so it also covers searches from ~. The fzf widgets in
-# ~/.fzf.bash list files through fd, so they skip these as well. A search
-# rooted inside one of these directories still lists its contents.
+# ~/.config/fzf/fzf.bash list files through fd, so they skip these as well. A
+# search rooted inside one of these directories still lists its contents.
+#
+# A pattern with a slash in the middle is anchored to the directory fd runs
+# in, so multi-part paths start with **/ to match at any depth.
 
-# Caches and package stores
+# Caches and package stores. The .rustup and .cargo entries cover the compat
+# links that `dotfiles migrate tools` leaves in the home directory.
 .cache/
 .npm/
+rustup/
 .rustup/
-.cargo/registry/
+**/cargo/registry/
+**/.cargo/registry/
 node_modules/
 __pycache__/
 .venv/
+
+# fnm links back into its installed versions; the fzf widgets follow links
+**/fnm/aliases/
+fnm_multishells/
 
 # Build output
 build/

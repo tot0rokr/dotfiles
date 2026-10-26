@@ -1,6 +1,5 @@
-# Alias definitions.
-# You may want to put all your additions into a separate file like
-# ~/.bash_aliases, instead of adding them here directly.
+# Alias definitions, loaded by common.bash (tracked in dotfiles).
+# Put machine-specific aliases in the interactive local zone of ~/.bashrc.
 # See /usr/share/doc/bash-doc/examples in the bash-doc package.
 
 if [ ! -z $(which bat) ]; then

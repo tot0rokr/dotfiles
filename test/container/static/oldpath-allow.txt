@@ -1,0 +1,53 @@
+# Old-path references that are allowed to stay (A11), one per line:
+#   repo path <TAB> the exact line <TAB> why it is legitimate
+# An entry allows that line only, so an unrelated new reference in the same
+# file is still reported. Whole files are exempt only in oldpath.sh (legacy
+# and migration code, the test tree, vendored git scripts).
+
+# README: the legacy layout, files that shadow the XDG config, the migration.
+README.md	- 옛 복사 방식 설치가 남아 있거나 `~/.gitconfig`, `~/.tmux.conf`가 있으면 거부하고 `dotfiles uninstall-legacy`를 안내한다. [옛 레이아웃에서 옮기기](#옛-레이아웃에서-옮기기) 참고.	documents the shadow files install refuses
+README.md	- `bootstrap user`는 Claude Code CLI(`claude`)가 없으면 설치한다. `nvm`은 더 이상 설치하지 않는다([node (fnm)](#node-fnm) 참고).	documents that nvm is no longer installed
+README.md	| pynvim                                   | `~/.local/share/nvim/venv`                                                             |	the current default venv path (nvim's data dir), not an old one
+README.md	- 옛 레이아웃 잔재, `~/.vimrc`, `~/.wezterm.lua` 같은 shadow 파일, 다시 생긴 `~/.bash_history`(`dotfiles migrate history` 안내)	documents what status reports about the legacy layout
+README.md	- 남아 있는 `~/.npm`, `~/.tmux`, `~/.nvm`과 호환 링크	documents what status reports about the legacy layout
+README.md	| 4    | 옛 레이아웃이나 `~/.gitconfig`, `~/.tmux.conf`가 있어 거부했다 |	documents the shadow files install refuses
+README.md	- `~/.gitconfig`가 있으면 git은 그 파일에 쓰고 그 값이 XDG 파일보다 우선한다. 그래서 `~/.gitconfig`가 있으면 install이 거부하고, `uninstall-legacy`가 내용을 옮긴다.	documents the shadow files install refuses
+README.md	- 컨테이너에 git 신원을 넘길 때는 디렉터리를 마운트한다: `-v "$HOME/.config/git:/home/<user>/.config/git:ro"`. 없는 `~/.gitconfig`를 마운트하면 docker가 그 자리에 디렉터리를 만든다.	warns against mounting the old git config file
+README.md	- tmux는 `~/.tmux.conf`와 XDG 파일을 둘 다 읽으므로 `~/.tmux.conf`가 남아 있으면 install이 거부한다.	documents the shadow files install refuses
+README.md	- `~/.vimrc`나 `~/.vim/vimrc`가 있으면 vim이 그쪽을 먼저 읽는다. install과 status가 경고한다.	documents the shadow files install warns about
+README.md	- nvm 대신 fnm을 쓴다. `bootstrap user`는 nvm을 설치하지 않고, fnm 기본 버전이 없을 때만 LTS를 설치해 기본으로 정한다. 이미 있는 기본 버전은 그대로 둔다.	documents that fnm replaces nvm
+README.md	옛 레이아웃은 dotfiles를 `$HOME`에 복사하고 `# Machine-specific settings below` 마커 아래에 머신 설정을 적던 방식이다(`~/.bashrc.common`, `~/.gitconfig.common`, `~/.tmux.common.conf`, `~/.wezterm.common.lua` 등). install은 이런 계정에서 거부하고 `uninstall-legacy`를 안내한다.	documents the legacy layout and its migration
+README.md	  - `~/.tmux.conf` 마커 아래 → `~/.config/tmux/tmux.conf` 블록 아래	documents the legacy layout and its migration
+README.md	  - `~/.gitconfig` 마커 아래 → `~/.config/git/config` 블록 아래	documents the legacy layout and its migration
+README.md	  - `~/.wezterm.lua` → `~/.config/wezterm/wezterm.lua`. 공통을 불러오던 두 줄만 관리 블록으로 바꾼다. 그 두 줄이 없는 파일은 그대로 옮기고 `unmanaged`로 기록한다.	documents the legacy layout and its migration
+README.md	- `REMOVE-CANDIDATE`는 옮긴 텍스트에서 빠지고 원본은 백업에 남는다: bell과 noti 설치기 블록, 중복된 `bell_skip`, `env.bash`와 겹치는 PATH 줄, nvm 줄, `alias claude=...`, `source-file ~/.tmux.common.conf`, `~/.gitconfig.common` include 등.	documents the legacy layout and its migration
+README.md	- `FIX-SUGGESTION`은 텍스트를 유지하고 고칠 곳만 알려 준다: docker `-v "$HOME/.gitconfig:..."` → `-v "$HOME/.config/git:<home>/.config/git:ro"`, `~/.bell-bash`, `~/.noti-bash`, `~/.fzf`, `~/.cargo`, `~/.nvm`, `~/.vim` 경로 참조 등.	documents the legacy layout and its migration
+README.md	- `~/.vim`의 나머지는 백업으로 옮긴다. vim의 undo와 세션은 이전하지 않는다(nvim 것만 이전).	documents the legacy layout and its migration
+README.md	  - `~/.cargo`, `~/.rustup`, `~/.fzf`, `~/.fzf-tab-completion`, `~/.bell-bash`, `~/.noti-bash`가 실제 디렉터리로 남아 있거나, `~/.nvm`이 있는데 fnm 기본 버전이 아직 없거나, `migrate tools`의 node 단계가 끝나지 않았을 때(`node.pending`). 먼저 `migrate tools`를 실행한다.	documents the legacy layout and its migration
+README.md	- `tools`: `~/.cargo`, `~/.rustup`을 `~/.local/share/{cargo,rustup}`로, `~/.fzf`, `~/.fzf-tab-completion`, `~/.bell-bash`, `~/.noti-bash`를 `~/.local/opt/`로 옮기고 옛 자리에 상대 호환 링크를 남긴다.	documents the legacy layout and its migration
+README.md	  - `~/.nvm`이 있고 fnm 기본 버전이 없으면 fnm을 설치하고, `~/.nvm`에서 쓰던 node 버전을 기본으로 정하고, 그 버전의 전역 npm 패키지를 다시 설치한다.	documents the legacy layout and its migration
+README.md	  - 쓸 수 있는 nvm 기본 버전을 찾지 못해도 fnm을 설치하고 현재 LTS node를 fnm 기본으로 정한다. 전역 npm 패키지는 다시 설치하지 않는다.	documents the legacy layout and its migration
+README.md	  - nvm 버전으로 바꾸는 것은 이 단계가 정한 LTS 기본 버전뿐이다. 그 사이에 사용자가 정한 fnm 기본 버전은 그대로 두고 경고한다.	documents the legacy layout and its migration
+README.md	  - `~/.tmux/plugins`와 `~/.nvm`은 건드리지 않는다. 실행 중인 tmux 서버와 codex가 쓰고 있기 때문이다.	documents the legacy layout and its migration
+README.md	  - `~/.rustup`은 `~/.cargo`가 남는 동안 남는다.	documents the legacy layout and its migration
+README.md	  - `~/.tmux`는 떠 있는 tmux 서버가 `~/.tmux/plugins`를 더 쓰지 않을 때 백업 디렉터리로 옮긴다.	documents the legacy layout and its migration
+README.md	  - `~/.nvm`은 그 안의 node를 실행하거나 PATH에 둔 프로세스가 없고 옛 셸도 남지 않았을 때 백업 디렉터리로 옮긴다.	documents the legacy layout and its migration
+README.md	- 떠 있던 tmux 서버는 다시 읽히지 말고 끝날 때까지 그대로 두고, 새 작업은 새 tmux 서버에서 시작한다. 옛 서버가 모두 끝나야 `cleanup`이 `~/.tmux`를 옮긴다.	documents the legacy layout and its migration
+README.md	  - 6단계 뒤에는 옛 설정의 `prefix R`이 백업으로 옮겨진 `~/.tmux.conf`를 읽으므로 "Sourced" 메시지만 띄우고 아무것도 다시 읽지 않는다.	documents the legacy layout and its migration
+README.md	  - 남은 hook이 `~/.tmux/plugins`를 가리키므로 `cleanup`은 다시 읽힌 서버도 끝날 때까지 `~/.tmux`를 남긴다.	documents the legacy layout and its migration
+README.md	- 옛 계정의 `~/.npm`은 옮기지 않는다. `dotfiles status`가 보고한다.	documents the legacy layout and its migration
+README.md	- Windows: install을 쓰지 않는다. `lib/templates/wezterm.lua`를 `%USERPROFILE%\.config\wezterm\wezterm.lua`로, `.config/wezterm/common.lua`를 같은 디렉터리의 `common.lua`로 손으로 복사한다. 옛 `%USERPROFILE%\.wezterm.lua`와 `%USERPROFILE%\.wezterm.common.lua`는 지운다.	tells Windows users to delete the old wezterm files
+
+# Legacy detection and leftover reports outside legacy/migrate/history.bash.
+enter.sh	    echo "warning: $TARGET/.bashrc still sources .bashrc.common from the old layout." >&2	warns about an old portable checkout (PLAN C12)
+lib/dotfiles/bootstrap.bash	    if [ -e "$HOME/.nvm" ] && ! __bs_fnm_default_exists; then	relocation gate (PLAN C8/C9): bootstrap user refuses while ~/.nvm exists without an fnm default
+lib/dotfiles/bootstrap.bash	        echo "$HOME/.nvm (no fnm default yet)"	relocation gate (PLAN C8/C9): bootstrap user refuses while ~/.nvm exists without an fnm default
+lib/dotfiles/core.bash	    for f in .bashrc.common .gitconfig.common .wezterm.common.lua; do	legacy layout detection (PLAN C8)
+lib/dotfiles/core.bash	        if [ -e "$HOME/.wezterm.lua" ] || [ -L "$HOME/.wezterm.lua" ]; then	non-blocking ~/.wezterm.lua shadow detection (PLAN C8)
+lib/dotfiles/core.bash	            printf 'shadow\t%s\t%s\n' "$HOME/.wezterm.lua" \	non-blocking ~/.wezterm.lua shadow detection (PLAN C8)
+lib/dotfiles/status.bash	    if [ -e "$HOME/.npm" ]; then	status reports the old npm cache (PLAN C6)
+lib/dotfiles/status.bash	        __st leftovers "~/.npm: old npm cache (npm now uses $(__tilde "$CACHE/npm")); delete it when you like"	status reports the old npm cache (PLAN C6)
+lib/dotfiles/status.bash	    if [ -e "$HOME/.tmux" ]; then	status reports the old TPM plugin dir (PLAN C6)
+lib/dotfiles/status.bash	        __st leftovers "~/.tmux: old TPM plugin dir; 'dotfiles migrate cleanup' moves it once no tmux server uses it"	status reports the old TPM plugin dir (PLAN C6)
+lib/dotfiles/status.bash	    if [ -e "$HOME/.nvm" ]; then	status reports the old nvm dir (PLAN C6)
+lib/dotfiles/status.bash	        __st leftovers "~/.nvm: old node install; 'dotfiles migrate cleanup' moves it once nothing runs from it"	status reports the old nvm dir (PLAN C6)

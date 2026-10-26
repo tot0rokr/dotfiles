@@ -1,16 +1,16 @@
 # Setup fzf
 # ---------
-if [[ ! "$PATH" == *$HOME/.fzf/bin* ]]; then
-  export PATH="${PATH:+${PATH}:}$HOME/.fzf/bin"
+if [[ ! "$PATH" == *$HOME/.local/opt/fzf/bin* ]]; then
+  export PATH="${PATH:+${PATH}:}$HOME/.local/opt/fzf/bin"
 fi
 
 # Auto-completion
 # ---------------
-[[ $- == *i* ]] && source "$HOME/.fzf/shell/completion.bash" 2> /dev/null
+[[ $- == *i* ]] && source "$HOME/.local/opt/fzf/shell/completion.bash" 2> /dev/null
 
 # Key bindings
 # ------------
-source "$HOME/.fzf/shell/key-bindings.bash"
+source "$HOME/.local/opt/fzf/shell/key-bindings.bash"
 
 # Print a command that runs `fd ARGS...` in depth bands: 1-2, 3-4, 5-8, 9+.
 # fd walks depth-first, so one big subtree can hold back the files right under
@@ -67,5 +67,4 @@ _fzf_comprun() {
 _fzf_setup_completion path ag git kubectl
 _fzf_setup_completion dir tree
 
-[ ! -f ~/.fzf-git.sh ] && curl -o ~/.fzf-git.sh https://raw.githubusercontent.com/junegunn/fzf-git.sh/main/fzf-git.sh
-source ~/.fzf-git.sh
+source "${BASH_SOURCE[0]%/*}/fzf-git.sh"

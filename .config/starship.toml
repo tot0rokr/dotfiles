@@ -31,7 +31,7 @@ $character"""
 palette = 'catppuccin_mocha'
 
 # Not in `format`: picking the icon runs `lsb_release -a` (a shell script,
-# ~20ms) on every prompt. .bashrc.common resolves it once per host with
+# ~20ms) on every prompt. common.bash resolves it once per host with
 # `starship module os`, caches it under /tmp, and the prompt shows it via
 # env_var.PROMPT_OS, so this format is plain and the style lives there.
 [os]
@@ -90,7 +90,7 @@ format = '[[ $symbol $branch ](fg:crust bg:yellow)]($style)'
 
 # Not in `format`: it walks the whole work tree, which is slow on NFS. The
 # shell runs `starship module git_status` in the background and the prompt
-# shows the last result via env_var.PROMPT_GIT_STATUS (see .bashrc.common),
+# shows the last result via env_var.PROMPT_GIT_STATUS (see common.bash),
 # so this format is plain text and the styling lives on the env_var module.
 [git_status]
 style = ""

@@ -1,0 +1,49 @@
+# Answers the prompts of an interactive `dotfiles install` (A25).
+#   expect install-answers.exp ANSWERS CONFIRM -- COMMAND ARGS...
+# ANSWERS has one character per conflict prompt, in order: r replace,
+# k keep, d show diff (the same prompt comes back), R replace all remaining,
+# K keep all remaining, c cancel. CONFIRM answers the final confirmation
+# (y or n), or is "-" when none may appear. The prompts are recognised by
+# INSTALL_CONFLICT_RE and INSTALL_CONFIRM_RE (Tcl regexps).
+# Exits with COMMAND's status, or 90-93 when the dialogue went wrong.
+set timeout 120
+set answers [lindex $argv 0]
+set confirm [lindex $argv 1]
+set command [lrange $argv 3 end]
+set conflict_re {\[r/k/d/R/K/c\]}
+set confirm_re {\[y/N\]}
+if {[info exists env(INSTALL_CONFLICT_RE)]} { set conflict_re $env(INSTALL_CONFLICT_RE) }
+if {[info exists env(INSTALL_CONFIRM_RE)]} { set confirm_re $env(INSTALL_CONFIRM_RE) }
+
+spawn -noecho {*}$command
+set used 0
+expect {
+    -re $conflict_re {
+        if {$used >= [string length $answers]} {
+            puts stderr "\ninstall-answers: unexpected conflict prompt"
+            exit 90
+        }
+        send -- "[string index $answers $used]\r"
+        incr used
+        exp_continue
+    }
+    -re $confirm_re {
+        if {$confirm eq "-"} {
+            puts stderr "\ninstall-answers: unexpected confirmation prompt"
+            exit 91
+        }
+        send -- "$confirm\r"
+        exp_continue
+    }
+    timeout {
+        puts stderr "\ninstall-answers: timeout waiting for a prompt"
+        exit 92
+    }
+    eof
+}
+if {$used != [string length $answers]} {
+    puts stderr "\ninstall-answers: $used of [string length $answers] answers used"
+    exit 93
+}
+lassign [wait] pid wait_id os_error status
+exit $status

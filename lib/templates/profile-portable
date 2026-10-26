@@ -1,0 +1,5 @@
+# ~/.profile of a portable checkout (enter.sh): login shells, such as the ones
+# tmux starts in its panes, read this file and not ~/.bashrc.
+if [ -n "${BASH_VERSION-}" ] && [ -f "$HOME/.bashrc" ]; then
+    . "$HOME/.bashrc"
+fi

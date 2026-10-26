@@ -1,0 +1,6 @@
+#!/bin/sh
+# A tmux that only reports version 3.0a, first on PATH for the warning test (A15).
+case $1 in
+    -V) echo 'tmux 3.0a' ;;
+    *) echo 'fake tmux 3.0a: only -V is supported' >&2; exit 1 ;;
+esac

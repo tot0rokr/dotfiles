@@ -1,8 +1,9 @@
 " Plugins shared by Vim and Neovim.
-" ~/.vimrc sources this between plug#begin() and plug#end(). Neovim reads it
-" through lua/plugin_manager.lua, which turns each Plug line into a lazy.nvim
-" spec and accepts only these vim-plug options: on, for, do, branch.
-" Plugins for one editor only go in ~/.vimrc (Vim) or lua/plugins/ (Neovim).
+" ~/.config/vim/vimrc sources this between plug#begin() and plug#end(). Neovim
+" reads it through lua/plugin_manager.lua, which turns each Plug line into a
+" lazy.nvim spec and accepts only these vim-plug options: on, for, do, branch.
+" Plugins for one editor only go in ~/.config/vim/vimrc (Vim) or lua/plugins/
+" (Neovim).
 
 Plug 'tpope/vim-sensible' " normal setup
 
@@ -22,8 +23,7 @@ Plug 'edkolev/tmuxline.vim'
 Plug 'majutsushi/tagbar'
 
 " auto completion
-" Need nodejs
-" $ curl -sL install-node.vercel.app/lts | bash
+" Need nodejs: fnm provides it (dotfiles bootstrap user)
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
 
 " write comment
@@ -38,7 +38,7 @@ Plug 'easymotion/vim-easymotion'
 " argument movable
 Plug 'peterrincker/vim-argumentative'
 
-" git (change signs: vim-gitgutter in ~/.vimrc, gitsigns.nvim in Neovim)
+" git (change signs: vim-gitgutter in ~/.config/vim/vimrc, gitsigns.nvim in Neovim)
 Plug 'tpope/vim-fugitive'
 " git conlict. required tpope/vim-fugitive
 Plug 'christoomey/vim-conflicted'
@@ -73,9 +73,6 @@ Plug 'ryanoasis/vim-devicons'
 Plug 'chrisbra/Recover.vim'
 
 " docstring
-" Need to make install
-" $ cd ~/.vim/bundle/vim-pydocstring
-" $ make install
 Plug 'heavenshell/vim-pydocstring', { 'do': 'make install', 'for': 'python' }
 
 " quickui
@@ -83,8 +80,8 @@ Plug 'heavenshell/vim-pydocstring', { 'do': 'make install', 'for': 'python' }
 Plug 'tot0rokr/vim-quickui'
 
 " fzf
-" fzf itself is not a plugin here: install_fzf_user (.bashrc.common) keeps it in
-" ~/.fzf, and both editors only add that directory to 'runtimepath'.
+" fzf itself is not a plugin here: `dotfiles bootstrap user` keeps it in
+" ~/.local/opt/fzf, and both editors only add that directory to 'runtimepath'.
 Plug 'junegunn/fzf.vim'
 
 " Tab
@@ -121,7 +118,8 @@ Plug 'liuchengxu/vim-which-key'
 
 " vim-smoothie (Vim) / smoothie.nvim (Neovim): which keys get smooth-scroll
 " animation. MUST be set before the plugins load -- vim-smoothie builds these
-" mappings at load time (the speed tuning in ~/.vimrc is read at runtime).
+" mappings at load time (the speed tuning in ~/.config/vim/vimrc is read at
+" runtime).
 let g:smoothie_remapped_commands =
       \ ['<C-D>','<C-U>','<C-F>','<C-B>','<S-Down>','<PageDown>','<S-Up>','<PageUp>',
       \  'z+','z^','zt','z<CR>','z.','zz','z-','zb',

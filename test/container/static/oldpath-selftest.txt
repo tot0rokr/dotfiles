@@ -1,0 +1,42 @@
+# Samples for `oldpath.sh --selftest`: "+ " lines must be reported, "- "
+# lines must not (whole-token matching). One "+ " line per pattern form.
++ source ~/.fzf.bash
++ export PATH="$HOME/.fzf/bin:$PATH"
++ source ~/.fzf-tab-completion/bash/fzf-bash-completion.sh
++ let g:local_data_dir = $HOME .. '/.vim'
++ source ~/.vimrc
++ export PATH="$HOME/.cargo/bin:$PATH"
++ export RUSTUP_HOME=${HOME}/.rustup
++ export NVM_DIR="$HOME/.nvm"
++ cache = ~/.npm
++ source-file ~/.tmux.conf
++ run '~/.tmux/plugins/tpm/tpm'
++ path = ~/.gitconfig
++ export INPUTRC=~/.inputrc
++ dofile(wezterm.home_dir .. "/.wezterm.lua")
++ dofile(home_dir .. "/.wezterm.common.lua")
++ export NOTI_CONFIG=$HOME/.noti.conf
++ export NOTI_PRESET="$HOME/.noti.preset"
++ . ~/.bash_aliases
++ . "$HOME/.bashrc.common"
++ . "$HOME/.bell-bash/bell"
++ PATH="$HOME/.noti-bash/bin:$PATH"
++ source-file .tmux.common.conf
++ [include] path = .gitconfig.common
++ require(".wezterm.common.lua")
++ cp .bashrc.common /tmp
++ let undodir = '/x/.local/share/nvim/undo'
++ set directory=~/.local/share/nvim/temp//
++ let g:obsession_dir = '.local/share/nvim/obsession'
++ let s:py3 = '.local/share/nvim/venv/bin/python'
++ [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
++ nvm use 20
++ dofile(home .. sep .. ".wezterm.common.lua")
+- source ~/.vimrc_adv
+- source ~/.config/vim/vimrc
+- export PATH="$HOME/.local/opt/fzf/bin:$PATH"
+- export CARGO_HOME="$HOME/.local/share/cargo"
+- let s:lazy = '~/.local/share/nvim/lazy'
+- export NVM_TEST=1
+- set -g @plugin 'tmux-plugins/tpm'
+- ~/.dotfiles/.config/tmux/common.conf

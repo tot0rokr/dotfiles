@@ -7,17 +7,26 @@
 # directory line, git never looks inside and the file lines have no effect.
 # A new file stays ignored until it gets its own line, so nothing slips in via
 # `git add -A`.
-!.bash_aliases
-!.bash_logout
-!.bashrc
-!.bashrc.common
 !.config/
+!.config/bash/
+!.config/bash/aliases.bash
+!.config/bash/common.bash
+!.config/bash/env.bash
+!.config/bash/git-completion.bash
+!.config/bash/git-prompt.sh
 !.config/btop/
 !.config/btop/btop.conf
+!.config/environment.d/
+!.config/environment.d/kime.conf
 !.config/fd/
 !.config/fd/ignore
+!.config/fzf/
+!.config/fzf/fzf-git.sh
+!.config/fzf/fzf.bash
 !.config/gh-dash/
 !.config/gh-dash/config.yml
+!.config/git/
+!.config/git/common
 !.config/kanata/
 !.config/kanata/tenkeyless.key
 !.config/kime/
@@ -26,6 +35,9 @@
 !.config/kime/layouts/sebeolsik-3-90-custom.yaml
 !.config/lazygit/
 !.config/lazygit/config.yml
+!.config/noti/
+!.config/noti/noti.conf
+!.config/noti/noti.preset
 !.config/nvim/
 !.config/nvim/coc-settings.json
 !.config/nvim/init.vim
@@ -35,15 +47,25 @@
 !.config/nvim/lua/plugin_manager.lua
 !.config/nvim/lua/plugins/
 !.config/nvim/lua/plugins/nvim_only.lua
+!.config/readline/
+!.config/readline/inputrc
 !.config/starship.toml
-!.fzf-git.sh
-!.fzf.bash
-!.git-completion.bash
-!.git-prompt.sh
-!.gitconfig
-!.gitconfig.common
+!.config/tmux/
+!.config/tmux/common.conf
+!.config/tmux/themes/
+!.config/tmux/themes/github.conf
+!.config/tmux/themes/serene-custom.conf
+!.config/tmux/themes/serene.conf
+!.config/tmux/themes/wombat.conf
+!.config/vim/
+!.config/vim/coc-settings.json
+!.config/vim/common.vim
+!.config/vim/plugins.vim
+!.config/vim/python_fold.vim
+!.config/vim/vimrc
+!.config/wezterm/
+!.config/wezterm/common.lua
 !.gitignore
-!.inputrc
 !.local/
 !.local/share/
 !.local/share/fonts/
@@ -53,40 +75,42 @@
 !.local/share/fonts/D2CodingLigatureNerdFontMono-Regular.ttf
 !.local/share/fonts/D2CodingLigatureNerdFontPropo-Bold.ttf
 !.local/share/fonts/D2CodingLigatureNerdFontPropo-Regular.ttf
-!.noti.conf
-!.noti.preset
-!.profile
-!.tmux/
-!.tmux/.tmux.theme.github.conf
-!.tmux/.tmux.theme.serene-custom.conf
-!.tmux/.tmux.theme.serene.conf
-!.tmux/.tmux.theme.wombat.conf
-!.tmux.conf
-!.tmux.common.conf
-!.vim/
-!.vim/coc-settings.json
-!.vim/common.vim
-!.vim/plugins.vim
-!.vim/python_fold.vim
-!.vimrc
-!.wezterm.lua
-!.wezterm.common.lua
 !README.md
 !install.sh
 !enter.sh
+!bin/
+!bin/**
+!lib/
+!lib/**
 !test/
 !test/**
 
 # Black lists
-# Listed even though `*` covers them, so they stay out while `*` is lifted
-.vim/temp
-.vim/undo
-.vim/obsession
-.vim/plugged
-# plug.vim, which install_vim_plug_user (.bashrc.common) downloads
-.vim/autoload
-# nvim's data dir: temp/undo/obsession, lazy.nvim plugins, the pynvim venv
+# Last match wins, so these stay below every white list line.
+# Account-local files: entry files that `dotfiles install` or enter.sh creates,
+# secrets, per-machine nvim files and coc's data dir.
+/.bashrc
+/.profile
+.config/git/config
+.config/git/credentials
+.config/tmux/tmux.conf
+.config/wezterm/wezterm.lua
+.config/noti/webhook
+.config/secrets.env
+.config/nvim/lua/local.lua
+.config/nvim/lua/plugins/local.lua
+.config/nvim/lazy-lock.json
+.config/coc/
+
+# Runtime files, listed even though `*` covers them, so they stay out while `*`
+# is lifted
+# vim-plug and the vim plugins
+.local/share/vim/
+# nvim's data dir: lazy.nvim plugins and the pynvim venv (undo, swap and
+# sessions live under .local/state/nvim/)
 .local/share/nvim/
+# TPM and the tmux plugins (TMUX_PLUGIN_MANAGER_PATH)
+.local/share/tmux/
 .git-credentials
 .bash_history
 .python_history
@@ -98,8 +122,6 @@
 # gh extensions (gh-dash binary)
 .local/share/gh/
 .config/btop/themes/
-.tmux/plugins
-.tmux/.resurrect
 *.bak[.-]*
 # keys, known_hosts and config are all per host
 .ssh/

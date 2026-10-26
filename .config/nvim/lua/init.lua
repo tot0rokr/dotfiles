@@ -89,7 +89,7 @@ local ts_parsers = {
     "python", "bash", "asm", "cpp", "cmake", "csv", "devicetree", "dart",
     "dockerfile", "diff", "git_config", "git_rebase", "gitcommit", "gitignore",
     "html", "htmldjango", "http", "kconfig", "nasm", "nginx", "ninja",
-    "passwd", "pem", "rst", "tmux", "xml", "yaml", "json",
+    "passwd", "pem", "rst", "xml", "yaml", "json",
     -- popular languages, mainly for fenced code blocks in markdown
     "rust", "go", "gomod", "gosum", "gowork", "javascript", "typescript", "tsx",
     "jsdoc", "java", "kotlin", "swift", "ruby", "php", "scala", "haskell",
@@ -102,7 +102,7 @@ local ts_parsers = {
 
 -- nvim-treesitter (main branch) shells out to the `tree-sitter` CLI to build
 -- parsers. If it's missing, download a prebuilt binary into ~/.local/bin —
--- already on PATH per ~/.bashrc — so the FileType autocmd below can use it
+-- already on PATH via env.bash — so the FileType autocmd below can use it
 -- on the next nvim startup.
 local function ensure_tree_sitter_cli()
     if vim.fn.executable('tree-sitter') == 1 then
@@ -225,7 +225,7 @@ vim.api.nvim_create_autocmd("FileType", {
     end,
 })
 
--- smooth scrolling (smoothie.nvim); the key list is g:smoothie_remapped_commands in ~/.vim/plugins.vim
+-- smooth scrolling (smoothie.nvim); the key list is g:smoothie_remapped_commands in ~/.config/vim/plugins.vim
 local ok_smoothie, smoothie = pcall(require, 'smoothie')
 if ok_smoothie then
     smoothie.setup({
@@ -306,11 +306,11 @@ require('cscope_maps').setup({
 })
 
 
--- coc: <c-space> triggers completion (Vim maps it as <c-@> in ~/.vimrc)
+-- coc: <c-space> triggers completion (Vim maps it as <c-@> in ~/.config/vim/vimrc)
 vim.keymap.set("i", "<c-space>", "coc#refresh()", { silent = true, expr = true })
 
 
--- fzf-lua (Vim maps the same keys to fzf.vim commands in ~/.vimrc)
+-- fzf-lua (Vim maps the same keys to fzf.vim commands in ~/.config/vim/vimrc)
 vim.keymap.set("n", "<c-p>", ":FzfLua files<cr>", { remap = true })
 vim.keymap.set("n", "<M-p>", ":FzfLua git_files<cr>", { remap = true })
 vim.keymap.set("n", "<F5>", ":FzfLua buffers<cr>")

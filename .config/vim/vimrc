@@ -2,23 +2,29 @@
 " Language: vim-script
 " Author:   Junho Lee (TOT0Ro)
 "
-" Vim only. Neovim starts from ~/.config/nvim/init.vim; both editors read the
-" shared plugin list (~/.vim/plugins.vim) and settings (~/.vim/common.vim).
+" Vim only: ~/.config/vim/vimrc, read by Vim 9.1.0327 and later (older Vim
+" starts without it). Neovim starts from ~/.config/nvim/init.vim; both editors
+" read the shared plugin list (plugins.vim) and settings (common.vim) in this
+" directory.
 
-let g:local_data_dir = $HOME .. '/.vim'
+let s:dir = expand('<sfile>:p:h')
+let s:state = (empty($XDG_STATE_HOME) ? $HOME .. '/.local/state' : $XDG_STATE_HOME)
+let s:data = (empty($XDG_DATA_HOME) ? $HOME .. '/.local/share' : $XDG_DATA_HOME)
+
+let g:local_data_dir = s:state .. '/vim'
+" Here, not in common.vim, whose 'viminfo' is Neovim's 'shada'; a file given
+" with -i (e.g. -i NONE) wins
+if empty(&viminfofile)
+    let &viminfofile = g:local_data_dir .. '/viminfo'
+endif
 
 " -------------------------------- Plugin -----------------------------------
 
-call plug#begin()
-" The default plugin directory will be as follows:
-"   - Vim (Linux/macOS): '~/.vim/plugged'
-"   - Vim (Windows): '~/vimfiles/plugged'
-"   - Neovim (Linux/macOS/Windows): stdpath('data') . '/plugged'
-" You can specify a custom plugin directory by passing it as the argument
-"   - e.g. `call plug#begin('~/.vim/plugged')`
-"   - Avoid using standard Vim directory names like 'plugin'
+" vim-plug's plug.vim lives in the data dir's autoload/
+let &rtp = escape(s:data .. '/vim', '\,') .. ',' .. &rtp
+call plug#begin(s:data .. '/vim/plugged')
 
-source ~/.vim/plugins.vim
+exe 'source' fnameescape(s:dir .. '/plugins.vim')
 
 " indent guide
 Plug 'nathanaelkane/vim-indent-guides'
@@ -43,7 +49,7 @@ call plug#end()
 " without plugins instead of failing on every PluginInstalled()
 let g:plugin_dirs = map(copy(get(g:, 'plugs', {})), 'v:val.dir')
 
-source ~/.vim/common.vim
+exe 'source' fnameescape(s:dir .. '/common.vim')
 
 " ------------------------------- Indent -----------------------------------
 if PluginInstalled('vim-indent-guides')
@@ -73,6 +79,8 @@ endif
 " -------------------------- coc ----------------------------------------------
 " Use <c-space> to trigger completion; Vim receives it as <c-@>
 if PluginInstalled('coc.nvim')
+" coc-settings.json is in this directory, not in Vim's default coc config home
+let g:coc_config_home = s:dir
 inoremap <silent><expr> <c-@> coc#refresh()
 endif
 
@@ -118,7 +126,7 @@ nmap <Plug>CscopeFindStc :cs find t struct <C-R>=expand("<cword>")<CR> {<CR>
 " nmap <silent><leader>S <Plug>CscopeFindStc
 
 " -------------------------- fzf ----------------------------------------------
-if isdirectory($HOME .. '/.fzf')
+if isdirectory($HOME .. '/.local/opt/fzf')
 nmap <c-p> :Files<cr>
 nmap <M-p> :GFiles<cr>
 nnoremap <F5> :Buffers<cr>
@@ -171,5 +179,5 @@ endif
 
 " $MYVIMRC is the shared settings in both editors; $INITVIM is this editor's
 " entry file (~/.config/nvim/init.vim in Neovim).
-let $MYVIMRC = expand('~/.vim/common.vim')
-let $INITVIM = expand('~/.vimrc')
+let $MYVIMRC = s:dir .. '/common.vim'
+let $INITVIM = s:dir .. '/vimrc'

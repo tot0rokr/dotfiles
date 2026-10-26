@@ -1,0 +1,53 @@
+# Drives a program that ends in an interactive shell (enter.sh, bash -i).
+#   expect shell.exp YES_COUNT CMDFILE -- COMMAND ARGS...
+# First answers YES_COUNT [y/N] prompts with y, then waits until the shell
+# runs a sentinel command, sends each line of CMDFILE (waiting for the shell
+# after each), sends `exit` and returns COMMAND's status. 92 = timeout,
+# 93 = the program ended early. A CMDFILE line `#idle SECONDS` sends nothing:
+# the shell sits at its prompt that long.
+set timeout 300
+set yes_count [lindex $argv 0]
+set cmdfile [lindex $argv 1]
+set command [lrange $argv 3 end]
+
+proc fail {code message} {
+    puts stderr "\nshell.exp: $message"
+    exit $code
+}
+
+# The sentinel's output differs from its echoed command line, so only a
+# shell that ran it matches.
+proc sync {n} {
+    send -- "printf '__T_%s_%s\\n' SYNC $n\r"
+    expect {
+        "__T_SYNC_$n" {}
+        timeout { fail 92 "timeout waiting for the shell (step $n)" }
+        eof { fail 93 "the program ended before step $n" }
+    }
+}
+
+spawn -noecho {*}$command
+for {set i 0} {$i < $yes_count} {incr i} {
+    expect {
+        -re {\[y/N\]} { send -- "y\r" }
+        timeout { fail 92 "timeout waiting for \[y/N\] prompt [expr {$i + 1}]" }
+        eof { fail 93 "the program ended before \[y/N\] prompt [expr {$i + 1}]" }
+    }
+}
+sync 0
+set f [open $cmdfile]
+set n 0
+while {[gets $f line] >= 0} {
+    incr n
+    if {[regexp {^#idle ([0-9]+)$} $line -> secs]} {
+        sleep $secs
+        continue
+    }
+    send -- "$line\r"
+    sync $n
+}
+close $f
+send -- "exit\r"
+expect eof
+lassign [wait] pid wait_id os_error status
+exit $status

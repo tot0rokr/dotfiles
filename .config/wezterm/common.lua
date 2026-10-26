@@ -1,7 +1,8 @@
--- ~/.wezterm.common.lua - shared, dotfiles-tracked WezTerm configuration.
+-- ~/.config/wezterm/common.lua - shared, dotfiles-tracked WezTerm configuration.
 -- Portable settings live here: keybindings, appearance, the SSH launcher
 -- builder, and the theme/background toggles. This machine's SSH server
--- registry is defined in ~/.wezterm.lua and passed into M.apply(config, servers).
+-- registry is defined in the account-local wezterm.lua next to this file and
+-- passed into M.apply(config, servers).
 local wezterm = require 'wezterm'
 
 local M = {}
@@ -52,14 +53,14 @@ end
 --                             에 전달됨. tmux/체이닝/무엇이든 이 문자열 안에서
 --                             직접 조립하세요.
 --                               예: enter = "tmux attach || tmux new-session"
---                                   enter = "~/enter.sh; tmux attach || tmux new-session"
+--                                   enter = "~/.dotfiles/enter.sh; tmux attach || tmux new-session"
 --   server.autossh (bool)   : true면 autossh(또는 PATH의 autossh shim)로 실행.
 --                             ssh가 stall/drop 시 자동 재시도. enter와 무관하게
 --                             독립적으로 켜고 끌 수 있음. 원격 상태를 유지하려면
 --                             enter에 tmux를 함께 넣어두는 게 일반적.
 --   server.password (str)   : optional plaintext password. 있으면 sshpass 로
 --                             매 접속 자동 인증. 재접속마다 조용히 붙음.
---                             .wezterm.lua는 machine-local — repo에 절대 커밋 금지.
+--                             ~/.config/wezterm/wezterm.lua는 machine-local — repo에 절대 커밋 금지.
 --                             sshpass 바이너리가 PATH 에 있어야 함.
 local function has_enter(server) return server.enter and server.enter ~= "" end
 

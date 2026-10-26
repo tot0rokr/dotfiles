@@ -1,0 +1,5 @@
+(~|\$\{?HOME\}?( *\.\.)?|home_dir( *\.\.)?) *['"]?/?\.(fzf|vim|vimrc|cargo|rustup|nvm|npm|tmux(\.conf)?|gitconfig|inputrc|wezterm(\.common)?\.lua|noti\.(conf|preset)|bash_aliases|bashrc\.common|fzf-tab-completion|bell-bash|noti-bash)\b
+\.(tmux\.common\.conf|gitconfig\.common|wezterm\.common\.lua|bashrc\.common)\b
+\.local/share/nvim/(undo|temp|obsession|venv)\b
+\bnvm(\.sh)?\b
+sep *\.\. *"\.wezterm

@@ -1,0 +1,13 @@
+# One leftover of each debris form uninstall-legacy moves (PLAN C8 DEBRIS):
+# kind (f file, d directory) <TAB> path under $HOME
+f	.bashrc.bak.20240101_120000
+f	.tmux.conf.bak-old
+f	.gitconfig.bak.pre-xdg
+f	.vimrc.bak.20250101-101010
+f	.bashrc.pre-claude-auto.20250101-000000.bak
+f	.bashrc.common.bak.pre-split
+f	.config/nvim/init.vim.bak-x
+f	.config/btop/btop.conf.bak.1
+f	.config/lazygit/old-settings.bak
+d	.config/nvim/lua/.bak
+d	.config/kime/config.yaml.bak.d

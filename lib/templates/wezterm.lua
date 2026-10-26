@@ -1,13 +1,10 @@
--- ~/.wezterm.lua - WezTerm entry point.
--- Portable/shared config lives in ~/.wezterm.common.lua (tracked in dotfiles).
+-- ~/.config/wezterm/wezterm.lua - WezTerm entry point (account-local).
+-- Portable/shared config lives in common.lua next to this file (tracked in dotfiles).
 -- This file holds only THIS machine's SSH server registry — fill it in per host.
 -- Do NOT commit real hosts/IPs back to the dotfiles repo; keep them machine-local
--- (same idea as the "machine-specific" section of ~/.bashrc).
+-- (same idea as the local zones of ~/.bashrc).
 local wezterm = require 'wezterm'
 local config  = wezterm.config_builder()
-
-local home = wezterm.home_dir
-local sep  = package.config:sub(1,1)  -- 윈도우 '\' / 유닉스 '/'
 
 -- ================================================================
 -- SSH 서버 레지스트리 (이 머신 전용 — 여기에 직접 서버를 추가하세요)
@@ -20,7 +17,7 @@ local sep  = package.config:sub(1,1)  -- 윈도우 '\' / 유닉스 '/'
 --   enter  : (선택) 접속 시 실행할 원격 명령. 그대로 `ssh -t host <enter>`에
 --            전달됩니다. tmux/체이닝 등 원하는 조합은 이 문자열 안에서 직접 조립.
 --              예1: enter = "tmux attach || tmux new-session"
---              예2: enter = "~/enter.sh; tmux attach || tmux new-session"
+--              예2: enter = "~/.dotfiles/enter.sh; tmux attach || tmux new-session"
 --   autossh: (선택, boolean) true면 autossh(또는 PATH의 autossh shim)로 실행.
 --            ssh가 stall/drop 시 자동 재시도(약 10초 안에 복구). enter와는
 --            독립적으로 켜고 끌 수 있음. 원격 상태를 유지하려면 enter에
@@ -60,11 +57,14 @@ local servers = {
   -- Examples:
   -- { name = "Dev",     host = "192.168.0.42", user = "you", key = "id_ed25519.pem", cwd = [[C:\Users\you]] },
   -- { name = "Aliased", host = "my-host-alias-from-ssh-config" },
-  -- { name = "Box",     host = "10.0.0.5", user = "me", enter = "~/dotfiles/enter.sh ~; tmux attach || tmux new-session", autossh = true },
+  -- { name = "Box",     host = "10.0.0.5", user = "me", enter = "~/.dotfiles/enter.sh ~; tmux attach || tmux new-session", autossh = true },
 }
 
 -- 공용 설정 적용 (dotfiles-tracked). common 을 수정하면 자동 리로드되도록 감시목록에 추가.
-wezterm.add_to_config_reload_watch_list(home .. sep .. ".wezterm.common.lua")
-dofile(home .. sep .. ".wezterm.common.lua").apply(config, servers)
+-- >>> dotfiles >>>
+wezterm.add_to_config_reload_watch_list(wezterm.config_dir .. "/common.lua")
+dofile(wezterm.config_dir .. "/common.lua").apply(config, servers)
+-- <<< dotfiles <<<
+-- [local] overrides of common
 
 return config
