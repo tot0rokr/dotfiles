@@ -320,6 +320,10 @@ __prompt_os_init() {
 }
 
 if command -v starship >/dev/null 2>&1; then
+    # On a cold NFS cache the directory scan for the language modules outlasts
+    # scan_timeout, and starship warns above the prompt each time. The scan
+    # only ends early (the modules may skip one prompt), so keep errors only.
+    export STARSHIP_LOG=error
     declare -F starship_precmd >/dev/null || eval "$(starship init bash)"
     starship_precmd_user_func=__prompt_git_status
     __prompt_os_init
