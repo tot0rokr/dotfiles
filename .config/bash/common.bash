@@ -253,11 +253,21 @@ __prompt_has_hook() {
 __prompt_has_hook 'history -a; history -n' ||
     PROMPT_COMMAND="${PROMPT_COMMAND:+$PROMPT_COMMAND; }history -a; history -n; __path_dedupe"
 
+# Prompt caches stay on local disk so each host of the shared NFS home keeps
+# its own. Prefer /run/user/<uid>: logind creates it as ours, whereas
+# /tmp/$USER turns root-owned when a root process (a docker bind mount) makes
+# it first, and every cache write then fails.
+if [[ -n $XDG_RUNTIME_DIR && -O $XDG_RUNTIME_DIR && -w $XDG_RUNTIME_DIR ]]; then
+    __prompt_cache_root=$XDG_RUNTIME_DIR/prompt-cache
+else
+    __prompt_cache_root=${TMPDIR:-/tmp}/$USER
+fi
+
 # starship's git_status walks the whole work tree, 0.2-0.6s per prompt on the
 # NFS home. Run it in the background instead and show the last finished
 # result through env_var.PROMPT_GIT_STATUS (starship.toml), so the prompt
 # never waits for git; the status may lag one prompt behind.
-__prompt_git_cache="${TMPDIR:-/tmp}/$USER/prompt-git-status"
+__prompt_git_cache="$__prompt_cache_root/prompt-git-status"
 
 __prompt_git_status() {
     local root=$PWD cache pid
@@ -298,20 +308,24 @@ __prompt_git_status() {
 
 # starship's os module runs `lsb_release -a` (a shell script that forks ~7
 # processes, ~20ms) on every prompt just to pick an icon. Resolve it once per
-# host and config: cache the plain symbol under /tmp (local disk, so each host
-# of the shared NFS home gets its own) and show it through env_var.PROMPT_OS
-# (starship.toml). Editing starship.toml makes the cache stale.
+# host and config: cache the plain symbol under $__prompt_cache_root and show
+# it through env_var.PROMPT_OS (starship.toml). Editing starship.toml makes the
+# cache stale. An unwritable cache dir falls back to resolving it uncached.
 __prompt_os_init() {
     local cfg=${STARSHIP_CONFIG:-${XDG_CONFIG_HOME:-$HOME/.config}/starship.toml}
-    local cache=${TMPDIR:-/tmp}/$USER/prompt-os
-    if [[ ! -e $cache || $cfg -nt $cache ]]; then
-        mkdir -p "${cache%/*}" &&
-            STARSHIP_SHELL= starship module os >"$cache.$$" &&
+    local cache=$__prompt_cache_root/prompt-os
+    if [[ ! -e $cache || $cfg -nt $cache ]] &&
+        mkdir -p "${cache%/*}" 2>/dev/null && [[ -w ${cache%/*} ]]; then
+        STARSHIP_SHELL= starship module os 2>/dev/null >"$cache.$$" &&
             command mv -f "$cache.$$" "$cache"
         command rm -f "$cache.$$"
     fi
     PROMPT_OS=
-    [[ -r $cache ]] && IFS= read -r PROMPT_OS <"$cache"
+    if [[ -r $cache ]]; then
+        IFS= read -r PROMPT_OS <"$cache"
+    else
+        PROMPT_OS=$(STARSHIP_SHELL= starship module os 2>/dev/null)
+    fi
     if [[ -n $PROMPT_OS ]]; then
         export PROMPT_OS
     else
