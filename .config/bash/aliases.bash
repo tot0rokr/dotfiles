@@ -18,6 +18,9 @@ if [ ! -z $(which eza) ]; then
     alias ls="eza"
     alias l='ls -GF'
     alias lstree='ls --tree'
+    # Single column: eza's grid-details view (-lG) hides symlink targets.
+    alias ll1='ls -lF'
+    alias lla1='ls -AlF'
 else
     alias l='ls -CGF'
 fi
