@@ -459,7 +459,7 @@ check_a01_loading() {
 check_a02_noninteractive() {
     local o=$T_WORK/a02.out
     group "A02 non-interactive shell (ssh host cmd)"
-    t_env "${T_SSH[@]}" bash -c 'for v in CARGO_HOME RUSTUP_HOME FNM_DIR npm_config_cache INPUTRC NOTI_CONFIG NOTI_PRESET STARSHIP_CONFIG DOTFILES_T_ENVZONE; do printf "%s=%s\n" "$v" "${!v-<unset>}"; done; printf "tmux=%s\n" "$(command -v tmux)"' \
+    t_env "${T_SSH[@]}" 'SSH_CONNECTION=1.2.3.4 1 5.6.7.8 22' DISPLAY=localhost:10.0 bash -c 'for v in CARGO_HOME RUSTUP_HOME FNM_DIR npm_config_cache INPUTRC NOTI_CONFIG NOTI_PRESET STARSHIP_CONFIG LOCAL_OPT_PATH DISPLAY DOTFILES_T_ENVZONE; do printf "%s=%s\n" "$v" "${!v-<unset>}"; done; for c in tmux fzf bell-send noti; do printf "%s=%s\n" "$c" "$(command -v "$c")"; done' \
         >"$o" 2>&1
     assert_line "$o" "CARGO_HOME=$T_DATA/cargo"
     assert_line "$o" "RUSTUP_HOME=$T_DATA/rustup"
@@ -469,6 +469,25 @@ check_a02_noninteractive() {
     assert_line "$o" "NOTI_CONFIG=$T_CFG/noti/noti.conf"
     assert_line "$o" "NOTI_PRESET=$T_CFG/noti/noti.preset"
     assert_line "$o" "STARSHIP_CONFIG=$T_CFG/starship.toml"
+    assert_line "$o" "LOCAL_OPT_PATH=$HOME/.local/opt"
+    assert_line "$o" "DISPLAY=localhost:10.0" 'A02 ssh commands keep the X11 forwarding DISPLAY sshd set'
+    for c in fzf/bin/fzf bell-bash/bin/bell-send noti-bash/bin/noti; do
+        assert_line "$o" "${c##*/}=$HOME/.local/opt/$c" "A02 ssh commands find ${c##*/} of the ${c%%/*} clone"
+    done
+    # A tmux server keeps the environment of the shell that started it, here
+    # a non-interactive ssh one, and hands it to what it runs without a shell:
+    # run-shell jobs (tmux-fzf) and the windows they open (fork-session).
+    t_env "${T_SSH[@]}" bash -c "tmux -L a02 -f /dev/null new-session -d 'sleep 60' &&
+        tmux -L a02 run-shell 'command -v fzf >$o.run-shell' &&
+        tmux -L a02 run-shell \"tmux -L a02 new-window -d 'command -v fzf bell-send >$o.window; tmux wait-for -S a02'\" &&
+        timeout 20 tmux -L a02 wait-for a02
+        tmux -L a02 kill-server" >"$o.tmux" 2>&1
+    assert_line "$o.run-shell" "$HOME/.local/opt/fzf/bin/fzf" \
+        'A02 run-shell of a tmux server an ssh command started finds the fzf clone'
+    assert_line "$o.window" "$HOME/.local/opt/fzf/bin/fzf" \
+        'A02 a window that run-shell opens finds the fzf clone'
+    assert_line "$o.window" "$HOME/.local/opt/bell-bash/bin/bell-send" \
+        'A02 a window that run-shell opens finds bell-send of the bell clone'
     if grep -q DOTFILES_T_ENVZONE "$HOME/.bashrc"; then
         assert_line "$o" 'DOTFILES_T_ENVZONE=1' 'A02 the local env zone reaches ssh commands'
     fi

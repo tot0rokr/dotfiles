@@ -283,7 +283,14 @@ source-file -F "#{d:current_file}/common.conf"
 
 `env.bash`는 비대화형 셸과 `ssh host cmd`를 포함한 모든 bash가 읽는다.
 
-- 내용: `LANG`, PATH(`~/.local/opt/tmux/bin`, `~/.local/bin`, `$CARGO_HOME/bin`, `$FNM_DIR/aliases/default/bin`을 앞에 두고 중복 제거), `CARGO_HOME`, `RUSTUP_HOME`, `FNM_DIR`, `npm_config_cache`, `NOTI_CONFIG`, `NOTI_PRESET`, `INPUTRC`, `STARSHIP_CONFIG`.
+- 내용: `LANG`, PATH, `CARGO_HOME`, `RUSTUP_HOME`, `FNM_DIR`, `npm_config_cache`, `NOTI_CONFIG`, `NOTI_PRESET`, `INPUTRC`, `STARSHIP_CONFIG`, `LOCAL_BIN_PATH`, `LOCAL_OPT_PATH`, `LOCAL_SRC_PATH`, `LOCAL_STATE_PATH`.
+- PATH 앞에 이 순서로 두고 다른 위치의 같은 항목은 지운다.
+  - 있는 것만: `~/.local/opt/bell-bash/bin`, `~/.local/opt/noti-bash/bin`, `~/.lmstudio/bin`, `~/.local/opt/fzf/bin`
+  - 항상: `~/.local/opt/tmux/bin`, `~/.local/bin`, `$CARGO_HOME/bin`, `$FNM_DIR/aliases/default/bin`
+- 명령이 쓰는 환경 변수는 모두 여기에 둔다. tmux 서버는 자기를 띄운 셸의 환경을 시작할 때 복사해 두고, 셸 없이 실행하는 명령(`run-shell`, `new-window "명령"`, 플러그인 작업)에 그대로 넘긴다. 서버를 띄운 셸은 `ssh host tmux attach` 같은 비대화형 셸일 수 있다.
+- 대화형 기능만 읽는 변수는 `common.bash`에 둔다: `FZF_*`, `LS_COLORS`, `LESSOPEN`, `STARSHIP_LOG`, `_ZO_ECHO`. `secrets.env`도 `common.bash`가 읽는다.
+- `BELL_BASH_BACKENDS`는 `bell-send`도 읽지만 `common.bash`가 정한다. 머신별 값에 넣는 `webhook` 백엔드는 대화형 셸만 읽는 `NOTI_WEBHOOK`이 있어야 동작한다. 비대화형 셸의 `bell-send`는 자기 기본값 `bel,notify-send`를 쓴다.
+- SSH 접속의 `DISPLAY`도 `common.bash`가 정한다. 비대화형 ssh 명령(`ssh -X host cmd`)은 sshd가 넣은 X11 forwarding 값을 그대로 쓴다.
 - 출력하지 않는다. 출력이 있으면 scp, rsync, sftp가 깨진다.
 - 서브프로세스를 띄우지 않는다. 모든 ssh 명령마다 실행되기 때문이다.
 - 여러 번 읽어도 결과가 같고, alias, 함수, 프롬프트, 키 바인딩을 정의하지 않는다.
@@ -344,7 +351,7 @@ source-file -F "#{d:current_file}/common.conf"
 ### bell, noti, claude
 
 - `bootstrap user`는 `~/.local/opt/bell-bash`와 `~/.local/opt/noti-bash`를 clone하거나 pull만 한다. 각자의 설치기는 실행하지 않는다.
-- 셸: `common.bash`가 clone을 찾아 PATH, `source bell`, 기본값(`BELL_BASH_BACKENDS='bel,notify-send'`)을 설정한다. 머신별 값은 `~/.bashrc`의 대화형 구역에서 덮어쓴다.
+- 셸: `env.bash`가 두 clone의 `bin`을 PATH에 넣고, `common.bash`가 `source bell`과 기본값(`BELL_BASH_BACKENDS='bel,notify-send'`)을 설정한다. 머신별 값은 `~/.bashrc`의 대화형 구역에서 덮어쓴다.
   - bell은 다른 프롬프트 hook(starship, zoxide, fnm)을 모두 건 뒤 맨 마지막에 읽는다.
   - 프롬프트 hook은 셸마다 한 번만 걸므로, 대화형 구역을 고친 뒤 `. ~/.bashrc`로 다시 읽어도 hook이 겹치지 않는다.
 - noti 설정: `env.bash`가 `NOTI_CONFIG`, `NOTI_PRESET`을 `~/.config/noti/noti.conf`, `~/.config/noti/noti.preset`으로 정한다. noti는 이 변수가 가리키는 파일을 현재 디렉터리의 `.noti.conf`, `.noti.preset`보다 먼저 읽으므로, 프로젝트 디렉터리에 둔 이 파일은 더 이상 쓰이지 않는다. 다른 파일을 쓰려면 `~/.bashrc`의 로컬 환경변수 구역에서 두 변수를 다시 정한다.

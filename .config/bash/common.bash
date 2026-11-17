@@ -27,21 +27,8 @@ HISTFILESIZE=100000
 # Update terminal size after each command.
 shopt -s checkwinsize
 
-# User-local paths.
-export LOCAL_BIN_PATH="$HOME/.local/bin"
-export LOCAL_OPT_PATH="$HOME/.local/opt"
-export LOCAL_SRC_PATH="$HOME/.local/src"
-export LOCAL_STATE_PATH="${XDG_STATE_HOME:-$HOME/.local/state}"
+# User-local paths (env.bash exports them).
 mkdir -p "$LOCAL_BIN_PATH" "$LOCAL_OPT_PATH" "$LOCAL_SRC_PATH" "$LOCAL_STATE_PATH"
-
-__path_prepend() {
-    [ -n "$1" ] || return 0
-    [ -d "$1" ] || return 0
-    case ":$PATH:" in
-        *":$1:"*) ;;
-        *) PATH="$1:$PATH" ;;
-    esac
-}
 
 # Drop repeated PATH entries, keeping the first one, which is the one command
 # lookup already hits, so no command resolves differently. Machine-local rc
@@ -67,26 +54,6 @@ __path_dedupe() {
     [[ ${keep[*]} == "$PATH" ]] || PATH=${keep[*]}
     __path_dedupe() { :; }
 }
-
-# Move ~/.local/opt/fzf/bin to the front, ahead of a host fzf (apt, Homebrew):
-# the shell bindings in ~/.local/opt/fzf/shell and the Vim plugin in
-# ~/.local/opt/fzf expect the binary from the same checkout. Unlike
-# __path_prepend, this also moves an entry already on PATH further back, e.g.
-# one a parent shell got from ~/.config/fzf/fzf.bash appending it.
-__path_fzf_first() {
-    local dir="$HOME/.local/opt/fzf/bin" rest=":$PATH:"
-    [ -d "$dir" ] || return 0
-    while [[ $rest == *":$dir:"* ]]; do
-        rest=${rest/":$dir:"/:}
-    done
-    rest=${rest#:}
-    rest=${rest%:}
-    PATH="$dir${rest:+:$rest}"
-}
-
-__path_fzf_first
-__path_prepend "$HOME/.lmstudio/bin"
-export PATH
 
 # Make less more friendly for non-text input files.
 [ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
@@ -165,10 +132,9 @@ __claude_arg_add() {
 }
 
 # noti-bash: Discord/Slack webhook CLI, cloned by `dotfiles bootstrap user`. Its
-# executable comes from the clone (no longer vendored in this repo); put its
-# bin on PATH here, and the clone in front of Claude as a plugin (its skill).
-# Both no-op when the clone isn't present.
-__path_prepend "$LOCAL_OPT_PATH/noti-bash/bin"
+# executable comes from the clone (no longer vendored in this repo) and env.bash
+# puts its bin on PATH; here the clone goes in front of Claude as a plugin (its
+# skill). No-op when the clone isn't present.
 if [ -d "$LOCAL_OPT_PATH/noti-bash" ]; then
     __claude_arg_add CLAUDE_PLUGIN_DIRS "$LOCAL_OPT_PATH/noti-bash"
 fi
@@ -468,7 +434,6 @@ fi
 # installed after bell (starship, zoxide, fnm) would be that command.
 if [ -f "$LOCAL_OPT_PATH/bell-bash/bell" ]; then
     export BELL_BASH_BACKENDS='bel,notify-send'
-    __path_prepend "$LOCAL_OPT_PATH/bell-bash/bin"
     declare -F __bell_bash_prompt_command >/dev/null || . "$LOCAL_OPT_PATH/bell-bash/bell"
     # Skip fzf's interactive widgets from bell auto-triggers: Ctrl-R history
     # (__fzf_history__), Ctrl-T file (fzf-file-widget), Alt-C cd (__fzf_cd__).

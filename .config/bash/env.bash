@@ -4,6 +4,9 @@
 # Builtins only and no output: it runs for every ssh command, and output breaks
 # scp/rsync/sftp. Safe to source repeatedly and under "set -u".
 # cron and systemd units do not read it.
+# A tmux server keeps the environment of the shell that started it, often a
+# non-interactive "ssh host tmux attach", and hands it to what it runs without
+# a shell (run-shell, new-window CMD), so variables commands need belong here.
 
 # Desktop terminals inherit XDG_SESSION_TYPE and keep the system locale;
 # ssh and tty shells get C.UTF-8.
@@ -23,13 +26,26 @@ export NOTI_CONFIG="$__dotfiles_c/noti/noti.conf"
 export NOTI_PRESET="$__dotfiles_c/noti/noti.preset"
 # starship ignores XDG_CONFIG_HOME.
 export STARSHIP_CONFIG="$__dotfiles_c/starship.toml"
+export LOCAL_BIN_PATH="$HOME/.local/bin"
+export LOCAL_OPT_PATH="$HOME/.local/opt"
+export LOCAL_SRC_PATH="$HOME/.local/src"
+export LOCAL_STATE_PATH="${XDG_STATE_HOME:-$HOME/.local/state}"
 
 # These dirs go first, in this order, and their other copies are dropped, so a
-# second source leaves PATH unchanged. The user-local tmux wins over a distro
-# one; the fnm default node comes last because interactive shells put fnm's
-# per-shell dir in front of it (common.bash). Splitting with parameter
-# expansion needs no subprocess and no IFS or globbing change.
-__dotfiles_w="$HOME/.local/opt/tmux/bin:$HOME/.local/bin:$CARGO_HOME/bin:$FNM_DIR/aliases/default/bin"
+# second source leaves PATH unchanged. Tool clones lead when they exist; fzf's
+# shell bindings and Vim plugin expect the clone's binary, not a host fzf. The
+# user-local tmux wins over a distro one; the fnm default node comes last
+# because interactive shells put fnm's per-shell dir in front of it
+# (common.bash). Splitting with parameter expansion needs no subprocess and no
+# IFS or globbing change.
+__dotfiles_w=
+for __dotfiles_e in "$HOME/.local/opt/bell-bash/bin" "$HOME/.local/opt/noti-bash/bin" \
+    "$HOME/.lmstudio/bin" "$HOME/.local/opt/fzf/bin"; do
+    if [ -d "$__dotfiles_e" ]; then
+        __dotfiles_w=$__dotfiles_w$__dotfiles_e:
+    fi
+done
+__dotfiles_w="$__dotfiles_w$HOME/.local/opt/tmux/bin:$HOME/.local/bin:$CARGO_HOME/bin:$FNM_DIR/aliases/default/bin"
 __dotfiles_r=${PATH:+$PATH:}
 __dotfiles_o=
 while [ -n "$__dotfiles_r" ]; do

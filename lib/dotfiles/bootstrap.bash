@@ -4,8 +4,8 @@
 #
 # Nothing here edits rc files: rustup runs with --no-modify-path, fnm and fzf
 # are installed without their shell-setup steps, and bell-bash/noti-bash are
-# only cloned (common.bash and common.conf wire them up, so neither writes
-# ~/.claude). The exceptions under ~/.claude are third-party: the
+# only cloned (env.bash, common.bash and common.conf wire them up, so neither
+# writes ~/.claude). The exceptions under ~/.claude are third-party: the
 # claude-account-switcher installer routes its statusLine in
 # ~/.claude/settings.json, the Claude CLI installer downloads into
 # ~/.claude/downloads (its `claude install` adds backups/ and sessions/), and
@@ -14,12 +14,13 @@
 
 # Installs even when a system tmux exists: distro builds lag (Ubuntu 24.04's
 # 3.4 misparses nvim's DECRQSS query as sixel). The binary lives alone in
-# $LOCAL_OPT_PATH/tmux/bin, which env.bash puts first on PATH for every bash,
-# including the non-interactive one `ssh host tmux attach` starts;
-# $LOCAL_BIN_PATH gets a link too. Pinned to a known-good release; bumping the
-# tag upgrades on the next run, and --force reinstalls even when the pinned
-# version is present. v3.7b ships no arm64 build, so arm64 pins the newest
-# release that has one. Both tags are read from the environment, e.g.
+# $LOCAL_OPT_PATH/tmux/bin, which env.bash puts ahead of the system dirs on
+# PATH for every bash, including the non-interactive one `ssh host tmux
+# attach` starts; $LOCAL_BIN_PATH gets a link too. Pinned to a known-good
+# release; bumping the tag upgrades on the next run, and --force reinstalls
+# even when the pinned version is present. v3.7b ships no arm64 build, so
+# arm64 pins the newest release that has one. Both tags are read from the
+# environment, e.g.
 # `TMUX_STATIC_TAG=v3.2 dotfiles bootstrap user --only tmux --force`.
 TMUX_STATIC_TAG="${TMUX_STATIC_TAG:-v3.7b}"
 TMUX_STATIC_TAG_ARM64="${TMUX_STATIC_TAG_ARM64:-v3.6b}"
@@ -42,13 +43,11 @@ __bs_usage() {
 
 # Set-up shared by every bootstrap kind and by migrate.bash. The CLI never
 # reads ~/.bashrc, so env.bash supplies the tool homes (CARGO_HOME,
-# RUSTUP_HOME, FNM_DIR, npm_config_cache) and PATH. LOCAL_* are pinned rather
-# than inherited because env.bash hard-codes the tmux dir under ~/.local/opt.
+# RUSTUP_HOME, FNM_DIR, npm_config_cache), LOCAL_BIN_PATH, LOCAL_OPT_PATH and
+# PATH.
 __bs_init() {
     # shellcheck source=/dev/null
     . "$REPO/.config/bash/env.bash" || return 1
-    export LOCAL_BIN_PATH="$HOME/.local/bin"
-    export LOCAL_OPT_PATH="$HOME/.local/opt"
     mkdir -p "$LOCAL_BIN_PATH" "$LOCAL_OPT_PATH" "$DATA" "$CACHE" || return 1
     # Kept unexported and removed from the environment, so third-party
     # installers (starship, the switcher, the claude CLI, agents) never see it.
@@ -559,8 +558,8 @@ install_up_user() {
 }
 
 # Clone fzf even when the host has its own fzf: Vim and Neovim load the fzf
-# Vim plugin from this clone (no plugin manager installs it), and
-# __path_fzf_first in common.bash puts its binary ahead of the host one.
+# Vim plugin from this clone (no plugin manager installs it), and env.bash
+# puts its binary ahead of the host one.
 # --bin only: without it the installer writes its own fzf.bash into $HOME, or
 # with --xdg over ~/.config/fzf/fzf.bash, which is this repo's file.
 # An existing clone without the binary (its installer failed to download it)
@@ -795,8 +794,8 @@ install_tmux_user() {
 
 # Shared clone-or-update helper: bell-bash and noti-bash into $LOCAL_OPT_PATH,
 # the agents harness into ~/agents (see __bs_agents). bell/noti are only cloned
-# or updated, never installed with their own installers: common.bash and
-# common.conf own their shell, tmux and Claude Code wiring.
+# or updated, never installed with their own installers: env.bash, common.bash
+# and common.conf own their PATH, shell, tmux and Claude Code wiring.
 __clone_or_pull() {
     local url="$1" dst="$2" clone_flags
     # $3 = extra `git clone` flags. Default to a shallow clone; pass "" for a
@@ -868,7 +867,7 @@ show_user_only_notes() {
 User-only notes:
 - `dotfiles bootstrap user` never runs sudo/apt/snap/dpkg. Programs go to ~/.local/opt and ~/.local/bin; rustup, cargo and fnm keep their data under ${XDG_DATA_HOME:-~/.local/share}.
 - It also installs clangd, btop, nnn, and tmux from prebuilt/static downloads (no root needed; x86_64 mainly, see per-tool guards).
-- It clones (or pulls) bell-bash and noti-bash into ~/.local/opt; the `noti` CLI and `bell`/`bell-send` come from these clones. It never runs their installers and never writes ~/.claude: ~/.config/bash/common.bash puts them on PATH and hands both clones to Claude Code through its claude() wrapper (--plugin-dir, --settings), and ~/.config/tmux/common.conf wires tmux. Update the tools with `git -C ~/.local/opt/<repo> pull`.
+- It clones (or pulls) bell-bash and noti-bash into ~/.local/opt; the `noti` CLI and `bell`/`bell-send` come from these clones. It never runs their installers and never writes ~/.claude: ~/.config/bash/env.bash puts them on PATH, ~/.config/bash/common.bash hands both clones to Claude Code through its claude() wrapper (--plugin-dir, --settings), and ~/.config/tmux/common.conf wires tmux. Update the tools with `git -C ~/.local/opt/<repo> pull`.
 - It installs claude-account-switcher into ~/.local/opt and runs its installer (this one owns state we don't track: the ~/.claude-accounts store and the statusLine sensor that switches accounts). The claude() wrapper defined in ~/.config/bash/common.bash already launches `claude-auto` when it is installed, so do not add the `alias claude=claude-auto` its installer may suggest: the alias shadows the wrapper and drops its plugin arguments. Add accounts with `claude-auto login <name>` and check them with `claude-auto status`.
 - It installs the Claude Code CLI into ~/.local/bin when `claude` is missing (user-local, no root).
 - It installs gh-dash (`git pr`) as a gh extension. Upgrade it with `env -u GH_TOKEN gh extension upgrade dash`; a GH_TOKEN meant for another host makes the upgrade fail.

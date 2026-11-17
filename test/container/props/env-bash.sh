@@ -4,11 +4,12 @@
 # inputs. Source after assert.sh and tests.sh, then call check_a30_env_bash.
 
 # The PATH env.bash should produce for INPUT (or "__unset__"): every
-# occurrence of the four wanted dirs dropped, then those prepended in order;
-# other entries keep their order, empty ones included.
+# occurrence of the wanted dirs dropped, then those prepended in order; other
+# entries keep their order, empty ones included. The wanted dirs are the tool
+# clone dirs in FIRST (those HOME has, in env.bash's order), then the four.
 __a30_expected_path() {
-    local home=$1 input=$2 want rest e out=
-    want="$home/.local/opt/tmux/bin:$home/.local/bin:$home/.local/share/cargo/bin:$home/.local/share/fnm/aliases/default/bin"
+    local home=$1 input=$2 first=${3-} want rest e out=
+    want="${first:+$first:}$home/.local/opt/tmux/bin:$home/.local/bin:$home/.local/share/cargo/bin:$home/.local/share/fnm/aliases/default/bin"
     if [ "$input" = __unset__ ] || [ -z "$input" ]; then
         printf '%s' "$want"
         return
@@ -25,16 +26,16 @@ __a30_expected_path() {
     printf '%s' "$want$out"
 }
 
-# __a30_path_case LABEL INPUT — sources env.bash twice from INPUT (a PATH value
-# or __unset__) and compares both results with the specification.
+# __a30_path_case LABEL INPUT [FIRST] — sources env.bash twice from INPUT (a
+# PATH value or __unset__) and compares both results with the specification.
 __a30_path_case() {
-    local label=$1 input=$2 h=$T_WORK/a30-home out want first second
+    local label=$1 input=$2 tools=${3-} h=$T_WORK/a30-home out want first second
     out=$(env -i HOME="$h" USER="$T_USER" T_INPUT="$input" /bin/bash --norc --noprofile -c '
         if [ "$T_INPUT" = __unset__ ]; then unset PATH; else PATH=$T_INPUT; fi
         unset T_INPUT
         . "$1"; printf "%s\n" "$PATH"
         . "$1"; printf "%s\n" "$PATH"' a30 "$T_A30_ENV" 2>&1)
-    want=$(__a30_expected_path "$h" "$input")
+    want=$(__a30_expected_path "$h" "$input" "$tools")
     first=${out%%$'\n'*}
     second=${out#*$'\n'}
     assert_eq "A30 PATH from $label" "$want" "$first"
@@ -81,6 +82,13 @@ check_a30_env_bash() {
     __a30_path_case "entries with '*' and spaces" '/opt/a b/bin:/opt/c*d:/usr/bin'
     __a30_path_case "the wanted dirs already present" \
         "/usr/bin:$h/.local/bin:/bin:$h/.local/opt/tmux/bin:$h/.local/bin"
+
+    # Tool clone dirs lead only when they exist; fzf's also moves ahead of
+    # a copy fzf.bash appended in a parent shell.
+    mkdir -p "$h/.local/opt/bell-bash/bin" "$h/.local/opt/fzf/bin"
+    __a30_path_case "the bell and fzf clones present" \
+        "/usr/bin:/bin:$h/.local/opt/fzf/bin" \
+        "$h/.local/opt/bell-bash/bin:$h/.local/opt/fzf/bin"
 
     # Nested login shells: the distro ~/.profile prepends ~/.local/bin after
     # ~/.bashrc each time; PATH must stop growing after the second level.
