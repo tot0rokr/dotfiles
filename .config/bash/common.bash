@@ -333,6 +333,77 @@ __prompt_os_init() {
     fi
 }
 
+# Prompt themes. starship reads its palette only from the config file, so the
+# chosen palette's name is kept in a state file that every host of the NFS
+# home shares. Each host renders starship.toml with that palette into its
+# local prompt cache and points STARSHIP_CONFIG there. A shell reads the
+# choice when it starts and when `prompt-theme` changes it; shells of the same
+# host that already use the rendered copy follow at their next prompt.
+__prompt_theme_src=${XDG_CONFIG_HOME:-$HOME/.config}/starship.toml
+__prompt_theme_state=${XDG_STATE_HOME:-$HOME/.local/state}/starship/palette
+__prompt_theme_copy=$__prompt_cache_root/starship.toml
+
+# Only the palettes that define the segment keys can color this prompt.
+__prompt_theme_names() {
+    awk '/^\[/ { name = "" }
+        /^\[palettes\./ { name = substr($0, 11, length($0) - 11) }
+        /^user_bg[ =]/ && name != "" { print name }' "$__prompt_theme_src"
+}
+
+__prompt_theme_sync() {
+    local name
+    export STARSHIP_CONFIG=$__prompt_theme_src
+    [[ -r $__prompt_theme_state ]] || return 0
+    if [[ $__prompt_theme_state -nt $__prompt_theme_copy || $__prompt_theme_src -nt $__prompt_theme_copy ]]; then
+        IFS= read -r name <"$__prompt_theme_state"
+        if ! grep -qxF "[palettes.$name]" "$__prompt_theme_src"; then
+            printf 'prompt-theme: no palette "%s" in %s, using its default\n' "$name" "$__prompt_theme_src" >&2
+            return 1
+        fi
+        if ! { mkdir -p "${__prompt_theme_copy%/*}" &&
+            sed "s/^palette = .*/palette = '$name'/" "$__prompt_theme_src" >"$__prompt_theme_copy.$$" &&
+            command mv -f "$__prompt_theme_copy.$$" "$__prompt_theme_copy"; } 2>/dev/null; then
+            command rm -f "$__prompt_theme_copy.$$"
+            return 1
+        fi
+    fi
+    export STARSHIP_CONFIG=$__prompt_theme_copy
+}
+
+# prompt-theme          list the palettes; * marks the one this shell uses
+# prompt-theme NAME     switch every shell to NAME
+# prompt-theme next     switch to the palette after the current one
+prompt-theme() {
+    local names cur name i found=
+    mapfile -t names < <(__prompt_theme_names)
+    cur=$(sed -n "s/^palette = '\(.*\)'$/\1/p" "$STARSHIP_CONFIG")
+    case ${1-} in
+        '')
+            for name in "${names[@]}"; do
+                if [[ $name == "$cur" ]]; then printf '* %s\n' "$name"; else printf '  %s\n' "$name"; fi
+            done
+            return
+            ;;
+        next)
+            name=${names[0]-}
+            for i in "${!names[@]}"; do
+                [[ ${names[i]} == "$cur" ]] && name=${names[(i + 1) % ${#names[@]}]}
+            done
+            ;;
+        *) name=$1 ;;
+    esac
+    for i in "${names[@]}"; do
+        [[ $i == "$name" ]] && found=1
+    done
+    if [[ -z $found ]]; then
+        printf 'prompt-theme: no palette "%s"; run prompt-theme to list them\n' "$name" >&2
+        return 1
+    fi
+    mkdir -p "${__prompt_theme_state%/*}" &&
+        printf '%s\n' "$name" >"$__prompt_theme_state" &&
+        __prompt_theme_sync
+}
+
 if command -v starship >/dev/null 2>&1; then
     # On a cold NFS cache the directory scan for the language modules outlasts
     # scan_timeout, and starship warns above the prompt each time. The scan
@@ -340,6 +411,7 @@ if command -v starship >/dev/null 2>&1; then
     export STARSHIP_LOG=error
     declare -F starship_precmd >/dev/null || eval "$(starship init bash)"
     starship_precmd_user_func=__prompt_git_status
+    __prompt_theme_sync
     __prompt_os_init
 fi
 

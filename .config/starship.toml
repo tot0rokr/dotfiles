@@ -1,15 +1,17 @@
 "$schema" = 'https://starship.rs/config-schema.json'
 
 format = """
-[░▒▓](red)\
+[░▒▓](user_bg)\
 ${env_var.PROMPT_OS}\
 $username\
-[](bg:peach fg:red)\
+[](bg:host_bg fg:user_bg)\
+$hostname\
+[](bg:dir_bg fg:host_bg)\
 $directory\
-[](bg:yellow fg:peach)\
+[](bg:git_bg fg:dir_bg)\
 $git_branch\
 ${env_var.PROMPT_GIT_STATUS}\
-[](fg:yellow bg:green)\
+[](fg:git_bg bg:lang_bg)\
 $c\
 $rust\
 $golang\
@@ -19,16 +21,19 @@ $java\
 $kotlin\
 $haskell\
 $python\
-[](fg:green bg:sapphire)\
+[](fg:lang_bg bg:env_bg)\
 $conda\
-[](fg:sapphire bg:lavender)\
+[](fg:env_bg bg:time_bg)\
 $time\
-[ ](fg:lavender)\
+[ ](fg:time_bg)\
 $cmd_duration\
 $line_break\
 $character"""
 
-palette = 'catppuccin_mocha'
+# Colors come from the segment keys (user_bg, dir_fg, ...) of the prompt
+# palettes near the end of this file. This is the default; `prompt-theme`
+# (common.bash) picks another one.
+palette = 'duo'
 
 # Not in `format`: picking the icon runs `lsb_release -a` (a shell script,
 # ~20ms) on every prompt. common.bash resolves it once per host with
@@ -40,7 +45,7 @@ format = "$symbol"
 
 [env_var.PROMPT_OS]
 variable = "PROMPT_OS"
-style = "bg:red fg:crust"
+style = "bg:user_bg fg:user_fg"
 format = "[$env_value]($style)"
 
 [os.symbols]
@@ -66,12 +71,20 @@ RedHatEnterprise = "󱄛"
 
 [username]
 show_always = true
-style_user = "bg:red fg:crust"
-style_root = "bg:red fg:crust"
+style_user = "bg:user_bg fg:user_fg"
+style_root = "bg:user_bg fg:user_fg"
 format = '[ $user]($style)'
 
+# Home is on NFS shared by several VMs, so the prompt is otherwise the
+# same on each. Shown always, not only over SSH: inside tmux
+# SSH_CONNECTION can be stale or missing.
+[hostname]
+ssh_only = false
+style = "bg:host_bg fg:host_fg"
+format = '[ $hostname]($style)'
+
 [directory]
-style = "bg:peach fg:crust"
+style = "bg:dir_bg fg:dir_fg"
 format = "[ $path ]($style)"
 truncation_length = 3
 truncation_symbol = "…/"
@@ -85,8 +98,8 @@ truncation_symbol = "…/"
 
 [git_branch]
 symbol = ""
-style = "bg:yellow"
-format = '[[ $symbol $branch ](fg:crust bg:yellow)]($style)'
+style = "bg:git_bg"
+format = '[[ $symbol $branch ](fg:git_fg bg:git_bg)]($style)'
 
 # Not in `format`: it walks the whole work tree, which is slow on NFS. The
 # shell runs `starship module git_status` in the background and the prompt
@@ -98,90 +111,299 @@ format = '($all_status$ahead_behind)'
 
 [env_var.PROMPT_GIT_STATUS]
 variable = "PROMPT_GIT_STATUS"
-style = "bg:yellow"
-format = '[[($env_value )](fg:crust bg:yellow)]($style)'
+style = "bg:git_bg"
+format = '[[($env_value )](fg:git_fg bg:git_bg)]($style)'
 
 [nodejs]
 symbol = ""
-style = "bg:green"
-format = '[[ $symbol( $version) ](fg:crust bg:green)]($style)'
+style = "bg:lang_bg"
+format = '[[ $symbol( $version) ](fg:lang_fg bg:lang_bg)]($style)'
 
 [c]
 symbol = " "
-style = "bg:green"
-format = '[[ $symbol( $version) ](fg:crust bg:green)]($style)'
+style = "bg:lang_bg"
+format = '[[ $symbol( $version) ](fg:lang_fg bg:lang_bg)]($style)'
 
 [rust]
 symbol = ""
-style = "bg:green"
-format = '[[ $symbol( $version) ](fg:crust bg:green)]($style)'
+style = "bg:lang_bg"
+format = '[[ $symbol( $version) ](fg:lang_fg bg:lang_bg)]($style)'
 
 [golang]
 symbol = ""
-style = "bg:green"
-format = '[[ $symbol( $version) ](fg:crust bg:green)]($style)'
+style = "bg:lang_bg"
+format = '[[ $symbol( $version) ](fg:lang_fg bg:lang_bg)]($style)'
 
 [php]
 symbol = ""
-style = "bg:green"
-format = '[[ $symbol( $version) ](fg:crust bg:green)]($style)'
+style = "bg:lang_bg"
+format = '[[ $symbol( $version) ](fg:lang_fg bg:lang_bg)]($style)'
 
 [java]
 symbol = " "
-style = "bg:green"
-format = '[[ $symbol( $version) ](fg:crust bg:green)]($style)'
+style = "bg:lang_bg"
+format = '[[ $symbol( $version) ](fg:lang_fg bg:lang_bg)]($style)'
 
 [kotlin]
 symbol = ""
-style = "bg:green"
-format = '[[ $symbol( $version) ](fg:crust bg:green)]($style)'
+style = "bg:lang_bg"
+format = '[[ $symbol( $version) ](fg:lang_fg bg:lang_bg)]($style)'
 
 [haskell]
 symbol = ""
-style = "bg:green"
-format = '[[ $symbol( $version) ](fg:crust bg:green)]($style)'
+style = "bg:lang_bg"
+format = '[[ $symbol( $version) ](fg:lang_fg bg:lang_bg)]($style)'
 
 [python]
 symbol = ""
-style = "bg:green"
-format = '[[ $symbol( $version)(\(#$virtualenv\)) ](fg:crust bg:green)]($style)'
+style = "bg:lang_bg"
+format = '[[ $symbol( $version)(\(#$virtualenv\)) ](fg:lang_fg bg:lang_bg)]($style)'
 
 [docker_context]
 symbol = ""
-style = "bg:sapphire"
-format = '[[ $symbol( $context) ](fg:crust bg:sapphire)]($style)'
+style = "bg:env_bg"
+format = '[[ $symbol( $context) ](fg:env_fg bg:env_bg)]($style)'
 
 [conda]
 symbol = "  "
-style = "fg:crust bg:sapphire"
+style = "fg:env_fg bg:env_bg"
 format = '[$symbol$environment ]($style)'
 ignore_base = false
 
 [time]
 disabled = false
 time_format = "%R"
-style = "bg:lavender"
-format = '[[  $time ](fg:crust bg:lavender)]($style)'
+style = "bg:time_bg"
+format = '[[  $time ](fg:time_fg bg:time_bg)]($style)'
 
 [line_break]
 disabled = true
 
 [character]
 disabled = false
-success_symbol = '[❯](bold fg:green)'
-error_symbol = '[❯](bold fg:red)'
-vimcmd_symbol = '[❮](bold fg:green)'
-vimcmd_replace_one_symbol = '[❮](bold fg:lavender)'
-vimcmd_replace_symbol = '[❮](bold fg:lavender)'
-vimcmd_visual_symbol = '[❮](bold fg:yellow)'
+success_symbol = '[❯](bold fg:#a6e3a1)'
+error_symbol = '[❯](bold fg:#f38ba8)'
+vimcmd_symbol = '[❮](bold fg:#a6e3a1)'
+vimcmd_replace_one_symbol = '[❮](bold fg:#b4befe)'
+vimcmd_replace_symbol = '[❮](bold fg:#b4befe)'
+vimcmd_visual_symbol = '[❮](bold fg:#f9e2af)'
 
 [cmd_duration]
 show_milliseconds = true
 format = " in $duration "
-style = "bg:lavender"
+style = "bg:time_bg"
 disabled = false
 show_notifications = true
 min_time_to_notify = 45000
+
+# Prompt palettes: a background and a text color for each segment. Segments
+# that meet differ by at least 0.1 in OKLab (rainbow keeps its original
+# colors), and text keeps 4.2:1 contrast or more. `prompt-theme` lists the
+# palettes that define user_bg.
+
+# one blue, each segment a step lighter than the last
+[palettes.blue]
+user_bg = "#223e61"
+user_fg = "#edf2f9"
+host_bg = "#3f5c82"
+host_fg = "#edf2f9"
+dir_bg  = "#5e7ca3"
+dir_fg  = "#10171f"
+git_bg  = "#839ec1"
+git_fg  = "#10171f"
+lang_bg = "#5e7ca3"
+lang_fg = "#10171f"
+env_bg  = "#3f5c82"
+env_fg  = "#edf2f9"
+time_bg = "#a9c0de"
+time_fg = "#10171f"
+
+# two dark grays alternate; only the text is tinted
+[palettes.slate]
+user_bg = "#22272e"
+user_fg = "#97c1f7"
+host_bg = "#3e434b"
+host_fg = "#97c1f7"
+dir_bg  = "#22272e"
+dir_fg  = "#e3e8ef"
+git_bg  = "#3e434b"
+git_fg  = "#e6ca91"
+lang_bg = "#22272e"
+lang_fg = "#a6daaf"
+env_bg  = "#3e434b"
+env_fg  = "#a6daaf"
+time_bg = "#22272e"
+time_fg = "#9ca5b1"
+
+# who = blue, where = sand, tools = sage, when = gray
+[palettes.duo]
+user_bg = "#324e73"
+user_fg = "#edf2f9"
+host_bg = "#58769d"
+host_fg = "#edf2f9"
+dir_bg  = "#d2c2a8"
+dir_fg  = "#10171f"
+git_bg  = "#af9c7c"
+git_fg  = "#10171f"
+lang_bg = "#aeceb3"
+lang_fg = "#10171f"
+env_bg  = "#83a188"
+env_fg  = "#10171f"
+time_bg = "#5e646c"
+time_fg = "#edf2f9"
+
+# one teal, lighter to the right
+[palettes.teal]
+user_bg = "#003636"
+user_fg = "#edf2f9"
+host_bg = "#1f5454"
+host_fg = "#edf2f9"
+dir_bg  = "#699d9d"
+dir_fg  = "#10171f"
+git_bg  = "#8bc0bf"
+git_fg  = "#10171f"
+lang_bg = "#699d9d"
+lang_fg = "#10171f"
+env_bg  = "#8bc0bf"
+env_fg  = "#10171f"
+time_bg = "#aee3e3"
+time_fg = "#10171f"
+
+# one violet, lighter to the right
+[palettes.violet]
+user_bg = "#302749"
+user_fg = "#edf2f9"
+host_bg = "#4d4468"
+host_fg = "#edf2f9"
+dir_bg  = "#948bb4"
+dir_fg  = "#10171f"
+git_bg  = "#b6add7"
+git_fg  = "#10171f"
+lang_bg = "#948bb4"
+lang_fg = "#10171f"
+env_bg  = "#b6add7"
+env_fg  = "#10171f"
+time_bg = "#dad0fc"
+time_fg = "#10171f"
+
+# brown to sand, lighter to the right
+[palettes.earth]
+user_bg = "#3d2914"
+user_fg = "#edf2f9"
+host_bg = "#5c4530"
+host_fg = "#edf2f9"
+dir_bg  = "#a68d76"
+dir_fg  = "#10171f"
+git_bg  = "#c9af97"
+git_fg  = "#10171f"
+lang_bg = "#a68d76"
+lang_fg = "#10171f"
+env_bg  = "#c9af97"
+env_fg  = "#10171f"
+time_bg = "#edd2b9"
+time_fg = "#10171f"
+
+# violet drifting to teal while it lightens
+[palettes.dusk]
+user_bg = "#332647"
+user_fg = "#edf2f9"
+host_bg = "#41486b"
+host_fg = "#edf2f9"
+dir_bg  = "#7397b5"
+dir_fg  = "#10171f"
+git_bg  = "#89becf"
+git_fg  = "#10171f"
+lang_bg = "#7397b5"
+lang_fg = "#10171f"
+env_bg  = "#89becf"
+env_fg  = "#10171f"
+time_bg = "#a9e4e4"
+time_fg = "#10171f"
+
+# one green, lighter to the right
+[palettes.pine]
+user_bg = "#173523"
+user_fg = "#edf2f9"
+host_bg = "#34533e"
+host_fg = "#edf2f9"
+dir_bg  = "#7a9c85"
+dir_fg  = "#10171f"
+git_bg  = "#9cbea6"
+git_fg  = "#10171f"
+lang_bg = "#7a9c85"
+lang_fg = "#10171f"
+env_bg  = "#9cbea6"
+env_fg  = "#10171f"
+time_bg = "#bee2c9"
+time_fg = "#10171f"
+
+# two warm grays alternate; only the text is tinted
+[palettes.ember]
+user_bg = "#2b2521"
+user_fg = "#efb696"
+host_bg = "#47413c"
+host_fg = "#efb696"
+dir_bg  = "#2b2521"
+dir_fg  = "#ebe7e1"
+git_bg  = "#47413c"
+git_fg  = "#e5cc89"
+lang_bg = "#2b2521"
+lang_fg = "#b3d6ab"
+env_bg  = "#47413c"
+env_fg  = "#b3d6ab"
+time_bg = "#2b2521"
+time_fg = "#aca39b"
+
+# dark slate and frost blue alternate
+[palettes.nordic]
+user_bg = "#2e3947"
+user_fg = "#edf2f9"
+host_bg = "#6ea1b2"
+host_fg = "#10171f"
+dir_bg  = "#424e5e"
+dir_fg  = "#edf2f9"
+git_bg  = "#89c4c6"
+git_fg  = "#10171f"
+lang_bg = "#424e5e"
+lang_fg = "#edf2f9"
+env_bg  = "#6ea1b2"
+env_fg  = "#10171f"
+time_bg = "#2e3947"
+time_fg = "#edf2f9"
+
+# plain grays, no hue at all
+[palettes.graphite]
+user_bg = "#2e2e2e"
+user_fg = "#edf2f9"
+host_bg = "#4a4a4a"
+host_fg = "#edf2f9"
+dir_bg  = "#929292"
+dir_fg  = "#10171f"
+git_bg  = "#b4b4b4"
+git_fg  = "#10171f"
+lang_bg = "#929292"
+lang_fg = "#10171f"
+env_bg  = "#b4b4b4"
+env_fg  = "#10171f"
+time_bg = "#d7d7d7"
+time_fg = "#10171f"
+
+# the catppuccin mocha rainbow this prompt used first; mauve for the host
+[palettes.rainbow]
+user_bg = "#f38ba8"
+user_fg = "#11111b"
+host_bg = "#cba6f7"
+host_fg = "#11111b"
+dir_bg  = "#fab387"
+dir_fg  = "#11111b"
+git_bg  = "#f9e2af"
+git_fg  = "#11111b"
+lang_bg = "#a6e3a1"
+lang_fg = "#11111b"
+env_bg  = "#74c7ec"
+env_fg  = "#11111b"
+time_bg = "#b4befe"
+time_fg = "#11111b"
 
 [palettes.catppuccin_mocha]
 rosewater = "#f5e0dc"

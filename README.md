@@ -294,6 +294,10 @@ source-file -F "#{d:current_file}/common.conf"
 
 - history: `HISTFILE=~/.local/state/bash/history`(디렉터리가 없으면 만든다), `HISTFILESIZE=100000`. install은 새 history 파일이 없을 때 `~/.bash_history`를 가져온다.
 - 프롬프트, completion(bash-completion은 한 번만 로드), fzf, zoxide, starship, fnm 자동 전환, bell과 noti 연결, `claude()` wrapper, SSH 접속의 `DISPLAY`, `secrets.env`.
+- 프롬프트 색: `starship.toml`의 팔레트 가운데 구간별 색(`user_bg`, `dir_fg` 등)을 정의한 것을 고른다. 기본값은 `palette =` 줄이 정한다.
+  - `prompt-theme`은 목록을 보여 주고 지금 셸이 쓰는 팔레트에 `*`를 붙인다. `prompt-theme 이름`이나 `prompt-theme next`로 바꾼다.
+  - 고른 이름은 `~/.local/state/starship/palette`에 남아 NFS 홈을 함께 쓰는 모든 호스트가 따른다. 호스트마다 그 팔레트로 바꾼 `starship.toml` 사본을 프롬프트 캐시(`/run/user/<uid>/prompt-cache`)에 만들고 `STARSHIP_CONFIG`가 사본을 가리킨다.
+  - 같은 호스트에서 사본을 쓰던 셸은 다음 프롬프트부터 바뀌고, 그 밖의 셸은 새로 시작할 때 바뀐다. 사본은 셸이 시작하거나 `prompt-theme`을 실행할 때 `starship.toml`이나 고른 이름보다 오래됐으면 다시 만든다.
 
 `XDG_*` 값을 바꾸려면 `~/.bashrc`가 실행되기 전(로그인 환경)에 정한다. `~/.bashrc`의 블록이 그 값으로 `env.bash`와 `common.bash`를 찾는다.
 
