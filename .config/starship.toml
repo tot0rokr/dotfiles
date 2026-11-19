@@ -177,7 +177,7 @@ style = "bg:time_bg"
 format = '[[  $time ](fg:time_fg bg:time_bg)]($style)'
 
 [line_break]
-disabled = true
+disabled = false
 
 [character]
 disabled = false
