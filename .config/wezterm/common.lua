@@ -325,12 +325,12 @@ function M.apply(config, servers, commands)
   {
     key = 'PageUp',
     mods = 'CTRL|SHIFT|ALT',
-    action = wezterm.action.MoveTabRelative(-1),
+    action = wezterm.action.MoveTabRelative(1),
   },
   {
     key = 'PageDown',
     mods = 'CTRL|SHIFT|ALT',
-    action = wezterm.action.MoveTabRelative(1),
+    action = wezterm.action.MoveTabRelative(-1),
   },
 
   -- 탭 닫기
